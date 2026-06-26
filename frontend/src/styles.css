@@ -44,7 +44,8 @@ code,
   --border-0: #353333;
 
   /* Accents */
-  --accent-blue: #0099bb; /* #09B spec */
+  --accent-color: #ffba00;
+  --accent-blue: var(--accent-color);
   --accent-green: #00ff6a;
   --success-0: #23bd63; /* switch track */
   --success-1: #044221; /* good status bg */
@@ -84,7 +85,8 @@ code,
   --muted-2: #383838;
   --border-0: #353333;
 
-  --accent-blue: #0099bb;
+  --accent-color: #ffba00;
+  --accent-blue: var(--accent-color);
   --accent-green: #00ff6a;
   --success-0: #23bd63;
   --success-1: #044221;
@@ -114,6 +116,7 @@ code,
   --color-border: var(--border-0);
   --color-input: color-mix(in oklab, var(--bg-1) 80%, white 0%);
   --color-ring: var(--accent-blue);
+  --color-accent-blue: var(--accent-color);
 
   --color-primary: var(--bg-3);
   --color-primary-foreground: var(--text-0);
@@ -194,4 +197,15 @@ code,
 
 .animate-scroll-text {
   animation: scroll-text var(--scroll-duration, 12s) linear infinite;
+}
+
+/* Force native browser date pickers to have transparent backgrounds to show parent gradients */
+input[type="date"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field {
+  background: transparent !important;
+  background-color: transparent !important;
 }

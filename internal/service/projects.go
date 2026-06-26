@@ -50,14 +50,21 @@ type CreateProjectInput struct {
 }
 
 type UpdateProjectInput struct {
-	UserID          int64
-	PublicID        string
-	Name            *string
-	Description     *string
-	QualityOverride *string
-	AuthorOverride  *string
-	Notes           *string
-	NotesAuthorName *string
+	UserID               int64
+	PublicID             string
+	Name                 *string
+	Description          *string
+	QualityOverride      *string
+	AuthorOverride       *string
+	Notes                *string
+	NotesAuthorName      *string
+	EstimatedReleaseDate *string
+	CompletionPercentage *int32
+	Rating               *int32
+	ColorPalette         *string
+	StreamingChecklist   *string
+	PreSaveURL           *string
+	DistributorNotes     *string
 }
 
 type UploadCoverInput struct {
@@ -113,6 +120,14 @@ func ProjectRowToProject(row sqlc.GetProjectByPublicIDNoFilterRow) sqlc.Project 
 		CustomOrder:             row.CustomOrder,
 		CreatedAt:               row.CreatedAt,
 		UpdatedAt:               row.UpdatedAt,
+		CoverProcessed:          row.CoverProcessed,
+		EstimatedReleaseDate:    row.EstimatedReleaseDate,
+		CompletionPercentage:    row.CompletionPercentage,
+		Rating:                  row.Rating,
+		ColorPalette:            row.ColorPalette,
+		StreamingChecklist:      row.StreamingChecklist,
+		PreSaveUrl:              row.PreSaveUrl,
+		DistributorNotes:        row.DistributorNotes,
 	}
 }
 
@@ -305,16 +320,78 @@ func (s *projectService) UpdateProject(ctx context.Context, input UpdateProjectI
 		}
 	}
 
+	estimatedReleaseDate := currentProject.EstimatedReleaseDate
+	if input.EstimatedReleaseDate != nil {
+		if *input.EstimatedReleaseDate == "" {
+			estimatedReleaseDate = sql.NullString{}
+		} else {
+			estimatedReleaseDate = sql.NullString{String: *input.EstimatedReleaseDate, Valid: true}
+		}
+	}
+
+	completionPercentage := currentProject.CompletionPercentage
+	if input.CompletionPercentage != nil {
+		completionPercentage = int64(*input.CompletionPercentage)
+	}
+
+	rating := currentProject.Rating
+	if input.Rating != nil {
+		rating = int64(*input.Rating)
+	}
+
+	colorPalette := currentProject.ColorPalette
+	if input.ColorPalette != nil {
+		if *input.ColorPalette == "" {
+			colorPalette = sql.NullString{}
+		} else {
+			colorPalette = sql.NullString{String: *input.ColorPalette, Valid: true}
+		}
+	}
+
+	streamingChecklist := currentProject.StreamingChecklist
+	if input.StreamingChecklist != nil {
+		if *input.StreamingChecklist == "" {
+			streamingChecklist = sql.NullString{}
+		} else {
+			streamingChecklist = sql.NullString{String: *input.StreamingChecklist, Valid: true}
+		}
+	}
+
+	preSaveURL := currentProject.PreSaveUrl
+	if input.PreSaveURL != nil {
+		if *input.PreSaveURL == "" {
+			preSaveURL = sql.NullString{}
+		} else {
+			preSaveURL = sql.NullString{String: *input.PreSaveURL, Valid: true}
+		}
+	}
+
+	distributorNotes := currentProject.DistributorNotes
+	if input.DistributorNotes != nil {
+		if *input.DistributorNotes == "" {
+			distributorNotes = sql.NullString{}
+		} else {
+			distributorNotes = sql.NullString{String: *input.DistributorNotes, Valid: true}
+		}
+	}
+
 	return s.db.UpdateProject(ctx, sqlc.UpdateProjectParams{
-		Name:            name,
-		Description:     description,
-		QualityOverride: qualityOverride,
-		AuthorOverride:  authorOverride,
-		Notes:           notes,
-		NotesAuthorName: notesAuthorName,
-		Column7:         notesUpdatedAtTrigger,
-		ID:              currentProject.ID,
-		UserID:          currentProject.UserID,
+		Name:                 name,
+		Description:          description,
+		QualityOverride:      qualityOverride,
+		AuthorOverride:       authorOverride,
+		Notes:                notes,
+		NotesAuthorName:      notesAuthorName,
+		Column7:              notesUpdatedAtTrigger,
+		EstimatedReleaseDate: estimatedReleaseDate,
+		CompletionPercentage: completionPercentage,
+		Rating:               rating,
+		ColorPalette:         colorPalette,
+		StreamingChecklist:   streamingChecklist,
+		PreSaveUrl:           preSaveURL,
+		DistributorNotes:     distributorNotes,
+		ID:                   currentProject.ID,
+		UserID:               currentProject.UserID,
 	})
 }
 

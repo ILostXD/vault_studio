@@ -49,6 +49,13 @@ SET name = COALESCE(?, name),
     notes = COALESCE(?, notes),
     notes_author_name = COALESCE(?, notes_author_name),
     notes_updated_at = CASE WHEN ? IS NOT NULL THEN CURRENT_TIMESTAMP ELSE notes_updated_at END,
+    estimated_release_date = ?,
+    completion_percentage = ?,
+    rating = ?,
+    color_palette = ?,
+    streaming_checklist = ?,
+    pre_save_url = ?,
+    distributor_notes = ?,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = ? AND user_id = ?
 RETURNING *;

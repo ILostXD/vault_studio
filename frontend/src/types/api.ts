@@ -21,6 +21,7 @@ export interface UserPreferences {
   color_spread?: number
   gradient_spread?: number
   color_shift_rotation?: number
+  accent_color?: string
   created_at: string
   updated_at: string
 }
@@ -45,6 +46,13 @@ export interface Project {
   owner_username: string
   is_shared: boolean
   shared_by_username?: string | null
+  estimated_release_date?: string | null
+  completion_percentage: number
+  rating: number
+  color_palette?: string | null
+  streaming_checklist?: string | null
+  pre_save_url?: string | null
+  distributor_notes?: string | null
   created_at: string
   updated_at: string
 }
@@ -136,6 +144,7 @@ export interface UpdatePreferencesRequest {
   color_spread?: number
   gradient_spread?: number
   color_shift_rotation?: number
+  accent_color?: string
 }
 
 export interface UpdateInstanceNameRequest {
@@ -157,6 +166,13 @@ export interface UpdateProjectRequest {
   author_override?: string
   notes?: string
   notes_author_name?: string
+  estimated_release_date?: string | null
+  completion_percentage?: number
+  rating?: number
+  color_palette?: string | null
+  streaming_checklist?: string | null
+  pre_save_url?: string | null
+  distributor_notes?: string | null
 }
 
 export interface MoveProjectRequest {

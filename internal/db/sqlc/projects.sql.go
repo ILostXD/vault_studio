@@ -18,7 +18,7 @@ SET cover_art_path = NULL,
     cover_processed = FALSE,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
-RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed
+RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed, estimated_release_date, completion_percentage, rating, color_palette, streaming_checklist, pre_save_url, distributor_notes
 `
 
 func (q *Queries) ClearProjectCover(ctx context.Context, id int64) (Project, error) {
@@ -50,6 +50,13 @@ func (q *Queries) ClearProjectCover(ctx context.Context, id int64) (Project, err
 		&i.SharedWithInstanceUsers,
 		&i.CustomOrder,
 		&i.CoverProcessed,
+		&i.EstimatedReleaseDate,
+		&i.CompletionPercentage,
+		&i.Rating,
+		&i.ColorPalette,
+		&i.StreamingChecklist,
+		&i.PreSaveUrl,
+		&i.DistributorNotes,
 	)
 	return i, err
 }
@@ -57,7 +64,7 @@ func (q *Queries) ClearProjectCover(ctx context.Context, id int64) (Project, err
 const createProject = `-- name: CreateProject :one
 INSERT INTO projects (user_id, name, description, quality_override, public_id, author_override, folder_id)
 VALUES (?, ?, ?, ?, ?, ?, ?)
-RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed
+RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed, estimated_release_date, completion_percentage, rating, color_palette, streaming_checklist, pre_save_url, distributor_notes
 `
 
 type CreateProjectParams struct {
@@ -107,6 +114,13 @@ func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (P
 		&i.SharedWithInstanceUsers,
 		&i.CustomOrder,
 		&i.CoverProcessed,
+		&i.EstimatedReleaseDate,
+		&i.CompletionPercentage,
+		&i.Rating,
+		&i.ColorPalette,
+		&i.StreamingChecklist,
+		&i.PreSaveUrl,
+		&i.DistributorNotes,
 	)
 	return i, err
 }
@@ -127,7 +141,7 @@ func (q *Queries) DeleteProject(ctx context.Context, arg DeleteProjectParams) er
 }
 
 const getProject = `-- name: GetProject :one
-SELECT id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed FROM projects
+SELECT id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed, estimated_release_date, completion_percentage, rating, color_palette, streaming_checklist, pre_save_url, distributor_notes FROM projects
 WHERE id = ? AND user_id = ?
 `
 
@@ -165,12 +179,19 @@ func (q *Queries) GetProject(ctx context.Context, arg GetProjectParams) (Project
 		&i.SharedWithInstanceUsers,
 		&i.CustomOrder,
 		&i.CoverProcessed,
+		&i.EstimatedReleaseDate,
+		&i.CompletionPercentage,
+		&i.Rating,
+		&i.ColorPalette,
+		&i.StreamingChecklist,
+		&i.PreSaveUrl,
+		&i.DistributorNotes,
 	)
 	return i, err
 }
 
 const getProjectByID = `-- name: GetProjectByID :one
-SELECT id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed FROM projects
+SELECT id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed, estimated_release_date, completion_percentage, rating, color_palette, streaming_checklist, pre_save_url, distributor_notes FROM projects
 WHERE id = ?
 `
 
@@ -203,13 +224,20 @@ func (q *Queries) GetProjectByID(ctx context.Context, id int64) (Project, error)
 		&i.SharedWithInstanceUsers,
 		&i.CustomOrder,
 		&i.CoverProcessed,
+		&i.EstimatedReleaseDate,
+		&i.CompletionPercentage,
+		&i.Rating,
+		&i.ColorPalette,
+		&i.StreamingChecklist,
+		&i.PreSaveUrl,
+		&i.DistributorNotes,
 	)
 	return i, err
 }
 
 const getProjectByPublicID = `-- name: GetProjectByPublicID :one
 SELECT
-    p.id, p.user_id, p.name, p.description, p.quality_override, p.created_at, p.updated_at, p.public_id, p.cover_art_path, p.cover_art_mime, p.cover_art_updated_at, p.author_override, p.folder_id, p.folder_added_at, p.notes, p.notes_author_name, p.notes_updated_at, p.visibility_status, p.allow_editing, p.allow_downloads, p.password_hash, p.origin_instance_url, p.shared_with_instance_users, p.custom_order, p.cover_processed,
+    p.id, p.user_id, p.name, p.description, p.quality_override, p.created_at, p.updated_at, p.public_id, p.cover_art_path, p.cover_art_mime, p.cover_art_updated_at, p.author_override, p.folder_id, p.folder_added_at, p.notes, p.notes_author_name, p.notes_updated_at, p.visibility_status, p.allow_editing, p.allow_downloads, p.password_hash, p.origin_instance_url, p.shared_with_instance_users, p.custom_order, p.cover_processed, p.estimated_release_date, p.completion_percentage, p.rating, p.color_palette, p.streaming_checklist, p.pre_save_url, p.distributor_notes,
     CASE WHEN EXISTS (
         SELECT 1 FROM user_project_shares ups
         WHERE ups.project_id = p.id
@@ -249,6 +277,13 @@ type GetProjectByPublicIDRow struct {
 	SharedWithInstanceUsers sql.NullBool   `json:"shared_with_instance_users"`
 	CustomOrder             int64          `json:"custom_order"`
 	CoverProcessed          sql.NullBool   `json:"cover_processed"`
+	EstimatedReleaseDate    sql.NullString `json:"estimated_release_date"`
+	CompletionPercentage    int64          `json:"completion_percentage"`
+	Rating                  int64          `json:"rating"`
+	ColorPalette            sql.NullString `json:"color_palette"`
+	StreamingChecklist      sql.NullString `json:"streaming_checklist"`
+	PreSaveUrl              sql.NullString `json:"pre_save_url"`
+	DistributorNotes        sql.NullString `json:"distributor_notes"`
 	IsShared                int64          `json:"is_shared"`
 }
 
@@ -281,6 +316,13 @@ func (q *Queries) GetProjectByPublicID(ctx context.Context, arg GetProjectByPubl
 		&i.SharedWithInstanceUsers,
 		&i.CustomOrder,
 		&i.CoverProcessed,
+		&i.EstimatedReleaseDate,
+		&i.CompletionPercentage,
+		&i.Rating,
+		&i.ColorPalette,
+		&i.StreamingChecklist,
+		&i.PreSaveUrl,
+		&i.DistributorNotes,
 		&i.IsShared,
 	)
 	return i, err
@@ -288,7 +330,7 @@ func (q *Queries) GetProjectByPublicID(ctx context.Context, arg GetProjectByPubl
 
 const getProjectByPublicIDNoFilter = `-- name: GetProjectByPublicIDNoFilter :one
 SELECT
-    p.id, p.user_id, p.name, p.description, p.quality_override, p.created_at, p.updated_at, p.public_id, p.cover_art_path, p.cover_art_mime, p.cover_art_updated_at, p.author_override, p.folder_id, p.folder_added_at, p.notes, p.notes_author_name, p.notes_updated_at, p.visibility_status, p.allow_editing, p.allow_downloads, p.password_hash, p.origin_instance_url, p.shared_with_instance_users, p.custom_order, p.cover_processed,
+    p.id, p.user_id, p.name, p.description, p.quality_override, p.created_at, p.updated_at, p.public_id, p.cover_art_path, p.cover_art_mime, p.cover_art_updated_at, p.author_override, p.folder_id, p.folder_added_at, p.notes, p.notes_author_name, p.notes_updated_at, p.visibility_status, p.allow_editing, p.allow_downloads, p.password_hash, p.origin_instance_url, p.shared_with_instance_users, p.custom_order, p.cover_processed, p.estimated_release_date, p.completion_percentage, p.rating, p.color_palette, p.streaming_checklist, p.pre_save_url, p.distributor_notes,
     CASE WHEN EXISTS (
         SELECT 1 FROM user_project_shares ups
         WHERE ups.project_id = p.id
@@ -323,6 +365,13 @@ type GetProjectByPublicIDNoFilterRow struct {
 	SharedWithInstanceUsers sql.NullBool   `json:"shared_with_instance_users"`
 	CustomOrder             int64          `json:"custom_order"`
 	CoverProcessed          sql.NullBool   `json:"cover_processed"`
+	EstimatedReleaseDate    sql.NullString `json:"estimated_release_date"`
+	CompletionPercentage    int64          `json:"completion_percentage"`
+	Rating                  int64          `json:"rating"`
+	ColorPalette            sql.NullString `json:"color_palette"`
+	StreamingChecklist      sql.NullString `json:"streaming_checklist"`
+	PreSaveUrl              sql.NullString `json:"pre_save_url"`
+	DistributorNotes        sql.NullString `json:"distributor_notes"`
 	IsShared                int64          `json:"is_shared"`
 }
 
@@ -355,6 +404,13 @@ func (q *Queries) GetProjectByPublicIDNoFilter(ctx context.Context, publicID str
 		&i.SharedWithInstanceUsers,
 		&i.CustomOrder,
 		&i.CoverProcessed,
+		&i.EstimatedReleaseDate,
+		&i.CompletionPercentage,
+		&i.Rating,
+		&i.ColorPalette,
+		&i.StreamingChecklist,
+		&i.PreSaveUrl,
+		&i.DistributorNotes,
 		&i.IsShared,
 	)
 	return i, err
@@ -362,7 +418,7 @@ func (q *Queries) GetProjectByPublicIDNoFilter(ctx context.Context, publicID str
 
 const listProjectsByUser = `-- name: ListProjectsByUser :many
 SELECT
-    p.id, p.user_id, p.name, p.description, p.quality_override, p.created_at, p.updated_at, p.public_id, p.cover_art_path, p.cover_art_mime, p.cover_art_updated_at, p.author_override, p.folder_id, p.folder_added_at, p.notes, p.notes_author_name, p.notes_updated_at, p.visibility_status, p.allow_editing, p.allow_downloads, p.password_hash, p.origin_instance_url, p.shared_with_instance_users, p.custom_order, p.cover_processed,
+    p.id, p.user_id, p.name, p.description, p.quality_override, p.created_at, p.updated_at, p.public_id, p.cover_art_path, p.cover_art_mime, p.cover_art_updated_at, p.author_override, p.folder_id, p.folder_added_at, p.notes, p.notes_author_name, p.notes_updated_at, p.visibility_status, p.allow_editing, p.allow_downloads, p.password_hash, p.origin_instance_url, p.shared_with_instance_users, p.custom_order, p.cover_processed, p.estimated_release_date, p.completion_percentage, p.rating, p.color_palette, p.streaming_checklist, p.pre_save_url, p.distributor_notes,
     u.username as owner_username
 FROM projects p
 JOIN users u ON p.user_id = u.id
@@ -396,6 +452,13 @@ type ListProjectsByUserRow struct {
 	SharedWithInstanceUsers sql.NullBool   `json:"shared_with_instance_users"`
 	CustomOrder             int64          `json:"custom_order"`
 	CoverProcessed          sql.NullBool   `json:"cover_processed"`
+	EstimatedReleaseDate    sql.NullString `json:"estimated_release_date"`
+	CompletionPercentage    int64          `json:"completion_percentage"`
+	Rating                  int64          `json:"rating"`
+	ColorPalette            sql.NullString `json:"color_palette"`
+	StreamingChecklist      sql.NullString `json:"streaming_checklist"`
+	PreSaveUrl              sql.NullString `json:"pre_save_url"`
+	DistributorNotes        sql.NullString `json:"distributor_notes"`
 	OwnerUsername           string         `json:"owner_username"`
 }
 
@@ -434,6 +497,13 @@ func (q *Queries) ListProjectsByUser(ctx context.Context, userID int64) ([]ListP
 			&i.SharedWithInstanceUsers,
 			&i.CustomOrder,
 			&i.CoverProcessed,
+			&i.EstimatedReleaseDate,
+			&i.CompletionPercentage,
+			&i.Rating,
+			&i.ColorPalette,
+			&i.StreamingChecklist,
+			&i.PreSaveUrl,
+			&i.DistributorNotes,
 			&i.OwnerUsername,
 		); err != nil {
 			return nil, err
@@ -451,7 +521,7 @@ func (q *Queries) ListProjectsByUser(ctx context.Context, userID int64) ([]ListP
 
 const listRootProjects = `-- name: ListRootProjects :many
 SELECT
-    p.id, p.user_id, p.name, p.description, p.quality_override, p.created_at, p.updated_at, p.public_id, p.cover_art_path, p.cover_art_mime, p.cover_art_updated_at, p.author_override, p.folder_id, p.folder_added_at, p.notes, p.notes_author_name, p.notes_updated_at, p.visibility_status, p.allow_editing, p.allow_downloads, p.password_hash, p.origin_instance_url, p.shared_with_instance_users, p.custom_order, p.cover_processed,
+    p.id, p.user_id, p.name, p.description, p.quality_override, p.created_at, p.updated_at, p.public_id, p.cover_art_path, p.cover_art_mime, p.cover_art_updated_at, p.author_override, p.folder_id, p.folder_added_at, p.notes, p.notes_author_name, p.notes_updated_at, p.visibility_status, p.allow_editing, p.allow_downloads, p.password_hash, p.origin_instance_url, p.shared_with_instance_users, p.custom_order, p.cover_processed, p.estimated_release_date, p.completion_percentage, p.rating, p.color_palette, p.streaming_checklist, p.pre_save_url, p.distributor_notes,
     u.username as owner_username
 FROM projects p
 JOIN users u ON p.user_id = u.id
@@ -485,6 +555,13 @@ type ListRootProjectsRow struct {
 	SharedWithInstanceUsers sql.NullBool   `json:"shared_with_instance_users"`
 	CustomOrder             int64          `json:"custom_order"`
 	CoverProcessed          sql.NullBool   `json:"cover_processed"`
+	EstimatedReleaseDate    sql.NullString `json:"estimated_release_date"`
+	CompletionPercentage    int64          `json:"completion_percentage"`
+	Rating                  int64          `json:"rating"`
+	ColorPalette            sql.NullString `json:"color_palette"`
+	StreamingChecklist      sql.NullString `json:"streaming_checklist"`
+	PreSaveUrl              sql.NullString `json:"pre_save_url"`
+	DistributorNotes        sql.NullString `json:"distributor_notes"`
 	OwnerUsername           string         `json:"owner_username"`
 }
 
@@ -523,6 +600,13 @@ func (q *Queries) ListRootProjects(ctx context.Context, userID int64) ([]ListRoo
 			&i.SharedWithInstanceUsers,
 			&i.CustomOrder,
 			&i.CoverProcessed,
+			&i.EstimatedReleaseDate,
+			&i.CompletionPercentage,
+			&i.Rating,
+			&i.ColorPalette,
+			&i.StreamingChecklist,
+			&i.PreSaveUrl,
+			&i.DistributorNotes,
 			&i.OwnerUsername,
 		); err != nil {
 			return nil, err
@@ -539,7 +623,7 @@ func (q *Queries) ListRootProjects(ctx context.Context, userID int64) ([]ListRoo
 }
 
 const listRootProjectsWithCustomOrder = `-- name: ListRootProjectsWithCustomOrder :many
-SELECT id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed FROM projects
+SELECT id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed, estimated_release_date, completion_percentage, rating, color_palette, streaming_checklist, pre_save_url, distributor_notes FROM projects
 WHERE user_id = ? AND folder_id IS NULL
 ORDER BY custom_order ASC, created_at DESC
 `
@@ -579,6 +663,13 @@ func (q *Queries) ListRootProjectsWithCustomOrder(ctx context.Context, userID in
 			&i.SharedWithInstanceUsers,
 			&i.CustomOrder,
 			&i.CoverProcessed,
+			&i.EstimatedReleaseDate,
+			&i.CompletionPercentage,
+			&i.Rating,
+			&i.ColorPalette,
+			&i.StreamingChecklist,
+			&i.PreSaveUrl,
+			&i.DistributorNotes,
 		); err != nil {
 			return nil, err
 		}
@@ -594,7 +685,7 @@ func (q *Queries) ListRootProjectsWithCustomOrder(ctx context.Context, userID in
 }
 
 const listUnprocessedCovers = `-- name: ListUnprocessedCovers :many
-SELECT id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed FROM projects
+SELECT id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed, estimated_release_date, completion_percentage, rating, color_palette, streaming_checklist, pre_save_url, distributor_notes FROM projects
 WHERE cover_art_path IS NOT NULL AND cover_processed = FALSE
 `
 
@@ -633,6 +724,13 @@ func (q *Queries) ListUnprocessedCovers(ctx context.Context) ([]Project, error) 
 			&i.SharedWithInstanceUsers,
 			&i.CustomOrder,
 			&i.CoverProcessed,
+			&i.EstimatedReleaseDate,
+			&i.CompletionPercentage,
+			&i.Rating,
+			&i.ColorPalette,
+			&i.StreamingChecklist,
+			&i.PreSaveUrl,
+			&i.DistributorNotes,
 		); err != nil {
 			return nil, err
 		}
@@ -667,21 +765,35 @@ SET name = COALESCE(?, name),
     notes = COALESCE(?, notes),
     notes_author_name = COALESCE(?, notes_author_name),
     notes_updated_at = CASE WHEN ? IS NOT NULL THEN CURRENT_TIMESTAMP ELSE notes_updated_at END,
+    estimated_release_date = ?,
+    completion_percentage = ?,
+    rating = ?,
+    color_palette = ?,
+    streaming_checklist = ?,
+    pre_save_url = ?,
+    distributor_notes = ?,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = ? AND user_id = ?
-RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed
+RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed, estimated_release_date, completion_percentage, rating, color_palette, streaming_checklist, pre_save_url, distributor_notes
 `
 
 type UpdateProjectParams struct {
-	Name            string         `json:"name"`
-	Description     sql.NullString `json:"description"`
-	QualityOverride sql.NullString `json:"quality_override"`
-	AuthorOverride  sql.NullString `json:"author_override"`
-	Notes           sql.NullString `json:"notes"`
-	NotesAuthorName sql.NullString `json:"notes_author_name"`
-	Column7         interface{}    `json:"column_7"`
-	ID              int64          `json:"id"`
-	UserID          int64          `json:"user_id"`
+	Name                 string         `json:"name"`
+	Description          sql.NullString `json:"description"`
+	QualityOverride      sql.NullString `json:"quality_override"`
+	AuthorOverride       sql.NullString `json:"author_override"`
+	Notes                sql.NullString `json:"notes"`
+	NotesAuthorName      sql.NullString `json:"notes_author_name"`
+	Column7              interface{}    `json:"column_7"`
+	EstimatedReleaseDate sql.NullString `json:"estimated_release_date"`
+	CompletionPercentage int64          `json:"completion_percentage"`
+	Rating               int64          `json:"rating"`
+	ColorPalette         sql.NullString `json:"color_palette"`
+	StreamingChecklist   sql.NullString `json:"streaming_checklist"`
+	PreSaveUrl           sql.NullString `json:"pre_save_url"`
+	DistributorNotes     sql.NullString `json:"distributor_notes"`
+	ID                   int64          `json:"id"`
+	UserID               int64          `json:"user_id"`
 }
 
 func (q *Queries) UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error) {
@@ -693,6 +805,13 @@ func (q *Queries) UpdateProject(ctx context.Context, arg UpdateProjectParams) (P
 		arg.Notes,
 		arg.NotesAuthorName,
 		arg.Column7,
+		arg.EstimatedReleaseDate,
+		arg.CompletionPercentage,
+		arg.Rating,
+		arg.ColorPalette,
+		arg.StreamingChecklist,
+		arg.PreSaveUrl,
+		arg.DistributorNotes,
 		arg.ID,
 		arg.UserID,
 	)
@@ -723,6 +842,13 @@ func (q *Queries) UpdateProject(ctx context.Context, arg UpdateProjectParams) (P
 		&i.SharedWithInstanceUsers,
 		&i.CustomOrder,
 		&i.CoverProcessed,
+		&i.EstimatedReleaseDate,
+		&i.CompletionPercentage,
+		&i.Rating,
+		&i.ColorPalette,
+		&i.StreamingChecklist,
+		&i.PreSaveUrl,
+		&i.DistributorNotes,
 	)
 	return i, err
 }
@@ -735,7 +861,7 @@ SET cover_art_path = ?,
     cover_processed = TRUE,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
-RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed
+RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed, estimated_release_date, completion_percentage, rating, color_palette, streaming_checklist, pre_save_url, distributor_notes
 `
 
 type UpdateProjectCoverParams struct {
@@ -773,6 +899,13 @@ func (q *Queries) UpdateProjectCover(ctx context.Context, arg UpdateProjectCover
 		&i.SharedWithInstanceUsers,
 		&i.CustomOrder,
 		&i.CoverProcessed,
+		&i.EstimatedReleaseDate,
+		&i.CompletionPercentage,
+		&i.Rating,
+		&i.ColorPalette,
+		&i.StreamingChecklist,
+		&i.PreSaveUrl,
+		&i.DistributorNotes,
 	)
 	return i, err
 }
@@ -782,7 +915,7 @@ UPDATE projects
 SET custom_order = ?,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = ? AND user_id = ?
-RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed
+RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed, estimated_release_date, completion_percentage, rating, color_palette, streaming_checklist, pre_save_url, distributor_notes
 `
 
 type UpdateProjectCustomOrderParams struct {
@@ -820,6 +953,13 @@ func (q *Queries) UpdateProjectCustomOrder(ctx context.Context, arg UpdateProjec
 		&i.SharedWithInstanceUsers,
 		&i.CustomOrder,
 		&i.CoverProcessed,
+		&i.EstimatedReleaseDate,
+		&i.CompletionPercentage,
+		&i.Rating,
+		&i.ColorPalette,
+		&i.StreamingChecklist,
+		&i.PreSaveUrl,
+		&i.DistributorNotes,
 	)
 	return i, err
 }
@@ -830,7 +970,7 @@ SET folder_id = ?,
     folder_added_at = CASE WHEN ? IS NOT NULL THEN CURRENT_TIMESTAMP ELSE NULL END,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = ? AND user_id = ?
-RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed
+RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed, estimated_release_date, completion_percentage, rating, color_palette, streaming_checklist, pre_save_url, distributor_notes
 `
 
 type UpdateProjectFolderParams struct {
@@ -874,6 +1014,13 @@ func (q *Queries) UpdateProjectFolder(ctx context.Context, arg UpdateProjectFold
 		&i.SharedWithInstanceUsers,
 		&i.CustomOrder,
 		&i.CoverProcessed,
+		&i.EstimatedReleaseDate,
+		&i.CompletionPercentage,
+		&i.Rating,
+		&i.ColorPalette,
+		&i.StreamingChecklist,
+		&i.PreSaveUrl,
+		&i.DistributorNotes,
 	)
 	return i, err
 }
@@ -884,7 +1031,7 @@ SET folder_id = ?,
     folder_added_at = ?,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = ? AND user_id = ?
-RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed
+RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed, estimated_release_date, completion_percentage, rating, color_palette, streaming_checklist, pre_save_url, distributor_notes
 `
 
 type UpdateProjectFolderWithTimestampParams struct {
@@ -928,6 +1075,13 @@ func (q *Queries) UpdateProjectFolderWithTimestamp(ctx context.Context, arg Upda
 		&i.SharedWithInstanceUsers,
 		&i.CustomOrder,
 		&i.CoverProcessed,
+		&i.EstimatedReleaseDate,
+		&i.CompletionPercentage,
+		&i.Rating,
+		&i.ColorPalette,
+		&i.StreamingChecklist,
+		&i.PreSaveUrl,
+		&i.DistributorNotes,
 	)
 	return i, err
 }
@@ -939,7 +1093,7 @@ SET notes = ?,
     notes_updated_at = CURRENT_TIMESTAMP,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = ? AND user_id = ?
-RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed
+RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed, estimated_release_date, completion_percentage, rating, color_palette, streaming_checklist, pre_save_url, distributor_notes
 `
 
 type UpdateProjectNotesParams struct {
@@ -983,6 +1137,13 @@ func (q *Queries) UpdateProjectNotes(ctx context.Context, arg UpdateProjectNotes
 		&i.SharedWithInstanceUsers,
 		&i.CustomOrder,
 		&i.CoverProcessed,
+		&i.EstimatedReleaseDate,
+		&i.CompletionPercentage,
+		&i.Rating,
+		&i.ColorPalette,
+		&i.StreamingChecklist,
+		&i.PreSaveUrl,
+		&i.DistributorNotes,
 	)
 	return i, err
 }

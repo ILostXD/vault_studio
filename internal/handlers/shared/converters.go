@@ -39,26 +39,39 @@ func ConvertProject(project sqlc.Project) ProjectResponse {
 		folderID = &project.FolderID.Int64
 	}
 
+	estimatedReleaseDate := httputil.NullStringToPtr(project.EstimatedReleaseDate)
+	colorPalette := httputil.NullStringToPtr(project.ColorPalette)
+	streamingChecklist := httputil.NullStringToPtr(project.StreamingChecklist)
+	preSaveURL := httputil.NullStringToPtr(project.PreSaveUrl)
+	distributorNotes := httputil.NullStringToPtr(project.DistributorNotes)
+
 	return ProjectResponse{
-		ID:               project.ID,
-		UserID:           project.UserID,
-		PublicID:         project.PublicID,
-		Name:             project.Name,
-		Description:      desc,
-		QualityOverride:  quality,
-		AuthorOverride:   author,
-		Notes:            notes,
-		NotesAuthorName:  notesAuthor,
-		NotesUpdatedAt:   notesUpdatedAt,
-		CoverURL:         coverURL,
-		FolderID:         folderID,
-		VisibilityStatus: project.VisibilityStatus,
-		AllowEditing:     project.AllowEditing,
-		AllowDownloads:   project.AllowDownloads,
-		OwnerUsername:    "",
-		IsShared:         false,
-		CreatedAt:        httputil.FormatNullTimeString(project.CreatedAt),
-		UpdatedAt:        httputil.FormatNullTimeString(project.UpdatedAt),
+		ID:                   project.ID,
+		UserID:               project.UserID,
+		PublicID:             project.PublicID,
+		Name:                 project.Name,
+		Description:          desc,
+		QualityOverride:      quality,
+		AuthorOverride:       author,
+		Notes:                notes,
+		NotesAuthorName:      notesAuthor,
+		NotesUpdatedAt:       notesUpdatedAt,
+		CoverURL:             coverURL,
+		FolderID:             folderID,
+		VisibilityStatus:     project.VisibilityStatus,
+		AllowEditing:         project.AllowEditing,
+		AllowDownloads:       project.AllowDownloads,
+		OwnerUsername:        "",
+		IsShared:             false,
+		EstimatedReleaseDate: estimatedReleaseDate,
+		CompletionPercentage: int32(project.CompletionPercentage),
+		Rating:               int32(project.Rating),
+		ColorPalette:         colorPalette,
+		StreamingChecklist:   streamingChecklist,
+		PreSaveURL:           preSaveURL,
+		DistributorNotes:     distributorNotes,
+		CreatedAt:            httputil.FormatNullTimeString(project.CreatedAt),
+		UpdatedAt:            httputil.FormatNullTimeString(project.UpdatedAt),
 	}
 }
 
@@ -73,6 +86,9 @@ func ConvertProjectRowWithShared(projectRow interface{}, isShared bool) ProjectR
 		createdAt, updatedAt, coverArtUpdatedAt, notesUpdatedAt sql.NullTime
 		folderID                                                sql.NullInt64
 		allowEditing, allowDownloads                            bool
+		estimatedReleaseDate, colorPalette, streamingChecklist  sql.NullString
+		preSaveURL, distributorNotes                            sql.NullString
+		completionPercentage, rating                            int64
 	)
 
 	switch row := projectRow.(type) {
@@ -84,6 +100,9 @@ func ConvertProjectRowWithShared(projectRow interface{}, isShared bool) ProjectR
 		coverArtUpdatedAt, notesUpdatedAt = row.CoverArtUpdatedAt, row.NotesUpdatedAt
 		folderID, visibilityStatus = row.FolderID, row.VisibilityStatus
 		allowEditing, allowDownloads, ownerUsername = row.AllowEditing, row.AllowDownloads, row.OwnerUsername
+		estimatedReleaseDate, colorPalette, streamingChecklist = row.EstimatedReleaseDate, row.ColorPalette, row.StreamingChecklist
+		preSaveURL, distributorNotes = row.PreSaveUrl, row.DistributorNotes
+		completionPercentage, rating = row.CompletionPercentage, row.Rating
 	case sqlc.ListRootProjectsRow:
 		id, userID, publicID, name = row.ID, row.UserID, row.PublicID, row.Name
 		description, qualityOverride, authorOverride = row.Description, row.QualityOverride, row.AuthorOverride
@@ -92,6 +111,9 @@ func ConvertProjectRowWithShared(projectRow interface{}, isShared bool) ProjectR
 		coverArtUpdatedAt, notesUpdatedAt = row.CoverArtUpdatedAt, row.NotesUpdatedAt
 		folderID, visibilityStatus = row.FolderID, row.VisibilityStatus
 		allowEditing, allowDownloads, ownerUsername = row.AllowEditing, row.AllowDownloads, row.OwnerUsername
+		estimatedReleaseDate, colorPalette, streamingChecklist = row.EstimatedReleaseDate, row.ColorPalette, row.StreamingChecklist
+		preSaveURL, distributorNotes = row.PreSaveUrl, row.DistributorNotes
+		completionPercentage, rating = row.CompletionPercentage, row.Rating
 	case sqlc.ListProjectsInFolderRow:
 		id, userID, publicID, name = row.ID, row.UserID, row.PublicID, row.Name
 		description, qualityOverride, authorOverride = row.Description, row.QualityOverride, row.AuthorOverride
@@ -100,6 +122,9 @@ func ConvertProjectRowWithShared(projectRow interface{}, isShared bool) ProjectR
 		coverArtUpdatedAt, notesUpdatedAt = row.CoverArtUpdatedAt, row.NotesUpdatedAt
 		folderID, visibilityStatus = row.FolderID, row.VisibilityStatus
 		allowEditing, allowDownloads, ownerUsername = row.AllowEditing, row.AllowDownloads, row.OwnerUsername
+		estimatedReleaseDate, colorPalette, streamingChecklist = row.EstimatedReleaseDate, row.ColorPalette, row.StreamingChecklist
+		preSaveURL, distributorNotes = row.PreSaveUrl, row.DistributorNotes
+		completionPercentage, rating = row.CompletionPercentage, row.Rating
 	}
 
 	desc, author := httputil.NullStringToPtr(description), httputil.NullStringToPtr(authorOverride)
@@ -129,25 +154,32 @@ func ConvertProjectRowWithShared(projectRow interface{}, isShared bool) ProjectR
 	}
 
 	return ProjectResponse{
-		ID:               id,
-		UserID:           userID,
-		PublicID:         publicID,
-		Name:             name,
-		Description:      desc,
-		QualityOverride:  quality,
-		AuthorOverride:   author,
-		Notes:            notesPtr,
-		NotesAuthorName:  notesAuthorPtr,
-		NotesUpdatedAt:   notesUpdatedAtPtr,
-		CoverURL:         coverURL,
-		FolderID:         folderIDPtr,
-		VisibilityStatus: visibilityStatus,
-		AllowEditing:     allowEditing,
-		AllowDownloads:   allowDownloads,
-		OwnerUsername:    ownerUsername,
-		IsShared:         isShared,
-		CreatedAt:        httputil.FormatNullTimeString(createdAt),
-		UpdatedAt:        httputil.FormatNullTimeString(updatedAt),
+		ID:                   id,
+		UserID:               userID,
+		PublicID:             publicID,
+		Name:                 name,
+		Description:          desc,
+		QualityOverride:      quality,
+		AuthorOverride:       author,
+		Notes:                notesPtr,
+		NotesAuthorName:      notesAuthorPtr,
+		NotesUpdatedAt:       notesUpdatedAtPtr,
+		CoverURL:             coverURL,
+		FolderID:             folderIDPtr,
+		VisibilityStatus:     visibilityStatus,
+		AllowEditing:         allowEditing,
+		AllowDownloads:       allowDownloads,
+		OwnerUsername:        ownerUsername,
+		IsShared:             isShared,
+		EstimatedReleaseDate: httputil.NullStringToPtr(estimatedReleaseDate),
+		CompletionPercentage: int32(completionPercentage),
+		Rating:               int32(rating),
+		ColorPalette:         httputil.NullStringToPtr(colorPalette),
+		StreamingChecklist:   httputil.NullStringToPtr(streamingChecklist),
+		PreSaveURL:           httputil.NullStringToPtr(preSaveURL),
+		DistributorNotes:     httputil.NullStringToPtr(distributorNotes),
+		CreatedAt:            httputil.FormatNullTimeString(createdAt),
+		UpdatedAt:            httputil.FormatNullTimeString(updatedAt),
 	}
 }
 

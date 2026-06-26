@@ -6,27 +6,34 @@ import (
 
 // ProjectResponse is the JSON response structure for projects
 type ProjectResponse struct {
-	ID               int64           `json:"id"`
-	UserID           int64           `json:"user_id"`
-	PublicID         string          `json:"public_id"`
-	Name             string          `json:"name"`
-	Description      *string         `json:"description,omitempty"`
-	QualityOverride  *models.Quality `json:"quality_override,omitempty"`
-	AuthorOverride   *string         `json:"author_override,omitempty"`
-	Notes            *string         `json:"notes,omitempty"`
-	NotesAuthorName  *string         `json:"notes_author_name,omitempty"`
-	NotesUpdatedAt   *string         `json:"notes_updated_at,omitempty"`
-	CoverURL         *string         `json:"cover_url,omitempty"`
-	FolderID         *int64          `json:"folder_id,omitempty"`
-	VisibilityStatus string          `json:"visibility_status"`
-	AllowEditing     bool            `json:"allow_editing"`
-	AllowDownloads   bool            `json:"allow_downloads"`
-	SharedByUsername *string         `json:"shared_by_username,omitempty"`
-	OwnerUsername    string          `json:"owner_username"`
-	IsShared         bool            `json:"is_shared"`
-	CustomOrder      *int64          `json:"custom_order,omitempty"`
-	CreatedAt        string          `json:"created_at"`
-	UpdatedAt        string          `json:"updated_at"`
+	ID                   int64           `json:"id"`
+	UserID               int64           `json:"user_id"`
+	PublicID             string          `json:"public_id"`
+	Name                 string          `json:"name"`
+	Description          *string         `json:"description,omitempty"`
+	QualityOverride      *models.Quality `json:"quality_override,omitempty"`
+	AuthorOverride       *string         `json:"author_override,omitempty"`
+	Notes                *string         `json:"notes,omitempty"`
+	NotesAuthorName      *string         `json:"notes_author_name,omitempty"`
+	NotesUpdatedAt       *string         `json:"notes_updated_at,omitempty"`
+	CoverURL             *string         `json:"cover_url,omitempty"`
+	FolderID             *int64          `json:"folder_id,omitempty"`
+	VisibilityStatus     string          `json:"visibility_status"`
+	AllowEditing         bool            `json:"allow_editing"`
+	AllowDownloads       bool            `json:"allow_downloads"`
+	SharedByUsername     *string         `json:"shared_by_username,omitempty"`
+	OwnerUsername        string          `json:"owner_username"`
+	IsShared             bool            `json:"is_shared"`
+	CustomOrder          *int64          `json:"custom_order,omitempty"`
+	EstimatedReleaseDate *string         `json:"estimated_release_date,omitempty"`
+	CompletionPercentage int32           `json:"completion_percentage"`
+	Rating               int32           `json:"rating"`
+	ColorPalette         *string         `json:"color_palette,omitempty"`
+	StreamingChecklist   *string         `json:"streaming_checklist,omitempty"`
+	PreSaveURL           *string         `json:"pre_save_url,omitempty"`
+	DistributorNotes     *string         `json:"distributor_notes,omitempty"`
+	CreatedAt            string          `json:"created_at"`
+	UpdatedAt            string          `json:"updated_at"`
 }
 
 // SharedTrackResponse is the response structure for shared tracks

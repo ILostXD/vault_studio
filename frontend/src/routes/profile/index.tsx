@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import CDDiscBadge from "@/components/CDDiscBadge";
+import ColorPicker, { hexToHsl } from "@/components/ui/ColorPicker";
+import DotPattern from "@/components/ui/DotPattern";
+import { cn } from "@/lib/utils";
 // import { LinearBlur } from "progressive-blur";
 import { Button } from "@/components/ui/button";
 import { Pencil, Users } from "lucide-react";
@@ -12,7 +15,7 @@ import {
   getInstanceInfo,
   updateInstanceName,
 } from "@/api/stats";
-import { getPreferences, updatePreferences } from "@/api/preferences";
+import { usePreferences } from "@/contexts/PreferencesContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/routes/__root";
 import EditProfileModal from "@/components/modals/EditProfileModal";
@@ -23,7 +26,6 @@ import ResetInstanceModal from "@/components/modals/ResetInstanceModal";
 import type {
   StorageStats,
   InstanceInfo,
-  UserPreferences,
   Quality,
 } from "@/types/api";
 
@@ -33,14 +35,14 @@ export const Route = createFileRoute("/profile/")({
 
 function ProfilePage() {
   const { user, updateUsername } = useAuth();
+  const { preferences, isLoading: isPrefsLoading, updatePreferences, refreshPreferences } = usePreferences();
   const queryClient = useQueryClient();
   const [storageStats, setStorageStats] = useState<StorageStats | null>(null);
   const [globalStorageStats, setGlobalStorageStats] =
     useState<StorageStats | null>(null);
   const [instanceInfo, setInstanceInfo] = useState<InstanceInfo | null>(null);
-  const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [showContent, setShowContent] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
   const [instanceName, setInstanceName] = useState("");
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [isUserManagementModalOpen, setIsUserManagementModalOpen] =
@@ -50,18 +52,35 @@ function ProfilePage() {
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const instanceNameInputRef = useRef<HTMLInputElement>(null);
 
+  const isLoading = isStatsLoading || isPrefsLoading;
+
+  const pickerSize = 200;
+  const pickerPadding = 15;
+  const pickerRadius = pickerSize / 2 - pickerPadding;
+  const maxLight = 90;
+
+  const initialAngleAndRadius = useMemo(() => {
+    const activeColor = preferences?.accent_color || "#ffba00";
+    const hsl = hexToHsl(activeColor);
+    const angle = (hsl.h * Math.PI) / 180;
+    const radius = (hsl.l / maxLight) * pickerRadius;
+    return { angle, radius };
+  }, [preferences?.accent_color, pickerRadius]);
+
+  const isColorPickerMountedRef = useRef(false);
+
+
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [storageData, instanceData, prefsData] = await Promise.all([
+        const [storageData, instanceData] = await Promise.all([
           getStorageStats(),
           getInstanceInfo(),
-          getPreferences(),
         ]);
         setStorageStats(storageData);
         setInstanceInfo(instanceData);
         setInstanceName(instanceData.name);
-        setPreferences(prefsData);
 
         if (user?.is_admin) {
           const globalData = await getGlobalStorageStats();
@@ -70,7 +89,7 @@ function ProfilePage() {
       } catch (error) {
         console.error("Failed to fetch profile data:", error);
       } finally {
-        setIsLoading(false);
+        setIsStatsLoading(false);
       }
     };
     fetchData();
@@ -88,8 +107,7 @@ function ProfilePage() {
 
   const handleQualityChange = async (newQuality: Quality) => {
     try {
-      const updated = await updatePreferences({ default_quality: newQuality });
-      setPreferences(updated);
+      await updatePreferences({ default_quality: newQuality });
     } catch (error) {
       console.error("Failed to update quality:", error);
     }
@@ -114,10 +132,11 @@ function ProfilePage() {
 
   const handleSaveProfile = async (username: string) => {
     try {
-      await updateUsername(username);
+      if (username !== user?.username) {
+        await updateUsername(username);
+      }
       queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
-      const updatedPrefs = await getPreferences();
-      setPreferences(updatedPrefs);
+      await refreshPreferences();
       toast.success("Profile updated");
     } catch (error) {
       toast.error("Failed to update profile");
@@ -158,9 +177,8 @@ function ProfilePage() {
         <div className="flex justify-center">
           <div className="grid grid-cols-1 lg:grid-cols-[305px_505px] gap-8 lg:gap-12 w-full lg:w-auto">
             <div
-              className={`flex flex-col items-center lg:sticky lg:top-32 lg:self-start z-20 transition-opacity duration-300 ${
-                showContent ? "opacity-100" : "opacity-0"
-              }`}
+              className={`flex flex-col items-center lg:sticky lg:top-32 lg:self-start z-20 transition-opacity duration-300 ${showContent ? "opacity-100" : "opacity-0"
+                }`}
               aria-busy={isLoading}
             >
               <motion.div
@@ -176,12 +194,12 @@ function ProfilePage() {
                     sublabel={
                       user?.created_at
                         ? `Created ${new Date(
-                            user.created_at,
-                          ).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })}`
+                          user.created_at,
+                        ).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}`
                         : "Vault Instance"
                     }
                     colors={preferences.disc_colors}
@@ -202,9 +220,8 @@ function ProfilePage() {
             </div>
 
             <div
-              className={`space-y-6 w-full transition-opacity duration-300 ${
-                showContent ? "opacity-100" : "opacity-0"
-              }`}
+              className={`space-y-6 w-full transition-opacity duration-300 ${showContent ? "opacity-100" : "opacity-0"
+                }`}
               aria-busy={isLoading}
             >
               <div className="bg-linear-to-b from-[#262626] to-[#201f1f] border border-[#353333] rounded-3xl p-6">
@@ -229,7 +246,7 @@ function ProfilePage() {
                         </p>
                         <div className="bg-[#383838] border border-[#353333] h-[5.345px] rounded-[21px] overflow-hidden">
                           <div
-                            className="bg-[#0099bb] h-full rounded-[21px]"
+                            className="bg-accent-blue h-full rounded-[21px]"
                             style={{
                               width: `${utilizedPercent}%`,
                             }}
@@ -335,7 +352,7 @@ function ProfilePage() {
                       </p>
                     </div>
                     <Button
-                      className="bg-[#0099bb] rounded-[7px] px-6 py-2 text-white font-medium hover:bg-[#007a94] flex items-center gap-2 h-auto"
+                      className="bg-accent-blue rounded-[7px] px-6 py-2 text-white font-medium hover:bg-accent-blue/80 flex items-center gap-2 h-auto"
                       onClick={() => setIsUserManagementModalOpen(true)}
                     >
                       <Users className="h-4 w-4" />
@@ -351,7 +368,7 @@ function ProfilePage() {
                 </h2>
 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between border-b border-[#353333] pb-4">
                     <div>
                       <p className="text-white text-base">Quality</p>
                       <p className="text-[#7c7c7c] text-sm">
@@ -373,6 +390,55 @@ function ProfilePage() {
                         ? getQualityDisplay(preferences.default_quality)
                         : "Loading..."}
                     </Button>
+                  </div>
+
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-white text-base">Accent Color</p>
+                        <p className="text-[#7c7c7c] text-sm">
+                          Choose your preferred app accent color
+                        </p>
+                      </div>
+                      <div
+                        className="w-10 h-10 rounded-lg border border-[#353333] shadow-inner transition-colors duration-200"
+                        style={{ backgroundColor: preferences?.accent_color || "#ffba00" }}
+                      />
+                    </div>
+                    <div className="bg-[#191919] border border-[#353333] rounded-[12px] p-4 flex justify-center relative overflow-hidden select-none">
+                      <DotPattern
+                        width={8}
+                        height={8}
+                        className={cn(
+                          "mask-[radial-gradient(110px_circle_at_50%_100px,white,transparent)] z-0",
+                        )}
+                      />
+                      <div className="relative z-10 flex justify-center">
+                        <ColorPicker
+                          size={pickerSize}
+                          padding={pickerPadding}
+                          bulletRadius={18}
+                          showColorWheel={true}
+                          numPoints={1}
+                          initialAngle={initialAngleAndRadius.angle}
+                          initialRadius={initialAngleAndRadius.radius}
+                          onColorChange={async (colors) => {
+                            const newColor = colors[0];
+                            if (!isColorPickerMountedRef.current) {
+                              isColorPickerMountedRef.current = true;
+                              return;
+                            }
+                            if (newColor && newColor !== preferences?.accent_color) {
+                              try {
+                                await updatePreferences({ accent_color: newColor });
+                              } catch (error) {
+                                console.error("Failed to update accent color:", error);
+                              }
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <div className="hidden">

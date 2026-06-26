@@ -51,6 +51,7 @@ type UpdatePreferencesRequest struct {
 	ColorSpread        *int            `json:"color_spread,omitempty"`
 	GradientSpread     *int            `json:"gradient_spread,omitempty"`
 	ColorShiftRotation *int            `json:"color_shift_rotation,omitempty"`
+	AccentColor        *string         `json:"accent_color,omitempty"`
 }
 
 type CreateProjectRequest struct {
@@ -62,12 +63,19 @@ type CreateProjectRequest struct {
 }
 
 type UpdateProjectRequest struct {
-	Name            *string         `json:"name,omitempty"`
-	Description     *string         `json:"description,omitempty"`
-	QualityOverride *models.Quality `json:"quality_override,omitempty"`
-	AuthorOverride  *string         `json:"author_override,omitempty"`
-	Notes           *string         `json:"notes,omitempty"`
-	NotesAuthorName *string         `json:"notes_author_name,omitempty"`
+	Name                 *string         `json:"name,omitempty"`
+	Description          *string         `json:"description,omitempty"`
+	QualityOverride      *models.Quality `json:"quality_override,omitempty"`
+	AuthorOverride       *string         `json:"author_override,omitempty"`
+	Notes                *string         `json:"notes,omitempty"`
+	NotesAuthorName      *string         `json:"notes_author_name,omitempty"`
+	EstimatedReleaseDate *string         `json:"estimated_release_date,omitempty"`
+	CompletionPercentage *int32          `json:"completion_percentage,omitempty"`
+	Rating               *int32          `json:"rating,omitempty"`
+	ColorPalette         *string         `json:"color_palette,omitempty"`
+	StreamingChecklist   *string         `json:"streaming_checklist,omitempty"`
+	PreSaveURL           *string         `json:"pre_save_url,omitempty"`
+	DistributorNotes     *string         `json:"distributor_notes,omitempty"`
 }
 
 type ProjectResponse = shared.ProjectResponse

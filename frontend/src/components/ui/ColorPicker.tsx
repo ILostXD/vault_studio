@@ -52,7 +52,15 @@ function hexToHsl(hex: string): { h: number; s: number; l: number } {
   }
   h /= 6;
 
-  return { h: h * 360, s: s * 100, l: l * 100 };
+  return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+}
+
+function hslToRgb(h: number, s: number, l: number): { r: number; g: number; b: number } {
+  const hex = hslToHex(h, s, l);
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return { r, g, b };
 }
 
 interface ColorPickerProps {
@@ -154,6 +162,97 @@ const ColorPicker = memo(
       onColorChangeRef.current?.(colors);
     }, [color, color1, color2, numPoints]);
 
+    const DEFAULT_COLORS = [
+      "#ffba00", // Vault Yellow
+      "#00d4ff", // Cyan
+      "#ff007f", // Neon Pink
+      "#8a2be2", // Purple
+      "#00e676", // Green
+      "#ff3d00", // Red
+      "#ff9100", // Orange
+      "#e0e0e0", // Silver
+    ];
+
+    const [hexInput, setHexInput] = useState("");
+    const [rInput, setRInput] = useState("");
+    const [gInput, setGInput] = useState("");
+    const [bInput, setBInput] = useState("");
+    const [hInput, setHInput] = useState("");
+    const [sInput, setSInput] = useState("");
+    const [lInput, setLInput] = useState("");
+    const [activeTab, setActiveTab] = useState<"hex" | "rgb" | "hsl">("hex");
+
+    // Sync inputs when color changes via drag
+    useEffect(() => {
+      if (drag) return; // Don't sync while dragging to avoid lag
+      const hslVal = hexToHsl(color);
+      const rgbVal = hslToRgb(hslVal.h, hslVal.s, hslVal.l);
+      setHexInput(color);
+      setRInput(String(rgbVal.r));
+      setGInput(String(rgbVal.g));
+      setBInput(String(rgbVal.b));
+      setHInput(String(Math.round(hslVal.h)));
+      setSInput(String(Math.round(hslVal.s)));
+      setLInput(String(Math.round(hslVal.l)));
+    }, [color, drag]);
+
+    const applyColor = (hex: string) => {
+      const hslVal = hexToHsl(hex);
+      const newRadius = (hslVal.l / maxLight) * RADIUS;
+      const newAngle = (hslVal.h * Math.PI) / 180;
+      setRadius(Math.max(0, Math.min(RADIUS, newRadius)));
+      setAngle(newAngle);
+    };
+
+    const handleHexInputBlur = () => {
+      let cleaned = hexInput.trim();
+      if (!cleaned.startsWith("#")) cleaned = "#" + cleaned;
+      if (/^#[0-9A-F]{6}$/i.test(cleaned)) {
+        applyColor(cleaned);
+      } else {
+        setHexInput(color);
+      }
+    };
+
+    const handleRgbInputBlur = () => {
+      const rNum = Number(rInput);
+      const gNum = Number(gInput);
+      const bNum = Number(bInput);
+      if (
+        !isNaN(rNum) && rNum >= 0 && rNum <= 255 &&
+        !isNaN(gNum) && gNum >= 0 && gNum <= 255 &&
+        !isNaN(bNum) && bNum >= 0 && bNum <= 255
+      ) {
+        const hex = "#" + [rNum, gNum, bNum].map(x => Math.round(x).toString(16).padStart(2, "0")).join("");
+        applyColor(hex);
+      } else {
+        const hslVal = hexToHsl(color);
+        const rgbVal = hslToRgb(hslVal.h, hslVal.s, hslVal.l);
+        setRInput(String(rgbVal.r));
+        setGInput(String(rgbVal.g));
+        setBInput(String(rgbVal.b));
+      }
+    };
+
+    const handleHslInputBlur = () => {
+      const hNum = Number(hInput);
+      const sNum = Number(sInput);
+      const lNum = Number(lInput);
+      if (
+        !isNaN(hNum) && hNum >= 0 && hNum <= 360 &&
+        !isNaN(sNum) && sNum >= 0 && sNum <= 100 &&
+        !isNaN(lNum) && lNum >= 0 && lNum <= 100
+      ) {
+        const hex = hslToHex(hNum, sNum, lNum);
+        applyColor(hex);
+      } else {
+        const hslVal = hexToHsl(color);
+        setHInput(String(Math.round(hslVal.h)));
+        setSInput(String(Math.round(hslVal.s)));
+        setLInput(String(Math.round(hslVal.l)));
+      }
+    };
+
     function setFromPointer(e: React.PointerEvent) {
       const rect = ref.current!.getBoundingClientRect();
       const x = e.clientX - rect.left - size / 2;
@@ -176,14 +275,16 @@ const ColorPicker = memo(
       setFromPointer(e);
     }
     function onPointerUp() {
-      setDrag(false);
+      if (drag) {
+        setDrag(false);
+      }
     }
 
     const bx = size / 2 + Math.cos(angle) * radius;
     const by = size / 2 + Math.sin(angle) * radius;
 
     return (
-      <div>
+      <div className="flex flex-col items-center gap-4 w-full">
         <div
           style={{
             width: size,
@@ -239,6 +340,138 @@ const ColorPicker = memo(
             />
           )}
         </div>
+
+        {showColorWheel && (
+          <div className="w-full max-w-[280px] space-y-4">
+            {/* Header tabs */}
+            <div className="flex rounded-lg bg-black/40 p-0.5 border border-white/5">
+              {(["hex", "rgb", "hsl"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setActiveTab(tab)}
+                  className={`flex-1 py-1 text-[10px] uppercase font-mono font-medium rounded-md transition-all cursor-pointer ${
+                    activeTab === tab
+                      ? "bg-white/10 text-white shadow-xs"
+                      : "text-white/40 hover:text-white/60"
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            {/* Input Fields */}
+            <div>
+              {activeTab === "hex" && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-white/40 font-mono font-medium w-8 shrink-0">HEX</span>
+                  <input
+                    type="text"
+                    value={hexInput}
+                    onChange={(e) => setHexInput(e.target.value)}
+                    onBlur={handleHexInputBlur}
+                    onKeyDown={(e) => e.key === "Enter" && handleHexInputBlur()}
+                    className="bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white font-mono w-full outline-none focus:border-accent-blue text-center transition-colors"
+                  />
+                </div>
+              )}
+
+              {activeTab === "rgb" && (
+                <div className="flex gap-2">
+                  <div className="flex-1 flex flex-col items-center gap-1">
+                    <input
+                      type="text"
+                      value={rInput}
+                      onChange={(e) => setRInput(e.target.value)}
+                      onBlur={handleRgbInputBlur}
+                      onKeyDown={(e) => e.key === "Enter" && handleRgbInputBlur()}
+                      className="bg-black/40 border border-white/10 rounded-lg py-1.5 text-xs text-white font-mono w-full text-center outline-none focus:border-accent-blue transition-colors"
+                    />
+                    <span className="text-[9px] text-white/30 font-mono font-medium">R</span>
+                  </div>
+                  <div className="flex-1 flex flex-col items-center gap-1">
+                    <input
+                      type="text"
+                      value={gInput}
+                      onChange={(e) => setGInput(e.target.value)}
+                      onBlur={handleRgbInputBlur}
+                      onKeyDown={(e) => e.key === "Enter" && handleRgbInputBlur()}
+                      className="bg-black/40 border border-white/10 rounded-lg py-1.5 text-xs text-white font-mono w-full text-center outline-none focus:border-accent-blue transition-colors"
+                    />
+                    <span className="text-[9px] text-white/30 font-mono font-medium">G</span>
+                  </div>
+                  <div className="flex-1 flex flex-col items-center gap-1">
+                    <input
+                      type="text"
+                      value={bInput}
+                      onChange={(e) => setBInput(e.target.value)}
+                      onBlur={handleRgbInputBlur}
+                      onKeyDown={(e) => e.key === "Enter" && handleRgbInputBlur()}
+                      className="bg-black/40 border border-white/10 rounded-lg py-1.5 text-xs text-white font-mono w-full text-center outline-none focus:border-accent-blue transition-colors"
+                    />
+                    <span className="text-[9px] text-white/30 font-mono font-medium">B</span>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "hsl" && (
+                <div className="flex gap-2">
+                  <div className="flex-1 flex flex-col items-center gap-1">
+                    <input
+                      type="text"
+                      value={hInput}
+                      onChange={(e) => setHInput(e.target.value)}
+                      onBlur={handleHslInputBlur}
+                      onKeyDown={(e) => e.key === "Enter" && handleHslInputBlur()}
+                      className="bg-black/40 border border-white/10 rounded-lg py-1.5 text-xs text-white font-mono w-full text-center outline-none focus:border-accent-blue transition-colors"
+                    />
+                    <span className="text-[9px] text-white/30 font-mono font-medium">H</span>
+                  </div>
+                  <div className="flex-1 flex flex-col items-center gap-1">
+                    <input
+                      type="text"
+                      value={sInput}
+                      onChange={(e) => setSInput(e.target.value)}
+                      onBlur={handleHslInputBlur}
+                      onKeyDown={(e) => e.key === "Enter" && handleHslInputBlur()}
+                      className="bg-black/40 border border-white/10 rounded-lg py-1.5 text-xs text-white font-mono w-full text-center outline-none focus:border-accent-blue transition-colors"
+                    />
+                    <span className="text-[9px] text-white/30 font-mono font-medium">S%</span>
+                  </div>
+                  <div className="flex-1 flex flex-col items-center gap-1">
+                    <input
+                      type="text"
+                      value={lInput}
+                      onChange={(e) => setLInput(e.target.value)}
+                      onBlur={handleHslInputBlur}
+                      onKeyDown={(e) => e.key === "Enter" && handleHslInputBlur()}
+                      className="bg-black/40 border border-white/10 rounded-lg py-1.5 text-xs text-white font-mono w-full text-center outline-none focus:border-accent-blue transition-colors"
+                    />
+                    <span className="text-[9px] text-white/30 font-mono font-medium">L%</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Default Colors */}
+            <div className="space-y-1.5 pt-2 border-t border-white/5">
+              <span className="text-[10px] text-white/40 font-mono font-medium">DEFAULTS</span>
+              <div className="flex flex-wrap gap-1.5">
+                {DEFAULT_COLORS.map((c, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => applyColor(c)}
+                    className="size-6 rounded-md border border-white/10 hover:scale-110 hover:border-white/30 active:scale-95 transition-all cursor-pointer"
+                    style={{ backgroundColor: c }}
+                    title={c}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   },

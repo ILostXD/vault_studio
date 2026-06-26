@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import * as TanStackQueryProvider from "./integrations/tanstack-query/root-provider.tsx";
 import { AuthProvider } from "./contexts/AuthContext";
+import { PreferencesProvider } from "./contexts/PreferencesContext";
 import { AudioPlayerProvider } from "./contexts/AudioPlayerContext";
 import { routeTree } from "./routeTree.gen";
 import "./styles.css";
@@ -32,9 +33,11 @@ if (rootElement && !rootElement.innerHTML) {
     <StrictMode>
       <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
         <AuthProvider>
-          <AudioPlayerProvider>
-            <RouterProvider router={router} />
-          </AudioPlayerProvider>
+          <PreferencesProvider>
+            <AudioPlayerProvider>
+              <RouterProvider router={router} />
+            </AudioPlayerProvider>
+          </PreferencesProvider>
         </AuthProvider>
       </TanStackQueryProvider.Provider>
     </StrictMode>,

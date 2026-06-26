@@ -26,7 +26,7 @@ func (q *Queries) CreateUserPreferences(ctx context.Context, arg CreateUserPrefe
 }
 
 const getUserPreferences = `-- name: GetUserPreferences :one
-SELECT user_id, default_quality, created_at, updated_at, disc_colors, color_spread, gradient_spread, color_shift_rotation FROM user_preferences
+SELECT user_id, default_quality, created_at, updated_at, disc_colors, color_spread, gradient_spread, color_shift_rotation, accent_color FROM user_preferences
 WHERE user_id = ?
 `
 
@@ -42,6 +42,7 @@ func (q *Queries) GetUserPreferences(ctx context.Context, userID int64) (UserPre
 		&i.ColorSpread,
 		&i.GradientSpread,
 		&i.ColorShiftRotation,
+		&i.AccentColor,
 	)
 	return i, err
 }
@@ -53,9 +54,10 @@ SET default_quality = COALESCE(?1, default_quality),
     color_spread = COALESCE(?3, color_spread),
     gradient_spread = COALESCE(?4, gradient_spread),
     color_shift_rotation = COALESCE(?5, color_shift_rotation),
+    accent_color = COALESCE(?6, accent_color),
     updated_at = CURRENT_TIMESTAMP
-WHERE user_id = ?6
-RETURNING user_id, default_quality, created_at, updated_at, disc_colors, color_spread, gradient_spread, color_shift_rotation
+WHERE user_id = ?7
+RETURNING user_id, default_quality, created_at, updated_at, disc_colors, color_spread, gradient_spread, color_shift_rotation, accent_color
 `
 
 type UpdateUserPreferencesParams struct {
@@ -64,6 +66,7 @@ type UpdateUserPreferencesParams struct {
 	ColorSpread        sql.NullInt64  `json:"color_spread"`
 	GradientSpread     sql.NullInt64  `json:"gradient_spread"`
 	ColorShiftRotation sql.NullInt64  `json:"color_shift_rotation"`
+	AccentColor        sql.NullString `json:"accent_color"`
 	UserID             int64          `json:"user_id"`
 }
 
@@ -74,6 +77,7 @@ func (q *Queries) UpdateUserPreferences(ctx context.Context, arg UpdateUserPrefe
 		arg.ColorSpread,
 		arg.GradientSpread,
 		arg.ColorShiftRotation,
+		arg.AccentColor,
 		arg.UserID,
 	)
 	var i UserPreference
@@ -86,6 +90,7 @@ func (q *Queries) UpdateUserPreferences(ctx context.Context, arg UpdateUserPrefe
 		&i.ColorSpread,
 		&i.GradientSpread,
 		&i.ColorShiftRotation,
+		&i.AccentColor,
 	)
 	return i, err
 }

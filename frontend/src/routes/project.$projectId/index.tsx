@@ -1,7 +1,9 @@
-import { DotIcon, Shuffle, Play, Pause, LinkIcon, Users } from "lucide-react";
+import { DotIcon, Shuffle, Play, Pause, LinkIcon, Users, Info, Music } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useWebHaptics } from "web-haptics/react";
 import AlbumCover from "@/components/AlbumCover";
+import ProjectMetadataPanel from "@/components/ProjectMetadataPanel";
+import BaseModal from "@/components/modals/BaseModal";
 import NotesPanel from "@/components/NotesPanel";
 import LinkNotAvailable from "@/components/LinkNotAvailable";
 import { createFileRoute } from "@tanstack/react-router";
@@ -105,6 +107,11 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
   } = useAudioPlayer();
 
   const tracks = useMemo(() => apiTracks || [], [apiTracks]);
+  const isCurrentProjectPlaying = useMemo(() => {
+    return isPlaying && currentTrack
+      ? tracks.some((t) => t.public_id === currentTrack.id)
+      : false;
+  }, [isPlaying, currentTrack, tracks]);
 
   const playButton = usePlayButtonAnimation();
 
@@ -118,6 +125,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
   const [showCoverPanel, setShowCoverPanel] = useState(false);
   const [coverColorsReady, setCoverColorsReady] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
+  const [isMobileScreen, setIsMobileScreen] = useState(false);
 
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -130,6 +138,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
   const [isNotesOpen, setIsNotesOpen] = useState(false);
   const [notesTrack, setNotesTrack] = useState<Track | null>(null);
   const [_isDragging, setIsDragging] = useState(false);
+  const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false);
 
   const handleTrackClickRef = useRef<(track: Track) => void>(() => {});
 
@@ -477,12 +486,22 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
   }, []);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 768px)");
-    setIsSmallScreen(mediaQuery.matches);
-    const handleChange = (e: MediaQueryListEvent) =>
-      setIsSmallScreen(e.matches);
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
+    const mdQuery = window.matchMedia("(max-width: 768px)");
+    const smQuery = window.matchMedia("(max-width: 640px)");
+    
+    setIsSmallScreen(mdQuery.matches);
+    setIsMobileScreen(smQuery.matches);
+
+    const handleMdChange = (e: MediaQueryListEvent) => setIsSmallScreen(e.matches);
+    const handleSmChange = (e: MediaQueryListEvent) => setIsMobileScreen(e.matches);
+
+    mdQuery.addEventListener("change", handleMdChange);
+    smQuery.addEventListener("change", handleSmChange);
+
+    return () => {
+      mdQuery.removeEventListener("change", handleMdChange);
+      smQuery.removeEventListener("change", handleSmChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -636,11 +655,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
                 onUploadClick={() => setIsCoverModalOpen(true)}
                 showUploadOverlay={canEditProject}
                 onColorsReady={() => setCoverColorsReady(true)}
-                isPlaying={
-                  isPlaying && currentTrack
-                    ? tracks.some((t) => t.public_id === currentTrack.id)
-                    : false
-                }
+                isPlaying={isCurrentProjectPlaying}
                 playbackProgress={previewProgress}
               />
               <input
@@ -650,7 +665,47 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
                 className="hidden"
                 onChange={handleCoverFileChange}
               />
-            </div>
+              
+              <div
+                className="grid grid-cols-3 gap-2 mt-5 w-full transition-transform duration-300 ease-in-out"
+                style={{
+                  transform:
+                    isCurrentProjectPlaying && !isMobileScreen
+                      ? "translateX(0)"
+                      : "translateX(2rem)",
+                }}
+              >
+                <Button
+                  variant="outline"
+                  size="default"
+                  onClick={() => setIsMetadataModalOpen(true)}
+                  className="flex flex-col sm:flex-row md:flex-col xl:flex-row items-center justify-center gap-1 xl:gap-1.5 bg-[#232323]/50 hover:bg-[#303030]/50 border-[#353333] hover:border-white/20 text-white/90 rounded-2xl h-14 md:h-16 xl:h-12 w-full py-1.5 sm:py-2 md:py-1.5 xl:py-2 transition-all"
+                  haptic="light"
+                >
+                  <Info className="size-4 text-white/70 shrink-0" />
+                  <span className="text-[9px] sm:text-[10px] font-semibold tracking-wider font-mono">DETAILS</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="default"
+                  disabled
+                  className="flex flex-col sm:flex-row md:flex-col xl:flex-row items-center justify-center gap-1 xl:gap-1.5 bg-[#232323]/25 border-[#353333]/30 text-white/30 rounded-2xl h-14 md:h-16 xl:h-12 w-full py-1.5 sm:py-2 md:py-1.5 xl:py-2 cursor-not-allowed opacity-50"
+                  haptic="light"
+                >
+                  <Music className="size-4 text-white/20 shrink-0" />
+                  <span className="text-[9px] sm:text-[10px] font-semibold tracking-wider font-mono">DISTRO</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="default"
+                  disabled
+                  className="flex flex-col sm:flex-row md:flex-col xl:flex-row items-center justify-center gap-1 xl:gap-1.5 bg-[#232323]/25 border-[#353333]/30 text-white/30 rounded-2xl h-14 md:h-16 xl:h-12 w-full py-1.5 sm:py-2 md:py-1.5 xl:py-2 cursor-not-allowed opacity-50"
+                  haptic="light"
+                >
+                  <LinkIcon className="size-4 text-white/20 shrink-0" />
+                  <span className="text-[9px] sm:text-[10px] font-semibold tracking-wider font-mono">PROMO</span>
+                </Button>
+              </div></div>
           </motion.div>
 
           <motion.div
@@ -687,7 +742,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
                       blurOnClick(e);
                     }}
                     onKeyDown={preventSpacebarDefault}
-                    className={`transition-colors ${isShuffled ? "text-amber-400" : "text-white hover:text-gray-300"}`}
+                    className={`transition-colors ${isShuffled ? "text-accent-blue" : "text-white hover:text-gray-300"}`}
                     aria-label="Shuffle"
                     aria-pressed={isShuffled}
                   >
@@ -922,6 +977,9 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
         isGlobalSearchOpen={search.isGlobalSearchOpen}
         onCloseGlobalSearch={() => search.setIsGlobalSearchOpen(false)}
       />
+      <BaseModal isOpen={isMetadataModalOpen} onClose={() => setIsMetadataModalOpen(false)} maxWidth="lg">
+        <ProjectMetadataPanel project={project} canEdit={!!canEditProject} onClose={() => setIsMetadataModalOpen(false)} />
+      </BaseModal>
     </>
   );
 }

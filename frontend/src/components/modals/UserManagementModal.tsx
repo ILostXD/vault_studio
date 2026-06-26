@@ -349,7 +349,7 @@ export function UserManagementModal({
                   {isLoading && (
                     <div className="flex flex-col items-center justify-center py-16">
                       <div className="relative">
-                        <div className="h-10 w-10 animate-spin rounded-full border-3 border-[#2a2a2a] border-t-[#0099bb]" />
+                        <div className="h-10 w-10 animate-spin rounded-full border-3 border-[#2a2a2a] border-t-accent-blue" />
                       </div>
                       <p className="text-sm text-[#6a6a6a] mt-4">
                         Loading users...
@@ -563,11 +563,11 @@ export function UserManagementModal({
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
-                        className="rounded-xl border border-[#0099bb]/20 p-3"
-                        style={{
-                          background:
-                            "linear-gradient(135deg, rgba(0, 153, 187, 0.1) 0%, rgba(0, 153, 187, 0.03) 100%), #151515",
-                        }}
+                         className="rounded-xl border border-accent-blue/20 p-3"
+                         style={{
+                           background:
+                             "linear-gradient(135deg, color-mix(in oklab, var(--accent-color) 10%, transparent) 0%, color-mix(in oklab, var(--accent-color) 3%, transparent) 100%), #151515",
+                         }}
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
@@ -587,7 +587,7 @@ export function UserManagementModal({
                         </div>
 
                         <div className="bg-[#0d0d0d] rounded-lg p-2.5 border border-[#2a2a2a] flex items-center gap-2">
-                          <code className="text-[11px] text-[#0099bb] break-all flex-1 font-mono">
+                           <code className="text-[11px] text-accent-blue break-all flex-1 font-mono">
                             {generatedResetLink.link}
                           </code>
                           <motion.button
@@ -598,7 +598,7 @@ export function UserManagementModal({
                                 generatedResetLink.id,
                               )
                             }
-                            className="shrink-0 rounded-md bg-black/80 border border-[#0099bb]/70 p-2 hover:border-[#00b1d4] transition-colors"
+                             className="shrink-0 rounded-md bg-black/80 border border-accent-blue/70 p-2 hover:border-accent-blue/90 transition-colors"
                           >
                             <motion.div
                               key={`reset-copy-${resetPulse}`}
@@ -629,7 +629,7 @@ export function UserManagementModal({
                                 }}
                                 transition={{ duration: 0.15, ease: "easeOut" }}
                               >
-                                <Copy className="h-3.5 w-3.5 text-[#00b1d4]" />
+                                <Copy className="h-3.5 w-3.5 text-accent-blue" />
                               </motion.span>
                               <motion.span
                                 className="absolute inset-0 flex items-center justify-center"
@@ -647,7 +647,7 @@ export function UserManagementModal({
                                 }}
                                 transition={{ duration: 0.15, ease: "easeOut" }}
                               >
-                                <Check className="h-3.5 w-3.5 text-[#00b1d4]" />
+                                <Check className="h-3.5 w-3.5 text-accent-blue" />
                               </motion.span>
                             </motion.div>
                           </motion.button>
@@ -800,7 +800,7 @@ function UserCard({
             className={`flex items-center gap-2 shrink-0 transition-opacity duration-150 ${isRenaming ? "opacity-0" : "opacity-100"}`}
           >
             {isCurrentUser && (
-              <span className="text-xs text-[#0099bb]">(you)</span>
+               <span className="text-xs text-accent-blue">(you)</span>
             )}
             {user.is_admin && (
               <div

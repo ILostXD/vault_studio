@@ -1154,7 +1154,7 @@ export default function TrackVersionsModal({
                           })}
                         </svg>
                         <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-amber-400 rounded-full pointer-events-none"
+                          className="absolute top-0 bottom-0 w-0.5 bg-accent-blue rounded-full pointer-events-none"
                           style={{
                             left: `${previewProgressPercent}%`,
                             transform: "translateX(-50%)",

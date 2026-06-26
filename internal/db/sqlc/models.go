@@ -103,6 +103,13 @@ type Project struct {
 	SharedWithInstanceUsers sql.NullBool   `json:"shared_with_instance_users"`
 	CustomOrder             int64          `json:"custom_order"`
 	CoverProcessed          sql.NullBool   `json:"cover_processed"`
+	EstimatedReleaseDate    sql.NullString `json:"estimated_release_date"`
+	CompletionPercentage    int64          `json:"completion_percentage"`
+	Rating                  int64          `json:"rating"`
+	ColorPalette            sql.NullString `json:"color_palette"`
+	StreamingChecklist      sql.NullString `json:"streaming_checklist"`
+	PreSaveUrl              sql.NullString `json:"pre_save_url"`
+	DistributorNotes        sql.NullString `json:"distributor_notes"`
 }
 
 type ProjectShareToken struct {
@@ -251,6 +258,7 @@ type UserPreference struct {
 	ColorSpread        sql.NullInt64  `json:"color_spread"`
 	GradientSpread     sql.NullInt64  `json:"gradient_spread"`
 	ColorShiftRotation sql.NullInt64  `json:"color_shift_rotation"`
+	AccentColor        string         `json:"accent_color"`
 }
 
 type UserProjectShare struct {

@@ -19,6 +19,7 @@ type PreferencesResponse struct {
 	ColorSpread        *int      `json:"color_spread,omitempty"`
 	GradientSpread     *int      `json:"gradient_spread,omitempty"`
 	ColorShiftRotation *int      `json:"color_shift_rotation,omitempty"`
+	AccentColor        string    `json:"accent_color"`
 	CreatedAt          string    `json:"created_at"`
 	UpdatedAt          string    `json:"updated_at"`
 }
@@ -35,6 +36,7 @@ func toPreferencesResponse(prefs sqlc.UserPreference) PreferencesResponse {
 	resp := PreferencesResponse{
 		UserID:         prefs.UserID,
 		DefaultQuality: prefs.DefaultQuality,
+		AccentColor:    prefs.AccentColor,
 		CreatedAt:      prefs.CreatedAt.Time.Format(time.RFC3339),
 		UpdatedAt:      prefs.UpdatedAt.Time.Format(time.RFC3339),
 	}
@@ -129,6 +131,10 @@ func (h *PreferencesHandler) UpdatePreferences(w http.ResponseWriter, r *http.Re
 
 	if req.ColorShiftRotation != nil {
 		params.ColorShiftRotation = sql.NullInt64{Int64: int64(*req.ColorShiftRotation), Valid: true}
+	}
+
+	if req.AccentColor != nil {
+		params.AccentColor = sql.NullString{String: *req.AccentColor, Valid: true}
 	}
 
 	prefs, err := h.db.UpdateUserPreferences(ctx, params)

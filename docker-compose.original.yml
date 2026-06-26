@@ -1,8 +1,7 @@
 services:
   vault-server:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/bungleware/vault:main
+    pull_policy: always
     container_name: vault-server
     restart: unless-stopped
     ports:

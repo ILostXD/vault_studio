@@ -10,6 +10,7 @@ import {
 import { Filter } from "virtual:refractionFilter?width=32&height=22&radius=11&bezelWidth=5&glassThickness=11&refractiveIndex=1.5";
 
 import { cn } from "@/lib/utils";
+import { usePreferences } from "@/contexts/PreferencesContext";
 
 function Switch({
   className,
@@ -18,6 +19,9 @@ function Switch({
   disabled,
   ...props
 }: React.ComponentProps<typeof SwitchPrimitive.Root>) {
+  const { preferences } = usePreferences();
+  const activeColor = preferences?.accent_color || "#ffba00";
+
   // CONSTANTS (layout + optics)
   const sliderHeight = 20;
   const sliderWidth = 45;
@@ -116,7 +120,7 @@ function Switch({
   const backgroundColor = useTransform(
     // @ts-ignore - Type mismatch between useSpring/useTransform and mix function
     useSpring(considerChecked, { damping: 75, stiffness: 1200 }),
-    mix("#94949F77", "#3BBF4EEE"),
+    mix("#94949F77", activeColor),
   );
 
   const handleMove = (clientX: number) => {

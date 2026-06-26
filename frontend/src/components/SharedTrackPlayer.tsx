@@ -688,7 +688,7 @@ export default function SharedTrackPlayer({
                   transform: "translateX(-50%)",
                 }}
               >
-                <div className="h-full w-0.5 bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]" />
+                <div className="h-full w-0.5 bg-accent-blue shadow-[0_0_10px_var(--accent-color)]" />
               </div>
             </div>
           </div>
@@ -791,7 +791,7 @@ export default function SharedTrackPlayer({
               tabIndex={-1}
               className={`transition-colors ${
                 loopMode !== "off"
-                  ? "text-amber-400"
+                  ? "text-accent-blue"
                   : "text-white hover:text-gray-300"
               }`}
               aria-label="Loop track"
@@ -851,7 +851,7 @@ export default function SharedTrackPlayer({
                             width: 6,
                             height: `${volumePercentage}%`,
                             borderRadius: 3,
-                            backgroundColor: "#FFBA00",
+                            backgroundColor: "var(--accent-color)",
                             position: "absolute",
                           }}
                         />

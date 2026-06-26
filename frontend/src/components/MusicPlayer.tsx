@@ -907,8 +907,8 @@ export default function MusicPlayer({
                     left: `${progressForBars}%`,
                   }}
                 >
-                  <div className="hidden sm:block absolute inset-0 w-1 -left-0.5 bg-amber-400/40 blur-sm" />
-                  <div className="absolute inset-0 w-0.5 bg-amber-400 rounded-full" />
+                  <div className="hidden sm:block absolute inset-0 w-1 -left-0.5 bg-accent-blue/40 blur-sm" />
+                  <div className="absolute inset-0 w-0.5 bg-accent-blue rounded-full" />
                 </div>
               </div>
             </div>
@@ -1099,7 +1099,7 @@ export default function MusicPlayer({
             <div className="flex items-center gap-5 sm:gap-6 justify-self-end z-10 pr-3 sm:pr-4">
               <button
                 type="button"
-                className={`transition-colors ${loopMode !== "off" ? "text-amber-400" : "text-white hover:text-gray-300"}`}
+                className={`transition-colors ${loopMode !== "off" ? "text-accent-blue" : "text-white hover:text-gray-300"}`}
                 aria-label={
                   loopMode === "off"
                     ? "Loop off"
@@ -1124,7 +1124,7 @@ export default function MusicPlayer({
 
               <button
                 type="button"
-                className={`transition-colors ${isShuffled ? "text-amber-400" : "text-white hover:text-gray-300"}`}
+                className={`transition-colors ${isShuffled ? "text-accent-blue" : "text-white hover:text-gray-300"}`}
                 aria-label="Shuffle"
                 aria-pressed={isShuffled}
                 onClick={(e) => {
@@ -1139,7 +1139,7 @@ export default function MusicPlayer({
 
               <button
                 type="button"
-                className={`order-2 sm:order-none transition-colors relative ${isQueueOpen ? "text-amber-400" : "text-white hover:text-gray-300"}`}
+                className={`order-2 sm:order-none transition-colors relative ${isQueueOpen ? "text-accent-blue" : "text-white hover:text-gray-300"}`}
                 aria-label="Queue"
                 onClick={(e) => {
                   setIsQueueOpen(!isQueueOpen);
@@ -1150,7 +1150,7 @@ export default function MusicPlayer({
               >
                 <ListIcon className="size-5.5 sm:size-5" />
                 {SHOW_QUEUE_BADGE && queue.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-amber-400 text-black text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-accent-blue text-black text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center pointer-events-none">
                     {queue.length}
                   </span>
                 )}
@@ -1213,7 +1213,7 @@ export default function MusicPlayer({
                               width: volumeTrackWidth,
                               height: `${volumePercentage}%`,
                               borderRadius: volumeTrackWidth / 2,
-                              backgroundColor: "#FFBA00",
+                              backgroundColor: "var(--accent-color)",
                               position: "absolute",
                             }}
                           />

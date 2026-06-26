@@ -243,14 +243,21 @@ func (h *ProjectsHandler) UpdateProject(w http.ResponseWriter, r *http.Request) 
 	}
 
 	project, err := h.service.UpdateProject(r.Context(), service.UpdateProjectInput{
-		UserID:          int64(userID),
-		PublicID:        publicID,
-		Name:            req.Name,
-		Description:     req.Description,
-		QualityOverride: qualityOverride,
-		AuthorOverride:  req.AuthorOverride,
-		Notes:           req.Notes,
-		NotesAuthorName: req.NotesAuthorName,
+		UserID:               int64(userID),
+		PublicID:             publicID,
+		Name:                 req.Name,
+		Description:          req.Description,
+		QualityOverride:      qualityOverride,
+		AuthorOverride:       req.AuthorOverride,
+		Notes:                req.Notes,
+		NotesAuthorName:      req.NotesAuthorName,
+		EstimatedReleaseDate: req.EstimatedReleaseDate,
+		CompletionPercentage: req.CompletionPercentage,
+		Rating:               req.Rating,
+		ColorPalette:         req.ColorPalette,
+		StreamingChecklist:   req.StreamingChecklist,
+		PreSaveURL:           req.PreSaveURL,
+		DistributorNotes:     req.DistributorNotes,
 	})
 	if errors.Is(err, sql.ErrNoRows) {
 		return apperr.NewNotFound("project not found")

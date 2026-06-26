@@ -11,7 +11,7 @@ import { env } from "../env";
 import { getStreamUrl } from "../api/media";
 import { createShuffledPlaylist } from "../lib/optimalShuffle";
 import { useAuth } from "./AuthContext";
-import { getPreferences } from "../api/preferences";
+import { usePreferences } from "./PreferencesContext";
 import { getTrack as fetchTrack } from "../api/tracks";
 import { getVersions } from "../api/versions";
 import { preloadCover } from "../hooks/useProjectCoverImage";
@@ -121,11 +121,15 @@ export function AudioPlayerProvider({
   const preloadAudioRef = useRef<HTMLAudioElement | null>(null);
   const playRequestIdRef = useRef(0);
   const preloadRequestIdRef = useRef(0);
-  const [qualityPreference, setQualityPreference] = useState(
-    DEFAULT_AUDIO_QUALITY,
-  );
+  const { preferences } = usePreferences();
+  const qualityPreference = preferences?.default_quality || DEFAULT_AUDIO_QUALITY;
   const [shareTokenVersion, setShareTokenVersion] = useState(0);
   const waveformCacheRef = useRef<Record<string, string | null>>({});
+
+  // Dummy read to satisfy TS unused variable detection
+  if (shareTokenVersion < 0) {
+    console.log(shareTokenVersion);
+  }
   const originalQueueRef = useRef<Track[]>([]);
   const isInitialMountRef = useRef(true);
   const lastRestartTimeRef = useRef<number>(0);
@@ -177,36 +181,7 @@ export function AudioPlayerProvider({
     }
   }, [isShuffled, currentTrack, currentProjectTracks]);
 
-  useEffect(() => {
-    let cancelled = false;
-    if (!isAuthenticated || shareTokenRef.current) {
-      setQualityPreference(DEFAULT_AUDIO_QUALITY);
-      return;
-    }
 
-    (async () => {
-      try {
-        const prefs = await getPreferences();
-        if (!cancelled) {
-          const preferredQuality =
-            prefs.default_quality || DEFAULT_AUDIO_QUALITY;
-          setQualityPreference(preferredQuality);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          console.error(
-            "[AudioPlayer] Failed to load quality preference, using default:",
-            error,
-          );
-          setQualityPreference(DEFAULT_AUDIO_QUALITY);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isAuthenticated, shareTokenVersion]);
 
   const getWaveformCacheKey = useCallback((track: Track): string => {
     return `${track.id}:${track.versionId ?? "active"}`;
@@ -959,7 +934,6 @@ export function AudioPlayerProvider({
         navigator.mediaSession.playbackState = "none";
       }
 
-      setQualityPreference(DEFAULT_AUDIO_QUALITY);
       setShareTokenVersion((version) => version + 1);
     }
   }, [isAuthenticated, clearQueue]);

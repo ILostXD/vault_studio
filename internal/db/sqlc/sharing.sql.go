@@ -716,7 +716,7 @@ func (q *Queries) GetProjectShareTokenByProject(ctx context.Context, arg GetProj
 }
 
 const getPublicProjects = `-- name: GetPublicProjects :many
-SELECT id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed FROM projects
+SELECT id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed, estimated_release_date, completion_percentage, rating, color_palette, streaming_checklist, pre_save_url, distributor_notes FROM projects
 WHERE visibility_status = 'public'
 ORDER BY created_at DESC
 LIMIT ? OFFSET ?
@@ -762,6 +762,13 @@ func (q *Queries) GetPublicProjects(ctx context.Context, arg GetPublicProjectsPa
 			&i.SharedWithInstanceUsers,
 			&i.CustomOrder,
 			&i.CoverProcessed,
+			&i.EstimatedReleaseDate,
+			&i.CompletionPercentage,
+			&i.Rating,
+			&i.ColorPalette,
+			&i.StreamingChecklist,
+			&i.PreSaveUrl,
+			&i.DistributorNotes,
 		); err != nil {
 			return nil, err
 		}
@@ -1361,7 +1368,7 @@ func (q *Queries) ListProjectsSharedByUser(ctx context.Context, sharedBy int64) 
 }
 
 const listProjectsSharedWithUser = `-- name: ListProjectsSharedWithUser :many
-SELECT DISTINCT p.id, p.user_id, p.name, p.description, p.quality_override, p.created_at, p.updated_at, p.public_id, p.cover_art_path, p.cover_art_mime, p.cover_art_updated_at, p.author_override, p.folder_id, p.folder_added_at, p.notes, p.notes_author_name, p.notes_updated_at, p.visibility_status, p.allow_editing, p.allow_downloads, p.password_hash, p.origin_instance_url, p.shared_with_instance_users, p.custom_order, p.cover_processed FROM projects p
+SELECT DISTINCT p.id, p.user_id, p.name, p.description, p.quality_override, p.created_at, p.updated_at, p.public_id, p.cover_art_path, p.cover_art_mime, p.cover_art_updated_at, p.author_override, p.folder_id, p.folder_added_at, p.notes, p.notes_author_name, p.notes_updated_at, p.visibility_status, p.allow_editing, p.allow_downloads, p.password_hash, p.origin_instance_url, p.shared_with_instance_users, p.custom_order, p.cover_processed, p.estimated_release_date, p.completion_percentage, p.rating, p.color_palette, p.streaming_checklist, p.pre_save_url, p.distributor_notes FROM projects p
 JOIN user_project_shares ups ON p.id = ups.project_id
 WHERE ups.shared_to = ?
 ORDER BY p.created_at DESC
@@ -1402,6 +1409,13 @@ func (q *Queries) ListProjectsSharedWithUser(ctx context.Context, sharedTo int64
 			&i.SharedWithInstanceUsers,
 			&i.CustomOrder,
 			&i.CoverProcessed,
+			&i.EstimatedReleaseDate,
+			&i.CompletionPercentage,
+			&i.Rating,
+			&i.ColorPalette,
+			&i.StreamingChecklist,
+			&i.PreSaveUrl,
+			&i.DistributorNotes,
 		); err != nil {
 			return nil, err
 		}
@@ -1980,7 +1994,7 @@ SET visibility_status = ?,
     password_hash = ?,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = ? AND user_id = ?
-RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed
+RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed, estimated_release_date, completion_percentage, rating, color_palette, streaming_checklist, pre_save_url, distributor_notes
 `
 
 type UpdateProjectVisibilityParams struct {
@@ -2028,6 +2042,13 @@ func (q *Queries) UpdateProjectVisibility(ctx context.Context, arg UpdateProject
 		&i.SharedWithInstanceUsers,
 		&i.CustomOrder,
 		&i.CoverProcessed,
+		&i.EstimatedReleaseDate,
+		&i.CompletionPercentage,
+		&i.Rating,
+		&i.ColorPalette,
+		&i.StreamingChecklist,
+		&i.PreSaveUrl,
+		&i.DistributorNotes,
 	)
 	return i, err
 }
@@ -2040,7 +2061,7 @@ SET visibility_status = ?,
     password_hash = ?,
     updated_at = CURRENT_TIMESTAMP
 WHERE public_id = ? AND user_id = ?
-RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed
+RETURNING id, user_id, name, description, quality_override, created_at, updated_at, public_id, cover_art_path, cover_art_mime, cover_art_updated_at, author_override, folder_id, folder_added_at, notes, notes_author_name, notes_updated_at, visibility_status, allow_editing, allow_downloads, password_hash, origin_instance_url, shared_with_instance_users, custom_order, cover_processed, estimated_release_date, completion_percentage, rating, color_palette, streaming_checklist, pre_save_url, distributor_notes
 `
 
 type UpdateProjectVisibilityByPublicIDParams struct {
@@ -2088,6 +2109,13 @@ func (q *Queries) UpdateProjectVisibilityByPublicID(ctx context.Context, arg Upd
 		&i.SharedWithInstanceUsers,
 		&i.CustomOrder,
 		&i.CoverProcessed,
+		&i.EstimatedReleaseDate,
+		&i.CompletionPercentage,
+		&i.Rating,
+		&i.ColorPalette,
+		&i.StreamingChecklist,
+		&i.PreSaveUrl,
+		&i.DistributorNotes,
 	)
 	return i, err
 }

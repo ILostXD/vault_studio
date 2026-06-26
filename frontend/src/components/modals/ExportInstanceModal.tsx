@@ -166,7 +166,7 @@ export default function ExportInstanceModal({
                 </div>
                 <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#0099bb] rounded-full transition-all duration-150"
+                    className="h-full bg-accent-blue rounded-full transition-all duration-150"
                     style={{ width: `${pct}%` }}
                   />
                 </div>
@@ -207,7 +207,7 @@ export default function ExportInstanceModal({
             >
               <Button
                 onClick={handleClose}
-                className="w-full bg-[#0099bb] hover:bg-[#007a94] text-white font-medium"
+                className="w-full bg-accent-blue hover:bg-accent-blue/80 text-white font-medium"
               >
                 Done
               </Button>
@@ -222,7 +222,7 @@ export default function ExportInstanceModal({
               <Button
                 onClick={handleExport}
                 disabled={isExporting}
-                className="w-full bg-[#0099bb] hover:bg-[#007a94] text-white font-medium"
+                className="w-full bg-accent-blue hover:bg-accent-blue/80 text-white font-medium"
               >
                 {isExporting ? "Exporting..." : "Export"}
               </Button>

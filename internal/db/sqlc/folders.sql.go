@@ -272,7 +272,7 @@ func (q *Queries) ListFoldersByUser(ctx context.Context, userID int64) ([]Folder
 
 const listProjectsInFolder = `-- name: ListProjectsInFolder :many
 SELECT
-    p.id, p.user_id, p.name, p.description, p.quality_override, p.created_at, p.updated_at, p.public_id, p.cover_art_path, p.cover_art_mime, p.cover_art_updated_at, p.author_override, p.folder_id, p.folder_added_at, p.notes, p.notes_author_name, p.notes_updated_at, p.visibility_status, p.allow_editing, p.allow_downloads, p.password_hash, p.origin_instance_url, p.shared_with_instance_users, p.custom_order, p.cover_processed,
+    p.id, p.user_id, p.name, p.description, p.quality_override, p.created_at, p.updated_at, p.public_id, p.cover_art_path, p.cover_art_mime, p.cover_art_updated_at, p.author_override, p.folder_id, p.folder_added_at, p.notes, p.notes_author_name, p.notes_updated_at, p.visibility_status, p.allow_editing, p.allow_downloads, p.password_hash, p.origin_instance_url, p.shared_with_instance_users, p.custom_order, p.cover_processed, p.estimated_release_date, p.completion_percentage, p.rating, p.color_palette, p.streaming_checklist, p.pre_save_url, p.distributor_notes,
     u.username as owner_username
 FROM projects p
 JOIN users u ON p.user_id = u.id
@@ -311,6 +311,13 @@ type ListProjectsInFolderRow struct {
 	SharedWithInstanceUsers sql.NullBool   `json:"shared_with_instance_users"`
 	CustomOrder             int64          `json:"custom_order"`
 	CoverProcessed          sql.NullBool   `json:"cover_processed"`
+	EstimatedReleaseDate    sql.NullString `json:"estimated_release_date"`
+	CompletionPercentage    int64          `json:"completion_percentage"`
+	Rating                  int64          `json:"rating"`
+	ColorPalette            sql.NullString `json:"color_palette"`
+	StreamingChecklist      sql.NullString `json:"streaming_checklist"`
+	PreSaveUrl              sql.NullString `json:"pre_save_url"`
+	DistributorNotes        sql.NullString `json:"distributor_notes"`
 	OwnerUsername           string         `json:"owner_username"`
 }
 
@@ -349,6 +356,13 @@ func (q *Queries) ListProjectsInFolder(ctx context.Context, arg ListProjectsInFo
 			&i.SharedWithInstanceUsers,
 			&i.CustomOrder,
 			&i.CoverProcessed,
+			&i.EstimatedReleaseDate,
+			&i.CompletionPercentage,
+			&i.Rating,
+			&i.ColorPalette,
+			&i.StreamingChecklist,
+			&i.PreSaveUrl,
+			&i.DistributorNotes,
 			&i.OwnerUsername,
 		); err != nil {
 			return nil, err
