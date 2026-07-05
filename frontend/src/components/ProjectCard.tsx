@@ -69,7 +69,7 @@ function IncomingItemCover({ project }: { project: Project }) {
   }
 
   return (
-    <div className="size-full bg-neutral-800 flex items-center justify-center text-white text-lg font-bold">
+    <div className="size-full bg-neutral-800 flex items-center justify-center text-(--text-0) text-lg font-bold">
       {String(project.name).charAt(0).toUpperCase()}
     </div>
   );

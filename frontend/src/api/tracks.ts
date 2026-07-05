@@ -1,8 +1,6 @@
 import { get, post, put, del, getCSRFToken } from './client'
 import type { Track, TrackWithShareInfo, CreateTrackRequest, UpdateTrackRequest } from '../types/api'
-import { env } from '../env'
-
-const API_BASE_URL = env.VITE_API_URL || ''
+import { resolveApiUrl } from './server'
 
 export async function getTracks(projectId?: number): Promise<Track[]> {
   const endpoint = projectId
@@ -55,7 +53,7 @@ export async function uploadTrack(
   if (metadata?.artist) formData.append('artist', metadata.artist)
   if (metadata?.album) formData.append('album', metadata.album)
 
-	const response = await fetch(`${API_BASE_URL}/api/library/upload`, {
+	const response = await fetch(resolveApiUrl('/api/library/upload'), {
 		method: 'POST',
 		credentials: 'include',
 		headers: getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {},
@@ -78,7 +76,7 @@ export async function reorderTracks(
 }
 
 export async function downloadTrack(trackId: string, versionId: number): Promise<void> {
-	const response = await fetch(`${API_BASE_URL}/api/tracks/${trackId}/versions/${versionId}/download`, {
+	const response = await fetch(resolveApiUrl(`/api/tracks/${trackId}/versions/${versionId}/download`), {
 		method: 'GET',
 		credentials: 'include',
 	})

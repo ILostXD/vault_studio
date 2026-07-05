@@ -126,7 +126,7 @@ export default function ImportInstanceModal({
       <div className="p-6 md:p-8">
         <ModalIcon icon={AlertTriangle} variant="destructive" />
 
-        <h2 className="text-2xl font-semibold text-white text-center mb-3">
+        <h2 className="text-2xl font-semibold text-(--text-0) text-center mb-3">
           Import Instance
         </h2>
 
@@ -153,7 +153,7 @@ export default function ImportInstanceModal({
           onKeyDown={(e) => { if (!isImporting && (e.key === "Enter" || e.key === " ")) fileInputRef.current?.click(); }}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
-          className={`border-2 border-dashed border-[#353333] rounded-lg p-8 mb-6 transition-colors bg-[#191919] ${isImporting ? "opacity-50" : "cursor-pointer hover:border-[#454545]"}`}
+          className={`border-2 border-dashed border-(--card-border) rounded-lg p-8 mb-6 transition-colors bg-(--inner-card-bg) ${isImporting ? "opacity-50" : "cursor-pointer hover:border-(--border-0)"}`}
         >
           <input
             ref={fileInputRef}
@@ -165,14 +165,14 @@ export default function ImportInstanceModal({
           />
 
           <div className="flex flex-col items-center justify-center">
-            <Upload className="w-8 h-8 text-[#848484] mb-3" />
-            <p className="text-white text-center mb-1">
+            <Upload className="w-8 h-8 text-(--text-1) mb-3" />
+            <p className="text-(--text-0) text-center mb-1">
               {selectedFile
                 ? selectedFile.name
                 : "Drag and drop backup file here"}
             </p>
             {!selectedFile && (
-              <p className="text-sm text-[#848484]">or click to select</p>
+              <p className="text-sm text-(--text-1)">or click to select</p>
             )}
           </div>
         </div>
@@ -239,7 +239,7 @@ export default function ImportInstanceModal({
                   onChange={(e) => setIsConfirmed(e.target.checked)}
                   className="w-4 h-4 rounded"
                 />
-                <span className="text-sm text-[#848484]">
+                <span className="text-sm text-(--text-1)">
                   I understand this will replace all current data
                 </span>
               </label>

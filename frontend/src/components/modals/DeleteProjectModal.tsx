@@ -23,13 +23,13 @@ export default function DeleteProjectModal({
       <div className="p-6 md:p-8">
         <ModalIcon icon={AlertTriangle} variant="destructive" />
 
-        <h2 className="text-2xl font-semibold text-white text-center mb-3">
+        <h2 className="text-2xl font-semibold text-(--text-0) text-center mb-3">
           Delete Project
         </h2>
 
         <p className="text-sm text-muted-foreground text-center mb-6">
           Are you sure you want to delete{" "}
-          <span className="text-white font-medium">"{projectName}"</span>? This
+          <span className="text-(--text-0) font-medium">"{projectName}"</span>? This
           action cannot be undone and will delete all tracks in this project.
         </p>
 

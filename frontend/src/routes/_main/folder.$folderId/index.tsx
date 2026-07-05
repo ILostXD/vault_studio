@@ -148,7 +148,7 @@ function FolderPage() {
           className="fixed top-0 left-0 right-0 h-[130px] z-10 pointer-events-none"
           style={{
             background:
-              "linear-gradient(to bottom, #181818 5%, rgba(24, 24, 24, 0.95) 20%, rgba(24, 24, 24, 0.85) 30%, rgba(24, 24, 24, 0.7) 45%, rgba(24, 24, 24, 0.5) 60%, rgba(24, 24, 24, 0.3) 75%, rgba(24, 24, 24, 0.1) 90%, transparent 100%)",
+              "linear-gradient(to bottom, color-mix(in srgb, var(--bg-0) 100%, transparent) 5%, color-mix(in srgb, var(--bg-0) 95%, transparent) 20%, color-mix(in srgb, var(--bg-0) 85%, transparent) 30%, color-mix(in srgb, var(--bg-0) 70%, transparent) 45%, color-mix(in srgb, var(--bg-0) 50%, transparent) 60%, color-mix(in srgb, var(--bg-0) 30%, transparent) 75%, color-mix(in srgb, var(--bg-0) 10%, transparent) 90%, transparent 100%)",
           }}
         />
 
@@ -157,7 +157,7 @@ function FolderPage() {
           className="fixed bottom-0 left-0 right-0 h-[200px] z-100 pointer-events-none"
           style={{
             background:
-              "linear-gradient(to top, #181818 4%, rgba(24, 24, 24, 0.95) 20%, rgba(24, 24, 24, 0.85) 30%, rgba(24, 24, 24, 0.7) 45%, rgba(24, 24, 24, 0.5) 60%, rgba(24, 24, 24, 0.3) 76%, rgba(24, 24, 24, 0.1) 89%, transparent 100%)",
+              "linear-gradient(to top, color-mix(in srgb, var(--bg-0) 100%, transparent) 20%, color-mix(in srgb, var(--bg-0) 95%, transparent) 25%, color-mix(in srgb, var(--bg-0) 85%, transparent) 30%, color-mix(in srgb, var(--bg-0) 70%, transparent) 45%, color-mix(in srgb, var(--bg-0) 50%, transparent) 60%, color-mix(in srgb, var(--bg-0) 30%, transparent) 75%, color-mix(in srgb, var(--bg-0) 10%, transparent) 90%, transparent 100%)",
           }}
         />
 

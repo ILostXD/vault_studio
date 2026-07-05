@@ -846,7 +846,7 @@ export default function MusicPlayer({
             showPlayer ? "opacity-100" : "opacity-0"
           }`}
         >
-          <div className="relative h-[50px] sm:h-[50px] border border-[#353333] rounded-t-[22px] overflow-hidden bg-neutral-900 shadow-md">
+          <div className="relative h-[50px] sm:h-[50px] border border-(--card-border) rounded-t-[22px] overflow-hidden bg-neutral-900 shadow-md">
             <div className="absolute inset-0 px-3 py-1 select-none">
               <div
                 ref={waveformRef}
@@ -867,7 +867,7 @@ export default function MusicPlayer({
                   height="100%"
                   viewBox={`0 0 ${waveformViewBoxWidth} ${WAVEFORM_VIEWBOX_HEIGHT}`}
                   preserveAspectRatio="none"
-                  className="text-white"
+                  className="text-(--text-0)"
                   shapeRendering="geometricPrecision"
                 >
                   {waveformBars.map((height, i) => {
@@ -915,7 +915,7 @@ export default function MusicPlayer({
           </div>
 
           <div
-            className="relative h-[50px] sm:h-[55px] grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-4 border border-[#353333] border-t-0 rounded-b-[22px] shadow-md"
+            className="relative h-[50px] sm:h-[55px] grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-4 border border-(--card-border) border-t-0 rounded-b-[22px] shadow-md"
             style={{
               background: "linear-gradient(0deg, #1D1D1D 0%, #282828 100%)",
             }}
@@ -949,7 +949,7 @@ export default function MusicPlayer({
               >
                 <ScrollingText
                   text={playerTitle}
-                  className="text-white font-medium text-sm sm:text-base leading-tight hover:opacity-80 transition-opacity"
+                  className="text-(--text-0) font-medium text-sm sm:text-base leading-tight hover:opacity-80 transition-opacity"
                   gradientColor="#1D1D1D"
                 />
                 <ScrollingText
@@ -967,7 +967,7 @@ export default function MusicPlayer({
                 onMouseLeave={() => setIsCurrentTimeHovered(false)}
               >
                 <span
-                  className={`text-white text-[12px] absolute transition-all duration-200 select-none ${
+                  className={`text-(--text-0) text-[12px] absolute transition-all duration-200 select-none ${
                     isCurrentTimeHovered
                       ? "opacity-0 pointer-events-none"
                       : "opacity-100"
@@ -986,7 +986,7 @@ export default function MusicPlayer({
                     blurOnClick(e);
                   }}
                   onKeyDown={preventSpacebarDefault}
-                  className={`text-white hover:text-gray-300 transition-all duration-200 cursor-pointer text-[12px] ${
+                  className={`text-(--text-0) hover:text-gray-300 transition-all duration-200 cursor-pointer text-[12px] ${
                     isCurrentTimeHovered
                       ? "opacity-100"
                       : "opacity-0 pointer-events-none"
@@ -1003,7 +1003,7 @@ export default function MusicPlayer({
 
               <button
                 type="button"
-                className="text-white hover:text-gray-300 transition-colors cursor-pointer"
+                className="text-(--text-0) hover:text-gray-300 transition-colors cursor-pointer"
                 aria-label="Previous track"
                 onClick={(e) => {
                   previousTrack();
@@ -1015,7 +1015,7 @@ export default function MusicPlayer({
               >
                 <AnimatedSkipBackIcon
                   ref={skipBackRef}
-                  className="size-6 sm:size-5 text-white"
+                  className="size-6 sm:size-5 text-(--text-0)"
                 />
               </button>
 
@@ -1026,7 +1026,7 @@ export default function MusicPlayer({
                   haptic.trigger("medium");
                   blurOnClick(e);
                 }}
-                className="text-white hover:text-gray-300 transition-colors cursor-pointer"
+                className="text-(--text-0) hover:text-gray-300 transition-colors cursor-pointer"
                 aria-label={isPlaying ? "Pause" : "Play"}
                 onKeyDown={preventSpacebarDefault}
               >
@@ -1039,7 +1039,7 @@ export default function MusicPlayer({
 
               <button
                 type="button"
-                className="text-white hover:text-gray-300 transition-colors cursor-pointer"
+                className="text-(--text-0) hover:text-gray-300 transition-colors cursor-pointer"
                 aria-label="Next track"
                 onClick={(e) => {
                   nextTrack();
@@ -1051,7 +1051,7 @@ export default function MusicPlayer({
               >
                 <AnimatedSkipForwardIcon
                   ref={skipForwardRef}
-                  className="size-6 sm:size-5 text-white"
+                  className="size-6 sm:size-5 text-(--text-0)"
                 />
               </button>
 
@@ -1061,7 +1061,7 @@ export default function MusicPlayer({
                 onMouseLeave={() => setIsDurationHovered(false)}
               >
                 <span
-                  className={`text-white text-[12px] absolute transition-all duration-200 select-none ${
+                  className={`text-(--text-0) text-[12px] absolute transition-all duration-200 select-none ${
                     isDurationHovered
                       ? "opacity-0 pointer-events-none"
                       : "opacity-100"
@@ -1080,7 +1080,7 @@ export default function MusicPlayer({
                     blurOnClick(e);
                   }}
                   onKeyDown={preventSpacebarDefault}
-                  className={`text-white hover:text-gray-300 transition-all duration-200 cursor-pointer text-[12px] ${
+                  className={`text-(--text-0) hover:text-gray-300 transition-all duration-200 cursor-pointer text-[12px] ${
                     isDurationHovered
                       ? "opacity-100"
                       : "opacity-0 pointer-events-none"
@@ -1099,7 +1099,7 @@ export default function MusicPlayer({
             <div className="flex items-center gap-5 sm:gap-6 justify-self-end z-10 pr-3 sm:pr-4">
               <button
                 type="button"
-                className={`transition-colors ${loopMode !== "off" ? "text-accent-blue" : "text-white hover:text-gray-300"}`}
+                className={`transition-colors ${loopMode !== "off" ? "text-accent-blue" : "text-(--text-0) hover:text-gray-300"}`}
                 aria-label={
                   loopMode === "off"
                     ? "Loop off"
@@ -1124,7 +1124,7 @@ export default function MusicPlayer({
 
               <button
                 type="button"
-                className={`transition-colors ${isShuffled ? "text-accent-blue" : "text-white hover:text-gray-300"}`}
+                className={`transition-colors ${isShuffled ? "text-accent-blue" : "text-(--text-0) hover:text-gray-300"}`}
                 aria-label="Shuffle"
                 aria-pressed={isShuffled}
                 onClick={(e) => {
@@ -1139,7 +1139,7 @@ export default function MusicPlayer({
 
               <button
                 type="button"
-                className={`order-2 sm:order-none transition-colors relative ${isQueueOpen ? "text-accent-blue" : "text-white hover:text-gray-300"}`}
+                className={`order-2 sm:order-none transition-colors relative ${isQueueOpen ? "text-accent-blue" : "text-(--text-0) hover:text-gray-300"}`}
                 aria-label="Queue"
                 onClick={(e) => {
                   setIsQueueOpen(!isQueueOpen);
@@ -1173,7 +1173,7 @@ export default function MusicPlayer({
                       : "opacity-0 pointer-events-none"
                   }`}
                 >
-                  <div className="bg-[#282828] border border-[#353333] rounded-[18px] px-3 py-3 shadow-lg flex flex-col items-center gap-2">
+                  <div className="bg-[#282828] border border-(--card-border) rounded-[18px] px-3 py-3 shadow-lg flex flex-col items-center gap-2">
                     <Filter
                       id="volume-filter"
                       blur={volumeBlur}
@@ -1276,7 +1276,7 @@ export default function MusicPlayer({
                         blurOnClick(e);
                       }}
                       onKeyDown={preventSpacebarDefault}
-                      className="text-white hover:text-gray-300 transition-colors cursor-pointer"
+                      className="text-(--text-0) hover:text-gray-300 transition-colors cursor-pointer"
                       aria-label={
                         isMobileScreen
                           ? "Close volume control"
@@ -1292,7 +1292,7 @@ export default function MusicPlayer({
 
                 <button
                   type="button"
-                  className="text-white hover:text-gray-300 transition-colors"
+                  className="text-(--text-0) hover:text-gray-300 transition-colors"
                   aria-label={
                     isMobileScreen
                       ? "Volume control"

@@ -44,6 +44,8 @@ import * as sharingApi from "@/api/sharing";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { downloadTrack, getTrack } from "@/api/tracks";
 import { getCSRFToken } from "@/api/client";
+import { resolveApiMediaUrl } from "@/api/media";
+import { resolveApiUrl } from "@/api/server";
 import { toast } from "@/routes/__root";
 import { useWebHaptics } from "web-haptics/react";
 
@@ -743,7 +745,7 @@ export default function DraggableProjectGrid({
           projectName: track.project_name || "Unknown Project",
           coverUrl: coverUrl,
           projectId: track.project_public_id ?? undefined,
-          projectCoverUrl: coverUrl ?? undefined,
+          projectCoverUrl: resolveApiMediaUrl(coverUrl),
           waveform: track.waveform,
           versionId: undefined, // SharedTrackResponse doesn't have active_version_id
         });
@@ -798,7 +800,7 @@ export default function DraggableProjectGrid({
     setIsLeavingTrack(true);
     try {
       const response = await fetch(
-        `/api/shared-tracks/${trackToLeave.id}/leave`,
+        resolveApiUrl(`/api/shared-tracks/${trackToLeave.id}/leave`),
         {
           method: "DELETE",
           headers: {
@@ -1152,7 +1154,7 @@ export default function DraggableProjectGrid({
                           className="w-40"
                           track={{
                             ...item.track,
-                            projectCoverUrl: coverUrl || undefined,
+                            projectCoverUrl: resolveApiMediaUrl(coverUrl),
                             projectName: item.track.project_name,
                             sharedBy: item.track.shared_by_username,
                           }}

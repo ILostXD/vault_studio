@@ -10,7 +10,7 @@ interface ModalIconProps {
 const variantStyles = {
   default: {
     container: "bg-white/10 border border-white/20",
-    icon: "text-white",
+    icon: "text-(--text-0)",
   },
   destructive: {
     container: "bg-red-500/10 border border-red-500/20",

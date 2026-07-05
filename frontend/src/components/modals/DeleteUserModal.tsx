@@ -71,7 +71,7 @@ export default function DeleteUserModal({
           className="fixed inset-0 z-1100 flex items-center justify-center p-4"
         >
           <div
-            className="absolute inset-0 bg-black/80"
+            className="absolute inset-0 overlay-backdrop"
             onClick={isDeleting ? undefined : onClose}
           />
 
@@ -80,10 +80,7 @@ export default function DeleteUserModal({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="relative z-10 w-full max-w-md border border-[#292828] rounded-[34px] shadow-2xl overflow-hidden"
-            style={{
-              background: "linear-gradient(0deg, #151515 0%, #1D1D1D 100%)",
-            }}
+            className="relative z-10 w-full max-w-md border border-(--card-border) rounded-[34px] shadow-2xl overflow-hidden overlay-surface text-(--text-0)"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6 md:p-8">
@@ -93,7 +90,7 @@ export default function DeleteUserModal({
                 </div>
               </div>
 
-              <h2 className="text-2xl font-semibold text-white text-center mb-3">
+              <h2 className="text-2xl font-semibold text-(--text-0) text-center mb-3">
                 {title}
               </h2>
 
@@ -114,7 +111,7 @@ export default function DeleteUserModal({
 
               {requirePassword && (
                 <div className="mb-6">
-                  <label htmlFor="delete-user-password" className="text-sm text-[#848484] mb-2 block">
+                  <label htmlFor="delete-user-password" className="text-sm text-(--text-1) mb-2 block">
                     Enter your password to confirm
                   </label>
                   <input
@@ -128,7 +125,7 @@ export default function DeleteUserModal({
                       }
                     }}
                     placeholder="Password"
-                    className="w-full bg-[#191919] border border-[#353333] rounded-lg px-4 py-2.5 text-white text-sm placeholder:text-[#5a5a5a] outline-none focus:border-[#555]"
+                    className="w-full bg-(--inner-card-bg) border border-(--card-border) rounded-lg px-4 py-2.5 text-(--text-0) text-sm placeholder:text-(--text-2) outline-none focus:border-[#555]"
                     autoFocus
                     disabled={isDeleting}
                   />

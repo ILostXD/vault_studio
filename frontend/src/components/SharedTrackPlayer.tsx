@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useMotionValue, useSpring, useTransform, motion } from "motion/react";
 import { Filter } from "virtual:refractionFilter?width=20&height=32&radius=10&bezelWidth=12&glassThickness=50&refractiveIndex=1.48&bezelType=convex_squircle";
+import { resolveApiUrl } from "@/api/server";
 
 interface SharedTrackPlayerProps {
   track: any;
@@ -136,7 +137,7 @@ export default function SharedTrackPlayer({
 
     try {
       const response = await fetch(
-        `/api/share/${token}/track/${track.public_id}/update`,
+        resolveApiUrl(`/api/share/${token}/track/${track.public_id}/update`),
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -182,9 +183,9 @@ export default function SharedTrackPlayer({
   ]);
 
   const streamUrl = customStreamUrl
-    ? customStreamUrl
+    ? resolveApiUrl(customStreamUrl)
     : token
-      ? `/api/share/${token}/stream`
+      ? resolveApiUrl(`/api/share/${token}/stream`)
       : "";
 
   const togglePlay = () => {
@@ -410,8 +411,10 @@ export default function SharedTrackPlayer({
     if (!allowDownloads) return;
     const downloadUrl =
       customDownloadUrl || (token ? `/api/share/${token}/download` : "");
+    if (!downloadUrl) return;
+    const resolvedDownloadUrl = resolveApiUrl(downloadUrl);
     const a = document.createElement("a");
-    a.href = downloadUrl;
+    a.href = resolvedDownloadUrl;
     a.download = `${track.title}.mp3`;
     document.body.appendChild(a);
     a.click();
@@ -604,7 +607,7 @@ export default function SharedTrackPlayer({
   }, [track.title, track.artist, coverUrl, handleSkipBack]);
 
   return (
-    <div className="w-full max-w-5xl h-auto sm:h-[200px] bg-[#121212] rounded-[32px] rounded-b-[20px] sm:rounded-b-[32px] overflow-hidden border border-[#292828] flex flex-col sm:flex-row shadow-2xl relative group">
+    <div className="w-full max-w-5xl h-auto sm:h-[200px] bg-[#121212] rounded-[32px] rounded-b-[20px] sm:rounded-b-[32px] overflow-hidden border border-(--card-border) flex flex-col sm:flex-row shadow-2xl relative group">
       <audio
         ref={audioRef}
         src={streamUrl}
@@ -613,7 +616,7 @@ export default function SharedTrackPlayer({
         onEnded={() => setIsPlaying(false)}
       />
 
-      <div className="w-full sm:w-[200px] aspect-square sm:aspect-auto sm:h-full relative shrink-0 bg-[#1D1D1D] border-b sm:border-b-0 sm:border-r border-[#292828] pointer-events-none select-none ">
+      <div className="w-full sm:w-[200px] aspect-square sm:aspect-auto sm:h-full relative shrink-0 bg-[#1D1D1D] border-b sm:border-b-0 sm:border-r border-(--card-border) pointer-events-none select-none ">
         {coverUrl ? (
           <img
             src={coverUrl}
@@ -621,7 +624,7 @@ export default function SharedTrackPlayer({
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-linear-to-br from-[#1D1D1D] to-[#151515]">
+          <div className="w-full h-full flex flex-col items-center justify-center bg-linear-to-br from-(--card-gradient-from) to-(--card-gradient-to)">
             <div className="size-24 sm:size-32 rounded-2xl bg-white/5 flex items-center justify-center">
               <span className="text-3xl sm:text-4xl">
                 <MusicIcon color="white"></MusicIcon>
@@ -645,7 +648,7 @@ export default function SharedTrackPlayer({
                 height="100%"
                 viewBox={`0 0 ${waveformViewBoxWidth} ${WAVEFORM_VIEWBOX_HEIGHT}`}
                 preserveAspectRatio="none"
-                className="text-white h-full w-full"
+                className="text-(--text-0) h-full w-full"
                 shapeRendering="geometricPrecision"
               >
                 {waveformBars.map((height: number, i: number) => {
@@ -694,7 +697,7 @@ export default function SharedTrackPlayer({
           </div>
         </div>
 
-        <div className="h-[57px] sm:h-[80px] bg-linear-to-t from-[#1D1D1D] to-[#282828] border-t border-[#353333] px-4 sm:px-8 sm:py-0 flex flex-row items-center justify-between relative z-10">
+        <div className="h-[57px] sm:h-[80px] bg-linear-to-t from-(--card-gradient-from) to-[#282828] border-t border-(--card-border) px-4 sm:px-8 sm:py-0 flex flex-row items-center justify-between relative z-10">
           <div className="flex flex-col min-w-0 mr-2 sm:mr-auto sm:pr-8 max-w-[25%] sm:max-w-[30%]">
             {allowEditing ? (
               <input
@@ -710,11 +713,11 @@ export default function SharedTrackPlayer({
                     e.currentTarget.blur();
                   }
                 }}
-                className="text-white font-medium text-base md:text-lg leading-tight bg-transparent border-none outline-none focus:outline-none text-left w-full"
+                className="text-(--text-0) font-medium text-base md:text-lg leading-tight bg-transparent border-none outline-none focus:outline-none text-left w-full"
               />
             ) : (
               <h1
-                className="text-white font-medium text-base md:text-lg leading-tight line-clamp-1"
+                className="text-(--text-0) font-medium text-base md:text-lg leading-tight line-clamp-1"
                 title={track.title}
               >
                 {track.title}
@@ -729,7 +732,7 @@ export default function SharedTrackPlayer({
 
           <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 sm:gap-4">
             <span
-              className="text-xs sm:text-sm text-white"
+              className="text-xs sm:text-sm text-(--text-0)"
               style={{
                 fontFamily: '"IBM Plex Mono", monospace',
                 fontWeight: 300,
@@ -742,7 +745,7 @@ export default function SharedTrackPlayer({
               onClick={handleSkipBack}
               onMouseDown={(e) => e.currentTarget.blur()}
               tabIndex={-1}
-              className="text-white hover:text-gray-300 transition-colors outline-none focus:outline-none"
+              className="text-(--text-0) hover:text-gray-300 transition-colors outline-none focus:outline-none"
               aria-label="Restart track"
             >
               <SkipBackIcon className="size-5 fill-current" />
@@ -752,7 +755,7 @@ export default function SharedTrackPlayer({
               onClick={togglePlay}
               onMouseDown={(e) => e.currentTarget.blur()}
               tabIndex={-1}
-              className="text-white hover:text-gray-300 transition-colors outline-none focus:outline-none"
+              className="text-(--text-0) hover:text-gray-300 transition-colors outline-none focus:outline-none"
             >
               {isPlaying ? (
                 <PauseIcon className="size-5 fill-current" />
@@ -762,7 +765,7 @@ export default function SharedTrackPlayer({
             </button>
 
             <span
-              className="text-xs sm:text-sm text-white"
+              className="text-xs sm:text-sm text-(--text-0)"
               style={{
                 fontFamily: '"IBM Plex Mono", monospace',
                 fontWeight: 300,
@@ -778,7 +781,7 @@ export default function SharedTrackPlayer({
                 onClick={handleDownload}
                 onMouseDown={(e) => e.currentTarget.blur()}
                 tabIndex={-1}
-                className="text-white hover:text-gray-300 transition-colors outline-none focus:outline-none"
+                className="text-(--text-0) hover:text-gray-300 transition-colors outline-none focus:outline-none"
               >
                 <DownloadIcon className="size-5" />
               </button>
@@ -792,7 +795,7 @@ export default function SharedTrackPlayer({
               className={`transition-colors ${
                 loopMode !== "off"
                   ? "text-accent-blue"
-                  : "text-white hover:text-gray-300"
+                  : "text-(--text-0) hover:text-gray-300"
               }`}
               aria-label="Loop track"
               aria-pressed={loopMode !== "off"}
@@ -812,7 +815,7 @@ export default function SharedTrackPlayer({
                     : "opacity-0 pointer-events-none"
                 }`}
               >
-                <div className="bg-[#282828] border border-[#353333] rounded-2xl px-3 py-3 shadow-lg flex flex-col items-center gap-2 mb-10">
+                <div className="bg-[#282828] border border-(--card-border) rounded-2xl px-3 py-3 shadow-lg flex flex-col items-center gap-2 mb-10">
                   <Filter
                     id="volume-filter-shared"
                     blur={volumeBlur}
@@ -908,15 +911,15 @@ export default function SharedTrackPlayer({
                     onClick={toggleMute}
                     onMouseDown={(e) => e.currentTarget.blur()}
                     tabIndex={-1}
-                    className="text-white hover:text-gray-300 transition-colors cursor-pointer outline-none focus:outline-none"
+                    className="text-(--text-0) hover:text-gray-300 transition-colors cursor-pointer outline-none focus:outline-none"
                     aria-label={volumePercentage === 0 ? "Unmute" : "Mute"}
                   >
-                    <VolumeIcon className="size-5 text-white" />
+                    <VolumeIcon className="size-5 text-(--text-0)" />
                   </button>
                 </div>
               </div>
               <button
-                className="text-white hover:text-gray-300 transition-colors outline-none focus:outline-none"
+                className="text-(--text-0) hover:text-gray-300 transition-colors outline-none focus:outline-none"
                 onMouseDown={(e) => e.currentTarget.blur()}
                 tabIndex={-1}
               >

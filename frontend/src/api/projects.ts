@@ -1,9 +1,7 @@
 import { get, post, put, del, getCSRFToken } from './client'
 import { getProjectCoverUrl } from './media'
 import type { Project, CreateProjectRequest, UpdateProjectRequest, MoveProjectRequest } from '../types/api'
-import { env } from '../env'
-
-const API_BASE_URL = env.VITE_API_URL || ''
+import { resolveApiUrl } from './server'
 
 export async function getProjects(folderId?: number | 'root'): Promise<Project[]> {
   const params = folderId !== undefined ? `?folder_id=${folderId}` : ''
@@ -59,7 +57,7 @@ export async function moveProjectsToFolder(
 export async function uploadProjectCover(id: string, file: File): Promise<Project> {
 	const formData = new FormData()
 	formData.append('cover', file)
-	const response = await fetch(`${API_BASE_URL}/api/projects/${id}/cover`, {
+	const response = await fetch(resolveApiUrl(`/api/projects/${id}/cover`), {
 		method: 'PUT',
 		credentials: 'include',
 		headers: getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {},
@@ -75,7 +73,7 @@ export async function uploadProjectCover(id: string, file: File): Promise<Projec
 }
 
 export async function deleteProjectCover(id: string): Promise<Project> {
-	const response = await fetch(`${API_BASE_URL}/api/projects/${id}/cover`, {
+	const response = await fetch(resolveApiUrl(`/api/projects/${id}/cover`), {
 		method: 'DELETE',
 		credentials: 'include',
 		headers: getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {},
@@ -97,12 +95,14 @@ export async function fetchProjectCover(
   size?: CoverSize
 ): Promise<Blob> {
 	if (coverUrl?.startsWith('/api/share/')) {
-		let url = `${API_BASE_URL}${coverUrl}`
+		let url = resolveApiUrl(coverUrl)
 		if (size) {
 			const separator = url.includes('?') ? '&' : '?'
 			url = `${url}${separator}size=${size}`
 		}
-		const response = await fetch(url)
+		const response = await fetch(url, {
+			credentials: 'include',
+		})
 		if (!response.ok) {
 			throw new Error('Failed to load cover art')
 		}
@@ -110,7 +110,9 @@ export async function fetchProjectCover(
 	}
 
 	const signed = await getProjectCoverUrl(id, { size })
-	const response = await fetch(`${API_BASE_URL}${signed.url}`)
+	const response = await fetch(resolveApiUrl(signed.url), {
+		credentials: 'include',
+	})
 
 	if (!response.ok) {
 		throw new Error('Failed to load cover art')
@@ -124,7 +126,7 @@ export async function duplicateProject(id: string): Promise<Project> {
 }
 
 export async function exportProject(id: string): Promise<Blob> {
-	const response = await fetch(`${API_BASE_URL}/api/projects/${id}/export`, {
+	const response = await fetch(resolveApiUrl(`/api/projects/${id}/export`), {
 		credentials: 'include',
 	})
 

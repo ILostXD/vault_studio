@@ -24,10 +24,10 @@ export default function DeleteVersionModal({
         <ModalIcon icon={AlertTriangle} variant="destructive" />
 
         <div className="text-center space-y-3">
-          <h2 className="text-2xl font-semibold text-white">Delete Version</h2>
+          <h2 className="text-2xl font-semibold text-(--text-0)">Delete Version</h2>
           <p className="text-sm text-muted-foreground">
             Deleting version{" "}
-            <span className="text-white font-medium">
+            <span className="text-(--text-0) font-medium">
               &ldquo;{versionName}&rdquo;
             </span>{" "}
             will permanently remove its audio files from disk. This action

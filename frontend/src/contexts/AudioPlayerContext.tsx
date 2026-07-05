@@ -7,16 +7,14 @@ import {
   useEffect,
   useCallback,
 } from "react";
-import { env } from "../env";
 import { getStreamUrl } from "../api/media";
+import { resolveApiUrl } from "../api/server";
 import { createShuffledPlaylist } from "../lib/optimalShuffle";
 import { useAuth } from "./AuthContext";
 import { usePreferences } from "./PreferencesContext";
 import { getTrack as fetchTrack } from "../api/tracks";
 import { getVersions } from "../api/versions";
 import { preloadCover } from "../hooks/useProjectCoverImage";
-
-const API_BASE_URL = env.VITE_API_URL || "";
 
 interface Track {
   id: string;
@@ -327,10 +325,12 @@ export function AudioPlayerProvider({
         let streamUrl: string;
 
         if (shareTokenRef.current) {
-          streamUrl = `${API_BASE_URL}/api/share/${shareTokenRef.current}/stream/${nextTrack.id}`;
+          streamUrl = resolveApiUrl(
+            `/api/share/${shareTokenRef.current}/stream/${nextTrack.id}`,
+          );
         } else {
           const signed = await getStreamUrl(nextTrack.id, { quality });
-          streamUrl = `${API_BASE_URL}${signed.url}`;
+          streamUrl = resolveApiUrl(signed.url);
         }
 
         if (preloadRequestIdRef.current !== requestId) {
@@ -374,10 +374,12 @@ export function AudioPlayerProvider({
         let streamUrl: string;
 
         if (shareTokenRef.current) {
-          streamUrl = `${API_BASE_URL}/api/share/${shareTokenRef.current}/stream/${nextTrack.id}`;
+          streamUrl = resolveApiUrl(
+            `/api/share/${shareTokenRef.current}/stream/${nextTrack.id}`,
+          );
         } else {
           const signed = await getStreamUrl(nextTrack.id, { quality });
-          streamUrl = `${API_BASE_URL}${signed.url}`;
+          streamUrl = resolveApiUrl(signed.url);
         }
 
         if (preloadAudioRef.current) {
@@ -481,14 +483,16 @@ export function AudioPlayerProvider({
       let streamUrl: string;
 
       if (shareTokenRef.current) {
-        streamUrl = `${API_BASE_URL}/api/share/${shareTokenRef.current}/stream/${trackToPlay.id}`;
+        streamUrl = resolveApiUrl(
+          `/api/share/${shareTokenRef.current}/stream/${trackToPlay.id}`,
+        );
       } else {
         try {
           const signed = await getStreamUrl(trackToPlay.id, {
             quality,
             versionId: trackToPlay.versionId ?? undefined,
           });
-          streamUrl = `${API_BASE_URL}${signed.url}`;
+          streamUrl = resolveApiUrl(signed.url);
         } catch (error) {
           console.error("[AudioPlayer] Failed to get signed stream URL", error);
           return;

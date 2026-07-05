@@ -62,7 +62,7 @@ export default function BaseModal({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.1 }}
-                className="fixed inset-0 z-1000 bg-black/80"
+                className="fixed inset-0 z-1000 overlay-backdrop"
                 onClick={disableClose ? undefined : onClose}
                 {...(dataAttributes["data-modal-backdrop"] && {
                   "data-modal-backdrop": dataAttributes["data-modal-backdrop"],
@@ -85,11 +85,7 @@ export default function BaseModal({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 8 }}
                   transition={{ duration: 0.1 }}
-                  className={`relative z-10 w-full ${maxWidthClasses[maxWidth]} border border-[#292828] rounded-[34px] shadow-2xl overflow-hidden pointer-events-auto`}
-                  style={{
-                    background:
-                      "linear-gradient(0deg, #151515 0%, #1D1D1D 100%)",
-                  }}
+                  className={`relative z-10 w-full ${maxWidthClasses[maxWidth]} border border-(--card-border) rounded-[34px] shadow-2xl overflow-hidden pointer-events-auto overlay-surface text-(--text-0)`}
                   onClick={(e) => e.stopPropagation()}
                   {...(dataAttributes["data-modal-content"] && {
                     "data-modal-content": dataAttributes["data-modal-content"],

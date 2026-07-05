@@ -156,7 +156,7 @@ function MainLayout() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between text-white md:p-10 p-6 gap-4">
+      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between text-(--text-0) md:p-10 p-6 gap-4">
         {isFolderRoute ? (
           isDeeplyNested ? (
             <div className="flex items-center gap-2 md:ml-4 ml-0.5 min-w-0 flex-1">
@@ -164,7 +164,7 @@ function MainLayout() {
                 variant="ghost"
                 size="sm"
                 haptic="light"
-                className="flex items-center gap-1 text-white hover:text-white/80 -ml-2"
+                className="flex items-center gap-1 text-(--text-0) hover:text-(--text-0)/80 -ml-2"
                 onClick={handleBack}
               >
                 <ChevronLeft className="size-4" />
@@ -184,7 +184,7 @@ function MainLayout() {
                       e.currentTarget.blur();
                     }
                   }}
-                  className="text-2xl font-medium bg-transparent border-none p-0 m-0 h-auto outline-none text-white placeholder:text-white/50 focus:outline-none focus:ring-0 truncate"
+                  className="text-2xl font-medium bg-transparent border-none p-0 m-0 h-auto outline-none text-(--text-0) placeholder:text-(--text-0)/50 focus:outline-none focus:ring-0 truncate"
                   placeholder="New Folder"
                 />
               )}
@@ -194,15 +194,15 @@ function MainLayout() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-auto p-0 text-white/50 hover:text-white text-2xl font-medium shrink-0"
+                className="h-auto p-0 text-(--text-0)/50 hover:text-(--text-0) text-2xl font-medium shrink-0"
                 onClick={() => handleBreadcrumbClick(null)}
               >
                 {"{ vault }"}
               </Button>
               {folderLoading ? (
                 <>
-                  <span className="text-white/50 text-2xl shrink-0">{" / "}</span>
-                  <span className="text-white/70">...</span>
+                  <span className="text-(--text-0)/50 text-2xl shrink-0">{" / "}</span>
+                  <span className="text-(--text-0)/70">...</span>
                 </>
               ) : (
                 breadcrumb.map((folderItem, _index) => {
@@ -212,7 +212,7 @@ function MainLayout() {
                       key={folderItem.id}
                       className="flex items-center gap-2 min-w-0"
                     >
-                      <span className="text-white/50 text-2xl shrink-0">{" / "}</span>
+                      <span className="text-(--text-0)/50 text-2xl shrink-0">{" / "}</span>
                       {isCurrentFolder ? (
                         <input
                           ref={folderNameInputRef}
@@ -226,14 +226,14 @@ function MainLayout() {
                               e.currentTarget.blur();
                             }
                           }}
-                          className="text-2xl font-medium bg-transparent border-none p-0 m-0 h-auto outline-none text-white placeholder:text-white/50 focus:outline-none focus:ring-0 truncate"
+                          className="text-2xl font-medium bg-transparent border-none p-0 m-0 h-auto outline-none text-(--text-0) placeholder:text-(--text-0)/50 focus:outline-none focus:ring-0 truncate"
                           placeholder="New Folder"
                         />
                       ) : (
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-auto p-0 text-white hover:text-white/80 text-2xl font-medium truncate"
+                          className="h-auto p-0 text-(--text-0) hover:text-(--text-0)/80 text-2xl font-medium truncate"
                           onClick={() => handleBreadcrumbClick(folderItem.id)}
                         >
                           {folderItem.name}

@@ -8,6 +8,7 @@ import { useUpdateProject } from "@/hooks/useProjects";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
+import ColorPicker from "@/components/ui/ColorPicker";
 import { toast } from "@/routes/__root";
 import type { Project } from "@/types/api";
 import { usePreferences } from "@/contexts/PreferencesContext";
@@ -28,559 +29,6 @@ interface ProjectMetadataPanelProps {
 
 
 const PLATFORMS = ["Spotify", "Apple Music", "YouTube Music", "Tidal", "Deezer", "Bandcamp", "SoundCloud"];
-
-// HSV <-> RGB <-> HSL <-> Hex color conversion helpers
-function hsvToHex(h: number, s: number, v: number): string {
-  s /= 100;
-  v /= 100;
-  const c = v * s;
-  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-  const m = v - c;
-  let r = 0, g = 0, b = 0;
-  if (h >= 0 && h < 60) {
-    r = c; g = x; b = 0;
-  } else if (h >= 60 && h < 120) {
-    r = x; g = c; b = 0;
-  } else if (h >= 120 && h < 180) {
-    r = 0; g = c; b = x;
-  } else if (h >= 180 && h < 240) {
-    r = 0; g = x; b = c;
-  } else if (h >= 240 && h < 300) {
-    r = x; g = 0; b = c;
-  } else if (h >= 300 && h <= 360) {
-    r = c; g = 0; b = x;
-  }
-  const red = Math.round((r + m) * 255);
-  const green = Math.round((g + m) * 255);
-  const blue = Math.round((b + m) * 255);
-  return (
-    "#" +
-    [red, green, blue]
-      .map((val) => val.toString(16).padStart(2, "0"))
-      .join("")
-  );
-}
-
-function hexToHsv(hex: string): { h: number; s: number; v: number } {
-  const cleaned = hex.startsWith("#") ? hex.slice(1) : hex;
-  const r = parseInt(cleaned.slice(0, 2), 16) / 255;
-  const g = parseInt(cleaned.slice(2, 4), 16) / 255;
-  const b = parseInt(cleaned.slice(4, 6), 16) / 255;
-
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const d = max - min;
-  let h = 0;
-  const s = max === 0 ? 0 : d / max;
-  const v = max;
-
-  if (max !== min) {
-    switch (max) {
-      case r:
-        h = (g - b) / d + (g < b ? 6 : 0);
-        break;
-      case g:
-        h = (b - r) / d + 2;
-        break;
-      case b:
-        h = (r - g) / d + 4;
-        break;
-    }
-    h /= 6;
-  }
-
-  return {
-    h: Math.round(h * 360),
-    s: Math.round(s * 100),
-    v: Math.round(v * 100),
-  };
-}
-
-function hsvToRgb(h: number, s: number, v: number): { r: number; g: number; b: number } {
-  s /= 100;
-  v /= 100;
-  const c = v * s;
-  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-  const m = v - c;
-  let r = 0, g = 0, b = 0;
-  if (h >= 0 && h < 60) {
-    r = c; g = x; b = 0;
-  } else if (h >= 60 && h < 120) {
-    r = x; g = c; b = 0;
-  } else if (h >= 120 && h < 180) {
-    r = 0; g = c; b = x;
-  } else if (h >= 180 && h < 240) {
-    r = 0; g = x; b = c;
-  } else if (h >= 240 && h < 300) {
-    r = x; g = 0; b = c;
-  } else if (h >= 300 && h <= 360) {
-    r = c; g = 0; b = x;
-  }
-  return {
-    r: Math.round((r + m) * 255),
-    g: Math.round((g + m) * 255),
-    b: Math.round((b + m) * 255),
-  };
-}
-
-function rgbToHsv(r: number, g: number, b: number): { h: number; s: number; v: number } {
-  r /= 255;
-  g /= 255;
-  b /= 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const d = max - min;
-  let h = 0;
-  const s = max === 0 ? 0 : d / max;
-  const v = max;
-
-  if (max !== min) {
-    switch (max) {
-      case r:
-        h = (g - b) / d + (g < b ? 6 : 0);
-        break;
-      case g:
-        h = (b - r) / d + 2;
-        break;
-      case b:
-        h = (r - g) / d + 4;
-        break;
-    }
-    h /= 6;
-  }
-
-  return {
-    h: Math.round(h * 360),
-    s: Math.round(s * 100),
-    v: Math.round(v * 100),
-  };
-}
-
-function hsvToHsl(h: number, s: number, v: number): { h: number; s: number; l: number } {
-  s /= 100;
-  v /= 100;
-  const l = v * (1 - s / 2);
-  let sl = 0;
-  if (l > 0 && l < 1) {
-    sl = (v - l) / Math.min(l, 1 - l);
-  }
-  return {
-    h: h,
-    s: Math.round(sl * 100),
-    l: Math.round(l * 100)
-  };
-}
-
-function hslToHsv(h: number, s: number, l: number): { h: number; s: number; v: number } {
-  s /= 100;
-  l /= 100;
-  const v = l + s * Math.min(l, 1 - l);
-  const sv = v === 0 ? 0 : 2 * (1 - l / v);
-  return {
-    h: h,
-    s: Math.round(sv * 100),
-    v: Math.round(v * 100)
-  };
-}
-
-
-
-interface ColorPickerDropdownProps {
-  color: string;
-  onChange: (newColor: string) => void;
-  onCommit: (newColor: string) => void;
-  onRemove?: () => void;
-  disabled: boolean;
-}
-
-function ColorPickerDropdown({ color, onChange, onCommit, onRemove, disabled }: ColorPickerDropdownProps) {
-  const [hsv, setHsv] = useState(() => hexToHsv(color));
-
-  useEffect(() => {
-    setHsv(hexToHsv(color));
-  }, [color]);
-
-  const [hexInput, setHexInput] = useState("");
-  const [rInput, setRInput] = useState("");
-  const [gInput, setGInput] = useState("");
-  const [bInput, setBInput] = useState("");
-  const [hInput, setHInput] = useState("");
-  const [sInput, setSInput] = useState("");
-  const [lInput, setLInput] = useState("");
-
-  const [activeTab, setActiveTab] = useState<"hex" | "rgb" | "hsl">("hex");
-
-  const DEFAULT_COLORS = [
-    "#ffba00", // Vault Yellow
-    "#00d4ff", // Cyan
-    "#ff007f", // Neon Pink
-    "#8a2be2", // Purple
-    "#00e676", // Green
-    "#ff3d00", // Red
-    "#ff9100", // Orange
-    "#e0e0e0", // Silver
-  ];
-
-  useEffect(() => {
-    const hex = hsvToHex(hsv.h, hsv.s, hsv.v);
-    const rgb = hsvToRgb(hsv.h, hsv.s, hsv.v);
-    const hslVal = hsvToHsl(hsv.h, hsv.s, hsv.v);
-
-    setHexInput(hex);
-    setRInput(String(rgb.r));
-    setGInput(String(rgb.g));
-    setBInput(String(rgb.b));
-    setHInput(String(hslVal.h));
-    setSInput(String(hslVal.s));
-    setLInput(String(hslVal.l));
-  }, [hsv]);
-
-
-
-  const handleHueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const h = Number(e.target.value);
-    const newHsv = { ...hsv, h };
-    setHsv(newHsv);
-    onChange(hsvToHex(h, hsv.s, hsv.v));
-  };
-
-  const handleHueCommit = () => {
-    onCommit(hsvToHex(hsv.h, hsv.s, hsv.v));
-  };
-
-  const updateColorFromPointer = (e: React.PointerEvent<HTMLDivElement>, el: HTMLDivElement) => {
-    const rect = el.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const s = Math.round(Math.max(0, Math.min(100, (x / rect.width) * 100)));
-    const v = Math.round(Math.max(0, Math.min(100, (1 - y / rect.height) * 100)));
-    setHsv({ h: hsv.h, s, v });
-    onChange(hsvToHex(hsv.h, s, v));
-  };
-
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    const el = e.currentTarget;
-    el.setPointerCapture(e.pointerId);
-    updateColorFromPointer(e, el);
-  };
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-      updateColorFromPointer(e, e.currentTarget);
-    }
-  };
-
-  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    e.currentTarget.releasePointerCapture(e.pointerId);
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const s = Math.round(Math.max(0, Math.min(100, (x / rect.width) * 100)));
-    const v = Math.round(Math.max(0, Math.min(100, (1 - y / rect.height) * 100)));
-    onCommit(hsvToHex(hsv.h, s, v));
-  };
-
-  const handleHexInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setHexInput(val);
-    let hex = val.trim();
-    if (!hex.startsWith("#")) hex = "#" + hex;
-    if (/^#[0-9A-F]{6}$/i.test(hex)) {
-      const newHsv = hexToHsv(hex);
-      setHsv(newHsv);
-      onChange(hex);
-      onCommit(hex);
-    }
-  };
-
-  const handleHexInputBlur = () => {
-    let hex = hexInput.trim();
-    if (!hex.startsWith("#")) hex = "#" + hex;
-    if (/^#[0-9A-F]{6}$/i.test(hex)) {
-      const newHsv = hexToHsv(hex);
-      setHsv(newHsv);
-      onChange(hex);
-      onCommit(hex);
-    } else {
-      setHexInput(hsvToHex(hsv.h, hsv.s, hsv.v));
-    }
-  };
-
-  const handleRgbInputChange = (channel: "r" | "g" | "b", val: string) => {
-    if (channel === "r") setRInput(val);
-    else if (channel === "g") setGInput(val);
-    else if (channel === "b") setBInput(val);
-
-    const rNum = channel === "r" ? Number(val) : Number(rInput);
-    const gNum = channel === "g" ? Number(val) : Number(gInput);
-    const bNum = channel === "b" ? Number(val) : Number(bInput);
-
-    if (
-      !isNaN(rNum) && rNum >= 0 && rNum <= 255 &&
-      !isNaN(gNum) && gNum >= 0 && gNum <= 255 &&
-      !isNaN(bNum) && bNum >= 0 && bNum <= 255 &&
-      val !== ""
-    ) {
-      const newHsv = rgbToHsv(rNum, gNum, bNum);
-      setHsv(newHsv);
-      const hex = hsvToHex(newHsv.h, newHsv.s, newHsv.v);
-      onChange(hex);
-      onCommit(hex);
-    }
-  };
-
-  const handleRgbInputBlur = () => {
-    const rgb = hsvToRgb(hsv.h, hsv.s, hsv.v);
-    setRInput(String(rgb.r));
-    setGInput(String(rgb.g));
-    setBInput(String(rgb.b));
-  };
-
-  const handleHslInputChange = (channel: "h" | "s" | "l", val: string) => {
-    if (channel === "h") setHInput(val);
-    else if (channel === "s") setSInput(val);
-    else if (channel === "l") setLInput(val);
-
-    const hNum = channel === "h" ? Number(val) : Number(hInput);
-    const sNum = channel === "s" ? Number(val) : Number(sInput);
-    const lNum = channel === "l" ? Number(val) : Number(lInput);
-
-    if (
-      !isNaN(hNum) && hNum >= 0 && hNum <= 360 &&
-      !isNaN(sNum) && sNum >= 0 && sNum <= 100 &&
-      !isNaN(lNum) && lNum >= 0 && lNum <= 100 &&
-      val !== ""
-    ) {
-      const newHsv = hslToHsv(hNum, sNum, lNum);
-      setHsv(newHsv);
-      const hex = hsvToHex(newHsv.h, newHsv.s, newHsv.v);
-      onChange(hex);
-      onCommit(hex);
-    }
-  };
-
-  const handleHslInputBlur = () => {
-    const hslVal = hsvToHsl(hsv.h, hsv.s, hsv.v);
-    setHInput(String(hslVal.h));
-    setSInput(String(hslVal.s));
-    setLInput(String(hslVal.l));
-  };
-
-  const hueTrack = "linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)";
-  const svBackground = "linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent)";
-
-  return (
-    <Popover.Root>
-      <Popover.Trigger asChild>
-        <button
-          type="button"
-          disabled={disabled}
-          className={`group relative size-8 rounded-full border border-white/10 shrink-0 ${!disabled ? "cursor-pointer hover:scale-105 transition-transform" : "cursor-default"
-            }`}
-          style={{ backgroundColor: color }}
-        />
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content
-          className="z-[1100] bg-[#191919]/95 backdrop-blur-xl border border-[#353333] rounded-2xl p-4 shadow-2xl text-white w-64 space-y-4 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 font-sans"
-          sideOffset={8}
-          align="start"
-        >
-          {/* Header tabs */}
-          <div className="flex rounded-lg bg-black/40 p-0.5 border border-white/5">
-            {(["hex", "rgb", "hsl"] as const).map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-1 text-[10px] uppercase font-mono font-medium rounded-md transition-all cursor-pointer ${activeTab === tab
-                    ? "bg-white/10 text-white shadow-xs"
-                    : "text-white/40 hover:text-white/60"
-                  }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-
-          {/* Color preview: original vs current */}
-          <div className="flex rounded-lg overflow-hidden border border-white/10 h-5">
-            <div className="flex-1" style={{ backgroundColor: color }} title={`Original: ${color}`} />
-            <div className="w-px bg-white/10" />
-            <div className="flex-1" style={{ backgroundColor: hsvToHex(hsv.h, hsv.s, hsv.v) }} title={`Current: ${hsvToHex(hsv.h, hsv.s, hsv.v)}`} />
-          </div>
-
-          {/* S/V Coordinates Area */}
-          <div
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            className="relative w-full h-36 rounded-xl overflow-hidden cursor-crosshair select-none touch-none border border-white/10"
-            style={{
-              background: svBackground,
-              backgroundColor: `hsl(${hsv.h}, 100%, 50%)`
-            }}
-          >
-            <div
-              className="absolute size-3 -translate-x-1.5 -translate-y-1.5 rounded-full border border-white bg-transparent pointer-events-none shadow-[0_0_2px_rgba(0,0,0,0.8),inset_0_0_2px_rgba(0,0,0,0.8)]"
-              style={{
-                left: `${hsv.s}%`,
-                top: `${100 - hsv.v}%`
-              }}
-            />
-          </div>
-
-          {/* Rainbow Hue Slider */}
-          <div className="space-y-1">
-            <div className="flex justify-between text-[10px] text-white/40 font-mono">
-              <span>HUE</span>
-              <span>{hsv.h}°</span>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="360"
-              value={hsv.h}
-              onChange={handleHueChange}
-              onMouseUp={handleHueCommit}
-              onTouchEnd={handleHueCommit}
-              className="w-full h-2 rounded-full appearance-none cursor-pointer outline-none transition-all [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:w-3.5 [&::-moz-range-thumb]:h-3.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0"
-              style={{ background: hueTrack }}
-            />
-          </div>
-
-          {/* Input Fields */}
-          <div className="pt-2 border-t border-white/5">
-            {activeTab === "hex" && (
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] text-white/40 font-mono font-medium w-8 shrink-0">HEX</span>
-                <input
-                  type="text"
-                  value={hexInput}
-                  onChange={handleHexInputChange}
-                  onBlur={handleHexInputBlur}
-                  onKeyDown={(e) => e.key === "Enter" && handleHexInputBlur()}
-                  className="bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-xs text-white font-mono w-full outline-none focus:border-accent-blue text-center"
-                />
-              </div>
-            )}
-
-            {activeTab === "rgb" && (
-              <div className="flex gap-2">
-                <div className="flex-1 flex flex-col items-center gap-1">
-                  <input
-                    type="text"
-                    value={rInput}
-                    onChange={(e) => handleRgbInputChange("r", e.target.value)}
-                    onBlur={handleRgbInputBlur}
-                    onKeyDown={(e) => e.key === "Enter" && handleRgbInputBlur()}
-                    className="bg-black/40 border border-white/10 rounded-lg py-1 text-xs text-white font-mono w-full text-center outline-none focus:border-accent-blue"
-                  />
-                  <span className="text-[9px] text-white/30 font-mono font-medium">R</span>
-                </div>
-                <div className="flex-1 flex flex-col items-center gap-1">
-                  <input
-                    type="text"
-                    value={gInput}
-                    onChange={(e) => handleRgbInputChange("g", e.target.value)}
-                    onBlur={handleRgbInputBlur}
-                    onKeyDown={(e) => e.key === "Enter" && handleRgbInputBlur()}
-                    className="bg-black/40 border border-white/10 rounded-lg py-1 text-xs text-white font-mono w-full text-center outline-none focus:border-accent-blue"
-                  />
-                  <span className="text-[9px] text-white/30 font-mono font-medium">G</span>
-                </div>
-                <div className="flex-1 flex flex-col items-center gap-1">
-                  <input
-                    type="text"
-                    value={bInput}
-                    onChange={(e) => handleRgbInputChange("b", e.target.value)}
-                    onBlur={handleRgbInputBlur}
-                    onKeyDown={(e) => e.key === "Enter" && handleRgbInputBlur()}
-                    className="bg-black/40 border border-white/10 rounded-lg py-1 text-xs text-white font-mono w-full text-center outline-none focus:border-accent-blue"
-                  />
-                  <span className="text-[9px] text-white/30 font-mono font-medium">B</span>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "hsl" && (
-              <div className="flex gap-2">
-                <div className="flex-1 flex flex-col items-center gap-1">
-                  <input
-                    type="text"
-                    value={hInput}
-                    onChange={(e) => handleHslInputChange("h", e.target.value)}
-                    onBlur={handleHslInputBlur}
-                    onKeyDown={(e) => e.key === "Enter" && handleHslInputBlur()}
-                    className="bg-black/40 border border-white/10 rounded-lg py-1 text-xs text-white font-mono w-full text-center outline-none focus:border-accent-blue"
-                  />
-                  <span className="text-[9px] text-white/30 font-mono font-medium">H</span>
-                </div>
-                <div className="flex-1 flex flex-col items-center gap-1">
-                  <input
-                    type="text"
-                    value={sInput}
-                    onChange={(e) => handleHslInputChange("s", e.target.value)}
-                    onBlur={handleHslInputBlur}
-                    onKeyDown={(e) => e.key === "Enter" && handleHslInputBlur()}
-                    className="bg-black/40 border border-white/10 rounded-lg py-1 text-xs text-white font-mono w-full text-center outline-none focus:border-accent-blue"
-                  />
-                  <span className="text-[9px] text-white/30 font-mono font-medium">S%</span>
-                </div>
-                <div className="flex-1 flex flex-col items-center gap-1">
-                  <input
-                    type="text"
-                    value={lInput}
-                    onChange={(e) => handleHslInputChange("l", e.target.value)}
-                    onBlur={handleHslInputBlur}
-                    onKeyDown={(e) => e.key === "Enter" && handleHslInputBlur()}
-                    className="bg-black/40 border border-white/10 rounded-lg py-1 text-xs text-white font-mono w-full text-center outline-none focus:border-accent-blue"
-                  />
-                  <span className="text-[9px] text-white/30 font-mono font-medium">L%</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-
-
-          {/* Default Colors */}
-          <div className="space-y-1.5 pt-2 border-t border-white/5">
-            <span className="text-[10px] text-white/40 font-mono font-medium">DEFAULTS</span>
-            <div className="flex flex-wrap gap-1.5">
-              {DEFAULT_COLORS.map((c, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => {
-                    const newHsv = hexToHsv(c);
-                    setHsv(newHsv);
-                    onChange(c);
-                    onCommit(c);
-                  }}
-                  className="size-6 rounded-md border border-white/10 hover:scale-110 hover:border-white/30 active:scale-95 transition-all cursor-pointer"
-                  style={{ backgroundColor: c }}
-                  title={c}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Remove Button */}
-          {!disabled && onRemove && (
-            <button
-              type="button"
-              onClick={onRemove}
-              className="w-full mt-2 py-1.5 rounded-lg border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/25 active:scale-95 transition-all text-xs font-mono font-medium cursor-pointer"
-            >
-              Remove Color
-            </button>
-          )}
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
-  );
-}
 
 interface CustomDatePickerProps {
   value: string;
@@ -678,44 +126,41 @@ function CustomDatePicker({ value, onChange, disabled }: CustomDatePickerProps) 
         <button
           type="button"
           disabled={disabled}
-          className="flex items-center justify-between w-full h-12 rounded-2xl px-5 border border-[#353333]/50 text-white text-sm bg-transparent cursor-pointer select-none text-left focus:border-accent-blue focus:ring-[color-mix(in_oklab,var(--accent-blue)_40%,transparent)] focus:ring-[3px] transition-[border-color,box-shadow]"
-          style={{
-            background: "linear-gradient(0deg, #1D1D1D 0%, rgba(40, 40, 40, 0.22) 100%)",
-          }}
+          className="flex items-center justify-between w-full h-12 rounded-2xl px-5 text-(--text-0) text-sm themed-input-surface cursor-pointer select-none text-left focus:border-accent-blue focus:ring-[color-mix(in_oklab,var(--accent-blue)_40%,transparent)] focus:ring-[3px] transition-[border-color,box-shadow]"
         >
-          <span className={value ? "text-white" : "text-white/40"}>
+          <span className={value ? "text-(--text-0)" : "text-(--text-0)/40"}>
             {value ? formatDateDisplay(value) : "Select release date..."}
           </span>
-          <Calendar className="size-4 text-white/40" />
+          <Calendar className="size-4 text-(--text-0)/40" />
         </button>
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
-          className="z-[1100] bg-[#191919]/95 backdrop-blur-xl border border-[#353333] rounded-2xl p-4 shadow-2xl text-white w-72 space-y-3 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 font-sans"
+          className="z-[1100] overlay-surface backdrop-blur-xl border border-(--card-border) rounded-2xl p-4 shadow-2xl text-(--text-0) w-72 space-y-3 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 font-sans"
           sideOffset={8}
           align="start"
         >
-          <div className="flex items-center justify-between border-b border-white/5 pb-2">
+          <div className="flex items-center justify-between border-b border-(--control-border-subtle) pb-2">
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="p-1 rounded-lg hover:bg-white/5 text-white/60 hover:text-white transition-colors cursor-pointer"
+              className="p-1 rounded-lg hover:bg-(--control-bg-hover) text-(--text-0)/60 hover:text-(--text-0) transition-colors cursor-pointer"
             >
               <ChevronLeft className="size-4.5" />
             </button>
-            <span className="font-mono text-xs font-semibold uppercase tracking-wider text-white/80">
+            <span className="font-mono text-xs font-semibold uppercase tracking-wider text-(--text-0)/80">
               {MONTHS[viewMonth]} {viewYear}
             </span>
             <button
               type="button"
               onClick={handleNextMonth}
-              className="p-1 rounded-lg hover:bg-white/5 text-white/60 hover:text-white transition-colors cursor-pointer"
+              className="p-1 rounded-lg hover:bg-(--control-bg-hover) text-(--text-0)/60 hover:text-(--text-0) transition-colors cursor-pointer"
             >
               <ChevronRight className="size-4.5" />
             </button>
           </div>
 
-          <div className="grid grid-cols-7 gap-1 text-center text-[10px] text-white/40 font-mono font-medium">
+          <div className="grid grid-cols-7 gap-1 text-center text-[10px] text-(--text-0)/40 font-mono font-medium">
             <span>Su</span>
             <span>Mo</span>
             <span>Tu</span>
@@ -740,10 +185,10 @@ function CustomDatePicker({ value, onChange, disabled }: CustomDatePickerProps) 
                   type="button"
                   onClick={() => handleDaySelect(dayNum)}
                   className={`size-8 rounded-lg text-xs font-mono transition-all flex items-center justify-center cursor-pointer ${selected
-                      ? "bg-accent-blue text-white font-bold"
+                      ? "bg-accent-blue text-(--text-0) font-bold"
                       : today
                         ? "border border-accent-blue/50 text-accent-blue hover:bg-accent-blue/10"
-                        : "text-white/80 hover:bg-white/5 hover:text-white"
+                        : "text-(--text-0)/80 hover:bg-(--control-bg-hover) hover:text-(--text-0)"
                     }`}
                 >
                   {dayNum}
@@ -752,7 +197,7 @@ function CustomDatePicker({ value, onChange, disabled }: CustomDatePickerProps) 
             })}
           </div>
 
-          <div className="flex items-center justify-between border-t border-white/5 pt-2 text-xs font-mono">
+          <div className="flex items-center justify-between border-t border-(--control-border-subtle) pt-2 text-xs font-mono">
             <button
               type="button"
               onClick={handleSelectToday}
@@ -763,7 +208,7 @@ function CustomDatePicker({ value, onChange, disabled }: CustomDatePickerProps) 
             <button
               type="button"
               onClick={handleClear}
-              className="text-white/40 hover:text-white/80 transition-colors cursor-pointer"
+              className="text-(--text-0)/40 hover:text-(--text-0)/80 transition-colors cursor-pointer"
             >
               Clear
             </button>
@@ -1103,7 +548,7 @@ export default function ProjectMetadataPanel({ project, canEdit, onClose }: Proj
             }`}
         >
           <Star
-            className={`size-5 transition-colors ${i <= rating ? "fill-amber-400 text-amber-400" : "text-white/20 hover:text-white/40"
+            className={`size-5 transition-colors ${i <= rating ? "fill-amber-400 text-amber-400" : "text-(--text-0)/20 hover:text-(--text-0)/40"
               }`}
           />
         </button>
@@ -1115,17 +560,17 @@ export default function ProjectMetadataPanel({ project, canEdit, onClose }: Proj
   const isModal = !!onClose;
 
   return (
-    <div className={isModal ? "p-6 space-y-6 text-white text-sm max-h-[80vh] overflow-y-auto" : "bg-linear-to-b from-[#232323] to-[#201f1f] border border-[#353333] rounded-2xl p-5 space-y-6 text-white text-sm"}>
+    <div className={isModal ? "p-6 space-y-6 text-(--text-0) text-sm max-h-[80vh] overflow-y-auto" : "bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-2xl p-5 space-y-6 text-(--text-0) text-sm"}>
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-white/5">
-        <h3 className="font-semibold text-white/90 tracking-wide" style={{ fontFamily: '"IBM Plex Mono", monospace' }}>
+        <h3 className="font-semibold text-(--text-0)/90 tracking-wide" style={{ fontFamily: '"IBM Plex Mono", monospace' }}>
           PROJECT DETAILS
         </h3>
         {onClose && (
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-colors cursor-pointer"
+            className="p-1 rounded-lg hover:bg-white/10 text-(--text-0)/60 hover:text-(--text-0) transition-colors cursor-pointer"
             aria-label="Close"
           >
             <X className="size-5" />
@@ -1135,7 +580,7 @@ export default function ProjectMetadataPanel({ project, canEdit, onClose }: Proj
 
       {/* 1. Release Date & Countdown */}
       <div className="space-y-2">
-        <Label className="text-white/60 text-xs flex items-center gap-1.5 font-medium">
+        <Label className="text-(--text-0)/60 text-xs flex items-center gap-1.5 font-medium">
           <Calendar className="size-4" /> ESTIMATED RELEASE DATE
         </Label>
         <div className="flex flex-col sm:flex-row gap-3">
@@ -1156,7 +601,7 @@ export default function ProjectMetadataPanel({ project, canEdit, onClose }: Proj
       {/* 2. Completion Percentage */}
       <div className="space-y-2 group/progress">
         <div className="flex justify-between items-center">
-          <Label className="text-white/60 text-xs flex items-center gap-1.5 font-medium">
+          <Label className="text-(--text-0)/60 text-xs flex items-center gap-1.5 font-medium">
             <Percent className="size-4" /> COMPLETION PROGRESS
           </Label>
           <span className="text-xs font-mono font-medium text-accent-blue bg-accent-blue/10 px-2 py-0.5 rounded-md border border-accent-blue/20 group-hover/progress:scale-105 group-active/progress:scale-110 transition-transform duration-200">
@@ -1248,7 +693,7 @@ export default function ProjectMetadataPanel({ project, canEdit, onClose }: Proj
 
       {/* 3. Star Rating */}
       <div className="space-y-2">
-        <Label className="text-white/60 text-xs flex items-center gap-1.5 font-medium">
+        <Label className="text-(--text-0)/60 text-xs flex items-center gap-1.5 font-medium">
           <Star className="size-4" /> OVERALL RATING
         </Label>
         <div className="flex items-center gap-1">{renderStars()}</div>
@@ -1256,13 +701,14 @@ export default function ProjectMetadataPanel({ project, canEdit, onClose }: Proj
 
       {/* 4. Color Palette Picker */}
       <div className="space-y-2">
-        <Label className="text-white/60 text-xs flex items-center gap-1.5 font-medium">
+        <Label className="text-(--text-0)/60 text-xs flex items-center gap-1.5 font-medium">
           <Palette className="size-4" /> BRAND COLOR PALETTE
         </Label>
         <div className="flex flex-wrap items-center gap-3">
           {localColors.map((color, i) => (
-            <ColorPickerDropdown
+            <ColorPicker
               key={i}
+              variant="popover"
               color={color}
               disabled={!canEdit}
               onChange={(newColor) => handleLocalColorChange(i, newColor)}
@@ -1274,7 +720,7 @@ export default function ProjectMetadataPanel({ project, canEdit, onClose }: Proj
             <button
               type="button"
               onClick={handleColorAdd}
-              className="flex items-center justify-center size-8 rounded-full border border-dashed border-white/20 hover:border-white/60 hover:scale-105 active:scale-95 transition-all text-white/40 hover:text-white/80 cursor-pointer shrink-0"
+              className="flex items-center justify-center size-8 rounded-full border border-dashed border-white/20 hover:border-white/60 hover:scale-105 active:scale-95 transition-all text-(--text-0)/40 hover:text-(--text-0)/80 cursor-pointer shrink-0"
               title="Add brand color"
             >
               <Plus className="size-4" />
@@ -1285,20 +731,15 @@ export default function ProjectMetadataPanel({ project, canEdit, onClose }: Proj
 
       {/* 5. Streaming Checklist */}
       <div className="space-y-3">
-        <Label className="text-white/60 text-xs flex items-center gap-1.5 font-medium">
+        <Label className="text-(--text-0)/60 text-xs flex items-center gap-1.5 font-medium">
           <Music className="size-4" /> DISTRIBUTION CHECKLIST
         </Label>
-        <div
-          className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 border border-[#353333]/50 rounded-2xl p-4"
-          style={{
-            background: "linear-gradient(0deg, #1D1D1D 0%, rgba(40, 40, 40, 0.22) 100%)",
-          }}
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 rounded-2xl p-4 themed-input-surface">
           {PLATFORMS.map((platform) => (
             <div key={platform} className="flex items-center justify-between py-1">
               <div className="flex items-center gap-2">
                 {getPlatformIcon(platform)}
-                <span className="text-xs text-white/80 font-medium">{platform}</span>
+                <span className="text-xs text-(--text-0)/80 font-medium">{platform}</span>
               </div>
               <Switch
                 checked={checklist[platform] || false}
@@ -1313,7 +754,7 @@ export default function ProjectMetadataPanel({ project, canEdit, onClose }: Proj
       {/* 6. Pre-save & Distributor Notes */}
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <Label className="text-white/60 text-xs flex items-center gap-1.5 font-medium">
+          <Label className="text-(--text-0)/60 text-xs flex items-center gap-1.5 font-medium">
             <Link className="size-4" /> PRE-SAVE CAMPAIGN LINK
           </Label>
           <Input
@@ -1323,15 +764,12 @@ export default function ProjectMetadataPanel({ project, canEdit, onClose }: Proj
             onChange={(e) => setPreSaveUrl(e.target.value)}
             onBlur={handlePreSaveBlur}
             placeholder="https://presave.to/my-album"
-            className="border-[#353333]/50 text-white text-sm placeholder:text-white/20 h-12 rounded-2xl px-5 bg-transparent"
-            style={{
-              background: "linear-gradient(0deg, #1D1D1D 0%, rgba(40, 40, 40, 0.22) 100%)",
-            }}
+            className="themed-input-surface text-sm placeholder:text-(--text-0)/40 h-12 rounded-2xl px-5"
           />
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-white/60 text-xs flex items-center gap-1.5 font-medium">
+          <Label className="text-(--text-0)/60 text-xs flex items-center gap-1.5 font-medium">
             <Info className="size-4" /> DISTRIBUTOR NOTES & ISRC CODES
           </Label>
           <textarea
@@ -1340,9 +778,8 @@ export default function ProjectMetadataPanel({ project, canEdit, onClose }: Proj
             onChange={(e) => setDistributorNotes(e.target.value)}
             onBlur={handleDistributorNotesBlur}
             placeholder="Add distributor info, track catalogs, metadata logs, or ISRC notes..."
-            className="w-full min-h-20 max-h-40 border border-[#353333]/50 text-white rounded-2xl p-4 text-sm placeholder:text-white/20 outline-none transition-[color,box-shadow] focus:border-accent-blue focus:ring-[color-mix(in_oklab,var(--accent-blue)_40%,transparent)] focus:ring-[3px] resize-y"
+            className="w-full min-h-20 max-h-40 themed-input-surface rounded-2xl p-4 text-sm placeholder:text-(--text-0)/40 outline-none transition-[color,box-shadow] focus:border-accent-blue focus:ring-[color-mix(in_oklab,var(--accent-blue)_40%,transparent)] focus:ring-[3px] resize-y"
             style={{
-              background: "linear-gradient(0deg, #1D1D1D 0%, rgba(40, 40, 40, 0.22) 100%)",
               fontFamily: '"IBM Plex Mono", monospace'
             }}
           />

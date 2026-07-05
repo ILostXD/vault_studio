@@ -78,13 +78,13 @@ function SharePage() {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <div className="bg-linear-to-b from-[#1D1D1D] to-[#151515] border border-[#292828] rounded-3xl p-8">
+          <div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-3xl p-8">
             <div className="flex justify-center mb-6">
               <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center">
-                <Lock className="size-8 text-white" />
+                <Lock className="size-8 text-(--text-0)" />
               </div>
             </div>
-            <h1 className="text-2xl font-semibold text-white text-center mb-2">
+            <h1 className="text-2xl font-semibold text-(--text-0) text-center mb-2">
               Password Required
             </h1>
             <p className="text-muted-foreground text-center mb-6">
@@ -97,7 +97,7 @@ function SharePage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className={
-                  "text-white " + (passwordError ? "border-red-500" : "")
+                  "text-(--text-0) " + (passwordError ? "border-red-500" : "")
                 }
                 autoFocus
               />

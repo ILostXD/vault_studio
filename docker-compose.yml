@@ -16,6 +16,7 @@ services:
       - ACCESS_TOKEN_TTL=${ACCESS_TOKEN_TTL:-15m}
       - REFRESH_TOKEN_TTL=${REFRESH_TOKEN_TTL:-720h}
       - SIGNED_URL_TTL=${SIGNED_URL_TTL:-5m}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost,http://192.168.1.253}
       - LOG_LEVEL=${LOG_LEVEL:-warn}
     volumes:
       - ./data:/app/data

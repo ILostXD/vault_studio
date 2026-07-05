@@ -29,7 +29,7 @@ export default function ResetInstanceModal({
       <div className="p-6 md:p-8">
         <ModalIcon icon={AlertTriangle} variant="destructive" />
 
-        <h2 className="text-2xl font-semibold text-white text-center mb-3">
+        <h2 className="text-2xl font-semibold text-(--text-0) text-center mb-3">
           Reset Instance
         </h2>
 

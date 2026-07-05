@@ -53,7 +53,7 @@ export default function MorphingAddButton({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-115 bg-black/20"
+            className="fixed inset-0 z-115 overlay-backdrop"
             onClick={handleBackdropClick}
           />
         )}
@@ -106,11 +106,10 @@ export default function MorphingAddButton({
           {isExpanded && (
             <motion.div
               layout
-              className="overflow-hidden rounded-3xl"
+              className="overflow-hidden rounded-3xl overlay-surface text-(--text-0)"
               style={{
                 borderRadius: "24px",
-                background: "linear-gradient(0deg, #151515 0%, #1D1D1D 100%)",
-                border: "1px solid #353333",
+                border: "1px solid var(--card-border)",
                 boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
                 padding: "8px",
               }}
@@ -156,7 +155,7 @@ export default function MorphingAddButton({
                   }}
                   onClick={handleAddFolder}
                   disabled={isCreatingFolder}
-                  className="h-10 text-base font-semibold rounded-2xl px-6 inline-flex items-center justify-center gap-2 whitespace-nowrap bg-white/5 hover:bg-white/10 transition-colors cursor-pointer active:scale-95 disabled:opacity-50 disabled:pointer-events-none text-white border border-[#353333]"
+                  className="h-10 text-base font-semibold rounded-2xl px-6 inline-flex items-center justify-center gap-2 whitespace-nowrap themed-control transition-colors cursor-pointer active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
                 >
                   <FolderPlus className="size-5" />
                   Add folder
@@ -184,7 +183,7 @@ export default function MorphingAddButton({
                   }}
                   onClick={handleAddProject}
                   disabled={isCreatingProject}
-                  className="h-10 text-base font-semibold rounded-2xl px-6 inline-flex items-center justify-center gap-2 whitespace-nowrap bg-white/5 hover:bg-white/10 transition-colors cursor-pointer active:scale-95 disabled:opacity-50 disabled:pointer-events-none text-white border border-[#353333]"
+                  className="h-10 text-base font-semibold rounded-2xl px-6 inline-flex items-center justify-center gap-2 whitespace-nowrap themed-control transition-colors cursor-pointer active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
                 >
                   <FilePlus className="size-5" />
                   Add project

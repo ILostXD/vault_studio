@@ -220,7 +220,7 @@ export default function EditProfileModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
-            className="fixed inset-0 z-1000 bg-black/80"
+            className="fixed inset-0 z-1000 overlay-backdrop"
             onClick={handleCancel}
           />
         )}
@@ -273,20 +273,17 @@ export default function EditProfileModal({
                   damping: 35,
                   mass: 0.8,
                 }}
-                className="relative z-10 w-full max-w-full md:max-w-[500px] min-h-[100dvh] md:min-h-0 border-0 md:border border-[#292828] rounded-none md:rounded-[34px] shadow-2xl overflow-hidden"
-                style={{
-                  background: "linear-gradient(0deg, #151515 0%, #1D1D1D 100%)",
-                }}
+                className="relative z-10 w-full max-w-full md:max-w-[500px] min-h-[100dvh] md:min-h-0 border-0 md:border border-(--card-border) rounded-none md:rounded-[34px] shadow-2xl overflow-hidden overlay-surface text-(--text-0)"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-medium text-white">
+                    <h2 className="text-2xl font-medium text-(--text-0)">
                       Edit Profile
                     </h2>
                     <button
                       onClick={handleCancel}
-                      className="text-[#848484] hover:text-white transition-colors"
+                      className="text-(--text-1) hover:text-(--text-0) transition-colors"
                     >
                       <X className="size-5" />
                     </button>
@@ -294,7 +291,7 @@ export default function EditProfileModal({
 
                   <div className="space-y-6">
                     <div className="md:hidden">
-                      <label htmlFor="edit-profile-username" className="text-[#848484] text-sm mb-2 block">
+                      <label htmlFor="edit-profile-username" className="text-(--text-1) text-sm mb-2 block">
                         Username
                       </label>
                       <input
@@ -306,16 +303,16 @@ export default function EditProfileModal({
                         onKeyDown={(e) => {
                           if (e.key === "Enter") handleSave();
                         }}
-                        className="w-full bg-[#191919] border border-[#353333] rounded-[12px] px-4 py-3 text-white text-base outline-none focus:border-[#555] transition-colors placeholder:text-[#484848]"
+                        className="w-full bg-(--inner-card-bg) border border-(--card-border) rounded-[12px] px-4 py-3 text-(--text-0) text-base outline-none focus:border-[#555] transition-colors placeholder:text-(--text-2)"
                         style={{ caretColor: "white" }}
                       />
                     </div>
 
                     <div>
-                      <label className="text-[#848484] text-sm mb-2 block">
+                      <label className="text-(--text-1) text-sm mb-2 block">
                         Disc Colors
                       </label>
-                      <div className="bg-[#191919] border border-[#353333] rounded-[12px] p-6 relative">
+                      <div className="bg-(--inner-card-bg) border border-(--card-border) rounded-[12px] p-6 relative">
                         <DotPattern
                           width={10}
                           height={10}
@@ -342,11 +339,11 @@ export default function EditProfileModal({
                                 setNumPoints(Math.max(1, numPoints - 1))
                               }
                               disabled={numPoints <= 1}
-                              className="text-[#848484] disabled:text-[#484848] size-7 rounded text-2xl hover:bg-[#252525] disabled:hover:bg-transparent transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
+                              className="text-(--text-1) disabled:text-[#484848] size-7 rounded text-2xl hover:bg-[#252525] disabled:hover:bg-transparent transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
                             >
                               -
                             </button>
-                            <span className="text-[#848484] text-sm w-16 text-center">
+                            <span className="text-(--text-1) text-sm w-16 text-center">
                               {numPoints} {numPoints === 1 ? "color" : "colors"}
                             </span>
                             <button
@@ -354,7 +351,7 @@ export default function EditProfileModal({
                                 setNumPoints(Math.min(3, numPoints + 1))
                               }
                               disabled={numPoints >= 3}
-                              className="text-[#848484] disabled:text-[#484848] size-7 rounded text-2xl hover:bg-[#252525] disabled:hover:bg-transparent transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
+                              className="text-(--text-1) disabled:text-[#484848] size-7 rounded text-2xl hover:bg-[#252525] disabled:hover:bg-transparent transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
                             >
                               +
                             </button>
@@ -363,7 +360,7 @@ export default function EditProfileModal({
                               onClick={handleShiftColors}
                               disabled={numPoints <= 1}
                               title="Rotate color order"
-                              className="text-[#848484] disabled:text-[#484848] px-3 py-1 rounded flex gap-1 items-center hover:bg-[#252525] disabled:hover:bg-transparent transition-all cursor-pointer disabled:cursor-not-allowed"
+                              className="text-(--text-1) disabled:text-[#484848] px-3 py-1 rounded flex gap-1 items-center hover:bg-[#252525] disabled:hover:bg-transparent transition-all cursor-pointer disabled:cursor-not-allowed"
                             >
                               {Array.from({ length: numPoints }).map((_, i) => (
                                 <div
@@ -380,10 +377,10 @@ export default function EditProfileModal({
 
                           <div className="w-full flex flex-col gap-2">
                             <div className="flex items-center justify-between">
-                              <span className="text-[#848484] text-xs">
+                              <span className="text-(--text-1) text-xs">
                                 Gradient Spread
                               </span>
-                              <span className="text-[#848484] text-xs">
+                              <span className="text-(--text-1) text-xs">
                                 {gradientSpread}%
                               </span>
                             </div>
@@ -405,10 +402,10 @@ export default function EditProfileModal({
 
                           <div className="w-full flex flex-col gap-2">
                             <div className="flex items-center justify-between">
-                              <span className="text-[#848484] text-xs">
+                              <span className="text-(--text-1) text-xs">
                                 Color Spread
                               </span>
-                              <span className="text-[#848484] text-xs">
+                              <span className="text-(--text-1) text-xs">
                                 {colorSpread}%
                               </span>
                             </div>
@@ -446,7 +443,7 @@ export default function EditProfileModal({
                     <div className="flex items-center gap-4 pt-2">
                       <Button
                         onClick={handleCancel}
-                        className="flex-1 bg-[#1e1e1e] border border-[#2e2e2e] hover:bg-[#252525] active:bg-[#2a2a2a] text-white rounded-xl h-[41px]"
+                        className="flex-1 bg-[#1e1e1e] border border-[#2e2e2e] hover:bg-[#252525] active:bg-[#2a2a2a] text-(--text-0) rounded-xl h-[41px]"
                         disabled={isSaving}
                       >
                         <span className="text-sm font-semibold">Cancel</span>

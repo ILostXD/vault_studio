@@ -100,7 +100,7 @@ export default function ExportInstanceModal({
         <ModalIcon icon={isDone ? Check : Download} variant="default" />
 
         {/* Title */}
-        <h2 className="text-2xl font-semibold text-white text-center mb-3">
+        <h2 className="text-2xl font-semibold text-(--text-0) text-center mb-3">
           {isDone ? "Export Complete" : "Export Instance"}
         </h2>
 
@@ -134,7 +134,7 @@ export default function ExportInstanceModal({
             >
               <div className="text-sm text-muted-foreground text-center mb-6 space-y-1">
                 <p>
-                  <span className="text-white font-medium">
+                  <span className="text-(--text-0) font-medium">
                     {result.filename}
                   </span>
                 </p>
@@ -187,7 +187,7 @@ export default function ExportInstanceModal({
               >
                 <p className="text-xs text-muted-foreground text-center mb-6">
                   Estimated size:{" "}
-                  <span className="text-white font-medium">
+                  <span className="text-(--text-0) font-medium">
                     {formatSize(estimatedBytes)}
                   </span>
                 </p>
@@ -207,7 +207,7 @@ export default function ExportInstanceModal({
             >
               <Button
                 onClick={handleClose}
-                className="w-full bg-accent-blue hover:bg-accent-blue/80 text-white font-medium"
+                className="w-full bg-accent-blue hover:bg-accent-blue/80 text-(--text-0) font-medium"
               >
                 Done
               </Button>
@@ -222,7 +222,7 @@ export default function ExportInstanceModal({
               <Button
                 onClick={handleExport}
                 disabled={isExporting}
-                className="w-full bg-accent-blue hover:bg-accent-blue/80 text-white font-medium"
+                className="w-full bg-accent-blue hover:bg-accent-blue/80 text-(--text-0) font-medium"
               >
                 {isExporting ? "Exporting..." : "Export"}
               </Button>

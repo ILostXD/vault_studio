@@ -38,8 +38,8 @@ import type { VersionWithMetadata } from "@/types/api";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import DeleteVersionModal from "./DeleteVersionModal";
 import { formatTrackDuration } from "@/lib/duration";
-import { env } from "@/env";
 import { getStreamUrl } from "@/api/media";
+import { resolveApiUrl } from "@/api/server";
 import { useWebHaptics } from "web-haptics/react";
 
 const SAVE_DEBOUNCE_MS = 500;
@@ -252,12 +252,11 @@ export default function TrackVersionsModal({
 
   const buildVersionPreviewStreamUrl = useCallback(
     async (versionId: number) => {
-      const apiBaseUrl = env.VITE_API_URL || "";
       const signed = await getStreamUrl(trackId, {
         quality: "lossy",
         versionId,
       });
-      return `${apiBaseUrl}${signed.url}`;
+      return resolveApiUrl(signed.url);
     },
     [trackId],
   );
@@ -900,7 +899,7 @@ export default function TrackVersionsModal({
                 className="fixed inset-0 z-1000 flex items-center justify-center p-4"
               >
                 <div
-                  className={`absolute inset-0 ${showBackdrop ? "bg-black/80" : ""}`}
+                  className={`absolute inset-0 ${showBackdrop ? "overlay-backdrop" : ""}`}
                   onClick={handleClose}
                 />
 
@@ -909,11 +908,7 @@ export default function TrackVersionsModal({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 8 }}
                   transition={{ duration: 0.15 }}
-                  className="relative z-10 w-full max-w-md border border-[#292828] rounded-[34px] shadow-2xl overflow-hidden"
-                  style={{
-                    background:
-                      "linear-gradient(0deg, #151515 0%, #1D1D1D 100%)",
-                  }}
+                  className="relative z-10 w-full max-w-md border border-(--card-border) rounded-[34px] shadow-2xl overflow-hidden overlay-surface text-(--text-0)"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <audio
@@ -951,7 +946,7 @@ export default function TrackVersionsModal({
                             e.currentTarget.blur();
                           }
                         }}
-                        className="text-2xl font-semibold text-white text-center bg-transparent border-none outline-none focus:outline-none w-full"
+                        className="text-2xl font-semibold text-(--text-0) text-center bg-transparent border-none outline-none focus:outline-none w-full"
                         style={{
                           caretColor: "white",
                         }}
@@ -970,7 +965,7 @@ export default function TrackVersionsModal({
                             <Popover.Trigger asChild>
                               <button
                                 type="button"
-                                className="px-2 py-1 bg-[#2e2e2e] border border-[#3e3e3e] rounded-md hover:bg-[#3e3e3e] transition-colors cursor-pointer min-w-[86px]"
+                                className="px-2 py-1 themed-control rounded-md transition-colors cursor-pointer min-w-[86px]"
                               >
                                 {editedKey || track.key || "Not set"}
                               </button>
@@ -980,11 +975,11 @@ export default function TrackVersionsModal({
                                 side="bottom"
                                 align="center"
                                 sideOffset={8}
-                                className="z-1001 w-[440px] bg-[#1a1a1a] border border-[#353333] rounded-3xl shadow-2xl overflow-hidden p-5 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2"
+                                className="z-1001 w-[440px] overlay-surface text-(--text-0) border border-(--card-border) rounded-3xl shadow-2xl overflow-hidden p-5 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2"
                               >
                                 <div className="flex flex-col gap-4">
                                   <div className="flex items-center justify-between">
-                                    <h3 className="text-lg font-semibold text-white">
+                                    <h3 className="text-lg font-semibold text-(--text-0)">
                                       Select Key
                                     </h3>
                                     <Popover.Close asChild>
@@ -1022,7 +1017,7 @@ export default function TrackVersionsModal({
                             <Popover.Trigger asChild>
                               <button
                                 type="button"
-                                className="px-2 py-1 bg-[#2e2e2e] border border-[#3e3e3e] rounded-md hover:bg-[#3e3e3e] transition-colors cursor-pointer min-w-[86px]"
+                                className="px-2 py-1 themed-control rounded-md transition-colors cursor-pointer min-w-[86px]"
                               >
                                 {editedBpm || track.bpm || "Not set"}
                               </button>
@@ -1032,7 +1027,7 @@ export default function TrackVersionsModal({
                                 side="bottom"
                                 align="center"
                                 sideOffset={8}
-                                className="z-1001 bg-[#1a1a1a] border border-[#353333] rounded-2xl shadow-2xl p-3 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2"
+                                className="z-1001 overlay-surface text-(--text-0) border border-(--card-border) rounded-2xl shadow-2xl p-3 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2"
                               >
                                 <BPMSelector
                                   value={editedBpm}
@@ -1046,7 +1041,7 @@ export default function TrackVersionsModal({
 
                         <div className="flex items-center">
                           <button
-                            className={`h-8 rounded-lg border border-[#3a3a3a] bg-[#1f1f1f] px-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-white transition-all duration-150 hover:bg-[#262626] active:bg-[#2b2b2b] ${
+                            className={`h-8 rounded-lg border border-(--border-0) bg-[#1f1f1f] px-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-(--text-0) transition-all duration-150 hover:bg-[#262626] active:bg-[#2b2b2b] ${
                               isTapFlashing
                                 ? "ring-1 ring-white/40 shadow-[0_0_10px_rgba(255,255,255,0.2)]"
                                 : ""
@@ -1126,7 +1121,7 @@ export default function TrackVersionsModal({
                           height={String(PREVIEW_WAVEFORM_HEIGHT)}
                           viewBox={`0 0 ${PREVIEW_WAVEFORM_BARS * 2} ${PREVIEW_WAVEFORM_HEIGHT}`}
                           preserveAspectRatio="none"
-                          className="text-white"
+                          className="text-(--text-0)"
                         >
                           {waveformBars.map((height, i) => {
                             const x = i * 2 + 1;
@@ -1165,7 +1160,7 @@ export default function TrackVersionsModal({
 
                     <div className="scroll-fade-y flex flex-col gap-3 px-6 mt-8 pt-3 pb-25 overflow-y-auto flex-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 hover:scrollbar-thumb-white/20">
                       {isLoadingVersions ? null : versions.length === 0 ? (
-                        <div className="flex items-center justify-center py-8 text-white/50">
+                        <div className="flex items-center justify-center py-8 text-(--text-0)/50">
                           No versions found
                         </div>
                       ) : (
@@ -1189,7 +1184,7 @@ export default function TrackVersionsModal({
                             >
                               {isActive && (
                                 <div
-                                  className="absolute top-0 left-0 translate-x-1/4 -translate-y-1/2 px-2 py-1 bg-[#151414] border border-[#595959] rounded-[7px] text-[10px] text-white"
+                                  className="absolute top-0 left-0 translate-x-1/4 -translate-y-1/2 px-2 py-1 bg-[#151414] border border-[#595959] rounded-[7px] text-[10px] text-(--text-0)"
                                   style={{
                                     fontFamily: '"IBM Plex Mono", monospace',
                                     fontWeight: 300,
@@ -1237,7 +1232,7 @@ export default function TrackVersionsModal({
                                         }
                                       }}
                                       onClick={(e) => e.stopPropagation()}
-                                      className="text-sm text-white bg-transparent border-none outline-none focus:outline-none p-0 m-0"
+                                      className="text-sm text-(--text-0) bg-transparent border-none outline-none focus:outline-none p-0 m-0"
                                       style={{
                                         fontFamily:
                                           '"IBM Plex Mono", monospace',
@@ -1247,7 +1242,7 @@ export default function TrackVersionsModal({
                                     />
                                   ) : (
                                     <p
-                                      className="text-sm text-white"
+                                      className="text-sm text-(--text-0)"
                                       style={{
                                         fontFamily:
                                           '"IBM Plex Mono", monospace',
@@ -1281,7 +1276,7 @@ export default function TrackVersionsModal({
                                         variant="ghost"
                                         className="shrink-0 h-5 rounded-md hover:bg-white/10"
                                       >
-                                        <MoreHorizontal className="size-4 text-white" />
+                                        <MoreHorizontal className="size-4 text-(--text-0)" />
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent
@@ -1349,7 +1344,7 @@ export default function TrackVersionsModal({
 
                     <div className="absolute bottom-0 left-0 right-0 flex items-center gap-4 px-6 pb-6 z-20">
                       <Button
-                        className="flex-1 bg-[#1e1e1e] border border-[#2e2e2e] hover:bg-[#252525] active:bg-[#2a2a2a] text-white rounded-xl h-[41px]"
+                        className="flex-1 bg-[#1e1e1e] border border-[#2e2e2e] hover:bg-[#252525] active:bg-[#2a2a2a] text-(--text-0) rounded-xl h-[41px]"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isUploading || !canEdit}
                       >

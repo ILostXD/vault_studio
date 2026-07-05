@@ -198,7 +198,7 @@ export default function AlbumCover({
 
         {showUploadOverlay && onUploadClick && (
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center pb-6">
-            <span className="text-white text-sm font-medium">
+            <span className="text-(--text-0) text-sm font-medium">
               Change cover art
             </span>
           </div>

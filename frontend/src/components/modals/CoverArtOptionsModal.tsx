@@ -41,7 +41,7 @@ export default function CoverArtOptionsModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="fixed inset-0 bg-black/50 z-200"
+            className="fixed inset-0 overlay-backdrop z-200"
             onClick={onClose}
           />
 
@@ -56,13 +56,8 @@ export default function CoverArtOptionsModal({
             className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-201 w-[calc(100%-2rem)] sm:w-full max-w-[400px]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div
-              className="relative flex flex-col overflow-hidden rounded-[34px] text-white shadow-2xl border border-[#292828]"
-              style={{
-                background: "linear-gradient(0deg, #151515 0%, #1D1D1D 100%)",
-              }}
-            >
-              <div className="flex items-center justify-between p-5 border-b border-white/10">
+            <div className="relative flex flex-col overflow-hidden rounded-[34px] text-(--text-0) shadow-2xl border border-(--card-border) overlay-surface">
+              <div className="flex items-center justify-between p-5 border-b border-(--control-border)">
                 <h3 className="text-lg font-semibold">Cover Art</h3>
                 <Button
                   size="icon-lg"
@@ -77,15 +72,15 @@ export default function CoverArtOptionsModal({
                 {canEdit && (
                   <button
                     onClick={handleLibraryClick}
-                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors text-left"
+                    className="w-full flex items-center gap-4 p-4 rounded-2xl themed-control transition-colors text-left"
                     type="button"
                   >
-                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-white/10">
+                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-(--control-bg-active)">
                       <FolderOpen className="size-5" />
                     </div>
                     <div className="flex-1">
                       <div className="font-semibold text-base">Library</div>
-                      <div className="text-sm text-white/60">
+                      <div className="text-sm text-(--text-0)/60">
                         Choose from your files
                       </div>
                     </div>
@@ -95,15 +90,15 @@ export default function CoverArtOptionsModal({
                 {hasExistingCover && canDownload && (
                   <button
                     onClick={handleExportClick}
-                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors text-left"
+                    className="w-full flex items-center gap-4 p-4 rounded-2xl themed-control transition-colors text-left"
                     type="button"
                   >
-                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-white/10">
+                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-(--control-bg-active)">
                       <Download className="size-5" />
                     </div>
                     <div className="flex-1">
                       <div className="font-semibold text-base">Export</div>
-                      <div className="text-sm text-white/60">
+                      <div className="text-sm text-(--text-0)/60">
                         Download cover art
                       </div>
                     </div>

@@ -1,8 +1,6 @@
 import { get, put, del, getCSRFToken } from './client'
 import type { VersionWithMetadata, UpdateVersionRequest } from '../types/api'
-import { env } from '../env'
-
-const API_BASE_URL = env.VITE_API_URL || ''
+import { resolveApiUrl } from './server'
 
 
 export async function getVersions(trackId: string): Promise<VersionWithMetadata[]> {
@@ -26,7 +24,7 @@ export async function uploadVersion(
     formData.append('notes', notes)
   }
 
-	const response = await fetch(`${API_BASE_URL}/api/tracks/${trackId}/versions/upload`, {
+	const response = await fetch(resolveApiUrl(`/api/tracks/${trackId}/versions/upload`), {
 		method: 'POST',
 		credentials: 'include',
 		headers: getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {},
@@ -49,7 +47,7 @@ export async function updateVersion(
 }
 
 export async function activateVersion(versionId: number): Promise<void> {
-	const response = await fetch(`${API_BASE_URL}/api/versions/${versionId}/activate`, {
+	const response = await fetch(resolveApiUrl(`/api/versions/${versionId}/activate`), {
 		method: 'POST',
 		credentials: 'include',
 		headers: getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {},
@@ -66,7 +64,7 @@ export async function deleteVersion(versionId: number): Promise<void> {
 }
 
 export function getVersionDownloadUrl(trackId: string, versionId: number): string {
-  return `${API_BASE_URL}/api/tracks/${trackId}/versions/${versionId}/download`
+  return resolveApiUrl(`/api/tracks/${trackId}/versions/${versionId}/download`)
 }
 
 export async function downloadVersion(trackId: string, versionId: number): Promise<void> {

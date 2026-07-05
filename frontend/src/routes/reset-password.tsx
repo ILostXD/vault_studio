@@ -98,12 +98,12 @@ function ResetPasswordPage() {
   };
 
   if (isValidating) {
-    return <div className="min-h-screen bg-[#181818]" />;
+    return <div className="min-h-screen bg-(--bg-0)" />;
   }
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#181818] p-4">
+      <div className="min-h-screen flex items-center justify-center bg-(--bg-0) p-4">
         <div className="w-full max-w-[500px]">
           <motion.div
             layout
@@ -115,7 +115,7 @@ function ResetPasswordPage() {
               filter: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
               layout: { type: "spring", stiffness: 400, damping: 25 },
             }}
-            className="border border-[#353333] rounded-[45px] px-10 py-12"
+            className="border border-(--card-border) rounded-[45px] px-10 py-12"
             style={{
               background: "linear-gradient(0deg, #131313 0%, #161616 100%)",
               boxShadow: "0 25px 27.4px -10px rgba(0, 0, 0, 0.19)",
@@ -125,11 +125,11 @@ function ResetPasswordPage() {
               <div className="flex justify-center mb-3">
                 <AlertCircle className="h-8 w-8 text-red-400" />
               </div>
-              <h1 className="text-[39px] font-light text-white">
+              <h1 className="text-[39px] font-light text-(--text-0)">
                 Invalid Link
               </h1>
               <p
-                className="text-[#7c7c7c] text-sm font-light mt-3"
+                className="text-(--text-2) text-sm font-light mt-3"
                 style={{ fontFamily: '"IBM Plex Mono", monospace' }}
               >
                 This password reset link is invalid or has expired
@@ -138,7 +138,7 @@ function ResetPasswordPage() {
 
             <button
               onClick={() => navigate({ to: "/login" })}
-              className="w-full border border-[#353333] hover:brightness-110 text-white font-semibold text-lg h-12 rounded-2xl transition-all relative overflow-hidden"
+              className="w-full border border-(--card-border) hover:brightness-110 text-(--text-0) font-semibold text-lg h-12 rounded-2xl transition-all relative overflow-hidden"
               style={{
                 background: "linear-gradient(0deg, #1D1D1D 0%, #282828 100%)",
               }}
@@ -153,7 +153,7 @@ function ResetPasswordPage() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#181818] p-4">
+      <div className="min-h-screen flex items-center justify-center bg-(--bg-0) p-4">
         <div className="w-full max-w-[500px]">
           <motion.div
             layout
@@ -165,7 +165,7 @@ function ResetPasswordPage() {
               filter: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
               layout: { type: "spring", stiffness: 400, damping: 25 },
             }}
-            className="border border-[#353333] rounded-[45px] px-10 py-12"
+            className="border border-(--card-border) rounded-[45px] px-10 py-12"
             style={{
               background: "linear-gradient(0deg, #131313 0%, #161616 100%)",
               boxShadow: "0 25px 27.4px -10px rgba(0, 0, 0, 0.19)",
@@ -182,17 +182,17 @@ function ResetPasswordPage() {
                   <Check className="h-6 w-6 text-green-400" />
                 </div>
               </motion.div>
-              <h1 className="text-2xl font-bold text-white mb-2">
+              <h1 className="text-2xl font-bold text-(--text-0) mb-2">
                 Password Reset Successful
               </h1>
-              <p className="text-[#7c7c7c] mb-6">
+              <p className="text-(--text-2) mb-6">
                 Your password has been updated. You'll be redirected to the
                 login page shortly.
               </p>
             </div>
             <button
               onClick={() => navigate({ to: "/login" })}
-              className="w-full border border-[#353333] hover:brightness-110 text-white font-semibold text-lg h-12 rounded-2xl transition-all relative overflow-hidden"
+              className="w-full border border-(--card-border) hover:brightness-110 text-(--text-0) font-semibold text-lg h-12 rounded-2xl transition-all relative overflow-hidden"
               style={{
                 background: "linear-gradient(0deg, #1D1D1D 0%, #282828 100%)",
               }}
@@ -206,7 +206,7 @@ function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#181818] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-(--bg-0) p-4">
       <div className="w-full max-w-[500px]">
         <motion.div
           layout
@@ -218,16 +218,16 @@ function ResetPasswordPage() {
             filter: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
             layout: { type: "spring", stiffness: 400, damping: 25 },
           }}
-          className="border border-[#353333] rounded-[45px] px-10 py-12"
+          className="border border-(--card-border) rounded-[45px] px-10 py-12"
           style={{
             background: "linear-gradient(0deg, #131313 0%, #161616 100%)",
             boxShadow: "0 25px 27.4px -10px rgba(0, 0, 0, 0.19)",
           }}
         >
           <div className="text-center mb-8">
-            <h1 className="text-[39px] font-light text-white">{`{ vault }`}</h1>
+            <h1 className="text-[39px] font-light text-(--text-0)">{`{ vault }`}</h1>
             <p
-              className="text-[#7c7c7c] text-sm font-light mt-3"
+              className="text-(--text-2) text-sm font-light mt-3"
               style={{ fontFamily: '"IBM Plex Mono", monospace' }}
             >
               Reset your password
@@ -261,7 +261,7 @@ function ResetPasswordPage() {
             <div className="space-y-2">
               <Label
                 htmlFor="password"
-                className="text-[#7c7c7c] text-base font-light ml-5"
+                className="text-(--text-2) text-base font-light ml-5"
                 style={{ fontFamily: '"IBM Plex Mono", monospace' }}
               >
                 new password
@@ -283,7 +283,7 @@ function ResetPasswordPage() {
                   }
                 }}
                 disabled={resetMutation.isPending}
-                className="border-[#353333]/50 text-white text-lg md:text-lg placeholder:text-white/80 h-12 rounded-2xl px-5"
+                className="border-(--card-border)/50 text-(--text-0) text-lg md:text-lg placeholder:text-(--text-0)/80 h-12 rounded-2xl px-5"
                 style={{
                   background:
                     "linear-gradient(0deg, #1D1D1D 0%, rgba(40, 40, 40, 0.22) 100%)",
@@ -297,7 +297,7 @@ function ResetPasswordPage() {
             <div className="space-y-2">
               <Label
                 htmlFor="confirmPassword"
-                className="text-[#7c7c7c] text-base font-light ml-5"
+                className="text-(--text-2) text-base font-light ml-5"
                 style={{ fontFamily: '"IBM Plex Mono", monospace' }}
               >
                 confirm password
@@ -319,7 +319,7 @@ function ResetPasswordPage() {
                   }
                 }}
                 disabled={resetMutation.isPending}
-                className="border-[#353333]/50 text-white text-lg md:text-lg placeholder:text-white/80 h-12 rounded-2xl px-5"
+                className="border-(--card-border)/50 text-(--text-0) text-lg md:text-lg placeholder:text-(--text-0)/80 h-12 rounded-2xl px-5"
                 style={{
                   background:
                     "linear-gradient(0deg, #1D1D1D 0%, rgba(40, 40, 40, 0.22) 100%)",
@@ -340,7 +340,7 @@ function ResetPasswordPage() {
                 handleSubmit(e);
               }}
               disabled={resetMutation.isPending}
-              className="w-full border border-[#353333] hover:brightness-110 text-white font-semibold text-lg h-12 rounded-2xl transition-all mt-6 relative overflow-hidden"
+              className="w-full border border-(--card-border) hover:brightness-110 text-(--text-0) font-semibold text-lg h-12 rounded-2xl transition-all mt-6 relative overflow-hidden"
               style={{
                 background: "linear-gradient(0deg, #1D1D1D 0%, #282828 100%)",
               }}
@@ -364,11 +364,11 @@ function ResetPasswordPage() {
             </Button>
           </form>
 
-          <p className="text-[#7c7c7c] text-center text-sm mt-6">
+          <p className="text-(--text-2) text-center text-sm mt-6">
             Remember your password?{" "}
             <button
               onClick={() => navigate({ to: "/login" })}
-              className="text-white hover:underline transition-colors"
+              className="text-(--text-0) hover:underline transition-colors"
               style={{ fontFamily: '"IBM Plex Mono", monospace' }}
             >
               Sign in here

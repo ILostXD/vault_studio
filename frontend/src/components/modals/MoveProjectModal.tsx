@@ -40,10 +40,10 @@ export default function MoveProjectModal({
     <BaseModal isOpen={isOpen} onClose={onClose} disableClose={isMoving}>
       <div className="p-6 md:p-8 space-y-6">
         <div className="text-center space-y-3 p-3">
-          <h2 className="text-2xl font-semibold text-white">Move Project</h2>
+          <h2 className="text-2xl font-semibold text-(--text-0)">Move Project</h2>
           <p className="text-sm text-muted-foreground">
             Click a folder to move{" "}
-            <span className="text-white font-medium">
+            <span className="text-(--text-0) font-medium">
               &ldquo;{projectName}&rdquo;
             </span>{" "}
             to.
@@ -68,8 +68,8 @@ export default function MoveProjectModal({
                         : "bg-white/5 hover:bg-white/10"
                     }`}
                   >
-                    <Home className="size-4 text-white" />
-                    <span className="text-base font-medium text-white">
+                    <Home className="size-4 text-(--text-0)" />
+                    <span className="text-base font-medium text-(--text-0)">
                       Root (No Folder)
                     </span>
                   </button>
@@ -90,8 +90,8 @@ export default function MoveProjectModal({
                           : "bg-white/5 hover:bg-white/10"
                       }`}
                     >
-                      <FolderIcon className="size-4 text-white" />
-                      <span className="text-base font-medium text-white">
+                      <FolderIcon className="size-4 text-(--text-0)" />
+                      <span className="text-base font-medium text-(--text-0)">
                         {folder.name}
                       </span>
                     </button>

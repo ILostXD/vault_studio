@@ -79,7 +79,7 @@ function TrackListItem({
             {isTranscoding ? (
               <LoaderIcon className="size-4 animate-spin text-muted-foreground" />
             ) : isPlaying ? (
-              <PauseIcon fill="white" className="size-4 text-white" />
+              <PauseIcon fill="white" className="size-4 text-(--text-0)" />
             ) : isHovered ? (
               <PlayIcon className="size-4 fill-current" />
             ) : (

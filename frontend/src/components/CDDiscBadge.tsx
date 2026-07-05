@@ -102,8 +102,8 @@ export default function CDDiscBadge({
         </defs>
       </svg>
 
-      <div className="relative bg-linear-to-b from-[#262626] to-[#201f1f] border border-[#353333] rounded-[64px] w-[305px] h-[375px] flex flex-col items-center justify-center">
-        <div className="absolute top-0 left-0 pl-8 pt-8 text-white text-[15px] font-light text-center">
+      <div className="relative bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-[64px] w-[305px] h-[375px] flex flex-col items-center justify-center">
+        <div className="absolute top-0 left-0 pl-8 pt-8 text-(--text-0) text-[15px] font-light text-center">
           {"{v}"}
         </div>
 
@@ -174,16 +174,16 @@ export default function CDDiscBadge({
                 placeholder={placeholder}
                 onChange={(e) => onLabelChange?.(e.target.value)}
                 onKeyDown={onLabelKeyDown}
-                className="text-white text-lg font-medium bg-transparent border-none outline-none text-center cursor-text px-2 min-w-[100px] placeholder:text-[#848484]"
+                className="text-(--text-0) text-lg font-medium bg-transparent border-none outline-none text-center cursor-text px-2 min-w-[100px] placeholder:text-(--text-1)"
                 style={{ caretColor: "white" }}
                 autoFocus
               />
             ) : (
-              <p className="text-white text-lg font-medium">{label}</p>
+              <p className="text-(--text-0) text-lg font-medium">{label}</p>
             )}
           </div>
           {sublabel && (
-            <p className="text-white text-[11px] font-extralight font-['IBM_Plex_Mono']">
+            <p className="text-(--text-0) text-[11px] font-extralight font-['IBM_Plex_Mono']">
               {sublabel}
             </p>
           )}

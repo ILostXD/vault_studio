@@ -1,4 +1,16 @@
 import { get } from './client'
+import { resolveApiUrl } from './server'
+
+export function resolveApiMediaUrl(url?: string | null): string | undefined {
+	if (!url) return undefined
+	if (/^[a-z][a-z\d+\-.]*:\/\//i.test(url) || url.startsWith('blob:') || url.startsWith('data:')) {
+		return url
+	}
+	if (url.startsWith('/api/')) {
+		return resolveApiUrl(url)
+	}
+	return url
+}
 
 export async function getStreamUrl(
 	trackId: string,

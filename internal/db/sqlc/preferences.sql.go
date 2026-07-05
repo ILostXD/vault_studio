@@ -26,7 +26,7 @@ func (q *Queries) CreateUserPreferences(ctx context.Context, arg CreateUserPrefe
 }
 
 const getUserPreferences = `-- name: GetUserPreferences :one
-SELECT user_id, default_quality, created_at, updated_at, disc_colors, color_spread, gradient_spread, color_shift_rotation, accent_color FROM user_preferences
+SELECT user_id, default_quality, created_at, updated_at, disc_colors, color_spread, gradient_spread, color_shift_rotation, accent_color, theme FROM user_preferences
 WHERE user_id = ?
 `
 
@@ -43,6 +43,7 @@ func (q *Queries) GetUserPreferences(ctx context.Context, userID int64) (UserPre
 		&i.GradientSpread,
 		&i.ColorShiftRotation,
 		&i.AccentColor,
+		&i.Theme,
 	)
 	return i, err
 }
@@ -55,9 +56,10 @@ SET default_quality = COALESCE(?1, default_quality),
     gradient_spread = COALESCE(?4, gradient_spread),
     color_shift_rotation = COALESCE(?5, color_shift_rotation),
     accent_color = COALESCE(?6, accent_color),
+    theme = COALESCE(?7, theme),
     updated_at = CURRENT_TIMESTAMP
-WHERE user_id = ?7
-RETURNING user_id, default_quality, created_at, updated_at, disc_colors, color_spread, gradient_spread, color_shift_rotation, accent_color
+WHERE user_id = ?8
+RETURNING user_id, default_quality, created_at, updated_at, disc_colors, color_spread, gradient_spread, color_shift_rotation, accent_color, theme
 `
 
 type UpdateUserPreferencesParams struct {
@@ -67,6 +69,7 @@ type UpdateUserPreferencesParams struct {
 	GradientSpread     sql.NullInt64  `json:"gradient_spread"`
 	ColorShiftRotation sql.NullInt64  `json:"color_shift_rotation"`
 	AccentColor        sql.NullString `json:"accent_color"`
+	Theme              sql.NullString `json:"theme"`
 	UserID             int64          `json:"user_id"`
 }
 
@@ -78,6 +81,7 @@ func (q *Queries) UpdateUserPreferences(ctx context.Context, arg UpdateUserPrefe
 		arg.GradientSpread,
 		arg.ColorShiftRotation,
 		arg.AccentColor,
+		arg.Theme,
 		arg.UserID,
 	)
 	var i UserPreference
@@ -91,6 +95,7 @@ func (q *Queries) UpdateUserPreferences(ctx context.Context, arg UpdateUserPrefe
 		&i.GradientSpread,
 		&i.ColorShiftRotation,
 		&i.AccentColor,
+		&i.Theme,
 	)
 	return i, err
 }

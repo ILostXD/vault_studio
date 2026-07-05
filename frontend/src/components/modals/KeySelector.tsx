@@ -282,7 +282,7 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
             "flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all",
             selectedMode === "major"
               ? "bg-white text-black"
-              : "bg-white/10 text-white/60 hover:bg-white/15",
+              : "bg-white/10 text-(--text-0)/60 hover:bg-white/15",
           )}
         >
           Major
@@ -293,7 +293,7 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
             "flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all",
             selectedMode === "minor"
               ? "bg-white text-black"
-              : "bg-white/10 text-white/60 hover:bg-white/15",
+              : "bg-white/10 text-(--text-0)/60 hover:bg-white/15",
           )}
         >
           Minor
@@ -303,13 +303,13 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
       <div className="flex gap-2">
         <button
           onClick={playChord}
-          className="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white/10 text-white hover:bg-white/15"
+          className="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white/10 text-(--text-0) hover:bg-white/15"
         >
           Play Chord
         </button>
         <button
           onClick={playArpeggio}
-          className="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white/10 text-white hover:bg-white/15"
+          className="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white/10 text-(--text-0) hover:bg-white/15"
         >
           Play Arpeggio
         </button>
@@ -327,7 +327,7 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
                   "flex-1 rounded-md transition-all",
                   "text-xs font-medium flex items-end justify-center pb-2",
                   isSelected
-                    ? "bg-blue-500 text-white shadow-lg shadow-blue-500/50"
+                    ? "bg-blue-500 text-(--text-0) shadow-lg shadow-blue-500/50"
                     : "bg-white/90 text-black/60 hover:bg-white",
                   "border border-white/10",
                 )}
@@ -355,8 +355,8 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
                     "flex-1 rounded-t-xs transition-all border-b border-white/10",
                     "text-[9px] font-medium flex items-center justify-center",
                     sharpSelected
-                      ? "bg-blue-500 text-white shadow-lg shadow-blue-500/50 z-20"
-                      : "bg-linear-to-b from-[#2a2a2a] to-[#252525] text-white/40 hover:from-[#3a3a3a] hover:to-[#2e2e2e]",
+                      ? "bg-blue-500 text-(--text-0) shadow-lg shadow-blue-500/50 z-20"
+                      : "bg-linear-to-b from-[#2a2a2a] to-[#252525] text-(--text-0)/40 hover:from-[#3a3a3a] hover:to-[#2e2e2e]",
                     "border-l border-r border-t border-white/5",
                   )}
                 >
@@ -369,8 +369,8 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
                     "flex-1 rounded-b-md transition-all",
                     "text-[9px] font-medium flex items-center justify-center",
                     flatSelected
-                      ? "bg-blue-500 text-white shadow-lg shadow-blue-500/50 z-20"
-                      : "bg-linear-to-b from-[#252525] to-[#1a1a1a] text-white/40 hover:from-[#2e2e2e] hover:to-[#2a2a2a]",
+                      ? "bg-blue-500 text-(--text-0) shadow-lg shadow-blue-500/50 z-20"
+                      : "bg-linear-to-b from-[#252525] to-[#1a1a1a] text-(--text-0)/40 hover:from-[#2e2e2e] hover:to-[#2a2a2a]",
                     "border-l border-r border-b border-white/5",
                   )}
                 >
@@ -382,7 +382,7 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
         </div>
       </div>
 
-      <div className="text-center text-sm text-white/60 font-mono min-h-5">
+      <div className="text-center text-sm text-(--text-0)/60 font-mono min-h-5">
         {selectedNote ? formatKey(selectedNote, selectedMode) : ""}
       </div>
     </div>

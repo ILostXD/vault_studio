@@ -24,10 +24,10 @@ export default function DeleteTrackModal({
         <ModalIcon icon={AlertTriangle} variant="destructive" />
 
         <div className="text-center space-y-3">
-          <h2 className="text-2xl font-semibold text-white">Delete Track</h2>
+          <h2 className="text-2xl font-semibold text-(--text-0)">Delete Track</h2>
           <p className="text-sm text-muted-foreground">
             Are you absolutely sure you want to delete{" "}
-            <span className="text-white font-medium">
+            <span className="text-(--text-0) font-medium">
               &ldquo;{trackName}&rdquo;
             </span>
             ? This action cannot be undone and will remove all versions and

@@ -550,7 +550,7 @@ function SharedTrackPage() {
               opacity: showCoverPanel ? 1 : 0,
             }}
             transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
-            className="flex flex-col text-white pt-10 md:pt-0 md:pr-5 md:max-w-lg md:-ml-10"
+            className="flex flex-col text-(--text-0) pt-10 md:pt-0 md:pr-5 md:max-w-lg md:-ml-10"
           >
             <div className="mb-4 -space-y-1">
               <div className="flex items-center justify-between relative z-20">
@@ -567,7 +567,7 @@ function SharedTrackPage() {
                     }
                   }}
                   disabled={!canEdit}
-                  className="text-3xl font-semibold bg-transparent border-none p-0 m-0 h-auto outline-none text-white placeholder:text-white/50 w-full focus:outline-none focus:ring-0 disabled:cursor-default"
+                  className="text-3xl font-semibold bg-transparent border-none p-0 m-0 h-auto outline-none text-(--text-0) placeholder:text-(--text-0)/50 w-full focus:outline-none focus:ring-0 disabled:cursor-default"
                   placeholder="Track title"
                 />
               </div>
@@ -584,29 +584,29 @@ function SharedTrackPage() {
             </div>
 
             <div className="mb-6">
-              <div className="bg-linear-to-b from-[#232323] to-[#201f1f] border border-[#353333] rounded-3xl p-6">
+              <div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-3xl p-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-[#848484] text-sm">Date Added</span>
-                    <span className="text-white text-sm">
+                    <span className="text-(--text-1) text-sm">Date Added</span>
+                    <span className="text-(--text-0) text-sm">
                       {formatDate(track.created_at)}
                     </span>
                   </div>
                   {track.key && (
                     <div className="flex items-center justify-between">
-                      <span className="text-[#848484] text-sm">Key</span>
-                      <span className="text-white text-sm">{track.key}</span>
+                      <span className="text-(--text-1) text-sm">Key</span>
+                      <span className="text-(--text-0) text-sm">{track.key}</span>
                     </div>
                   )}
                   {track.bpm && (
                     <div className="flex items-center justify-between">
-                      <span className="text-[#848484] text-sm">BPM</span>
-                      <span className="text-white text-sm">{track.bpm}</span>
+                      <span className="text-(--text-1) text-sm">BPM</span>
+                      <span className="text-(--text-0) text-sm">{track.bpm}</span>
                     </div>
                   )}
                   <div className="flex items-center justify-between">
-                    <span className="text-[#848484] text-sm">Duration</span>
-                    <span className="text-white text-sm">
+                    <span className="text-(--text-1) text-sm">Duration</span>
+                    <span className="text-(--text-0) text-sm">
                       {formatTrackDuration(
                         track.active_version_duration_seconds,
                       )}
@@ -694,7 +694,7 @@ function SharedTrackPage() {
         className="fixed bottom-0 left-0 right-0 h-[120px] z-100 pointer-events-none"
         style={{
           background:
-            "linear-gradient(to top, #181818 20%, rgba(24, 24, 24, 0.95) 25%, rgba(24, 24, 24, 0.85) 30%, rgba(24, 24, 24, 0.7) 45%, rgba(24, 24, 24, 0.5) 60%, rgba(24, 24, 24, 0.3) 75%, rgba(24, 24, 24, 0.1) 90%, transparent 100%)",
+            "linear-gradient(to top, color-mix(in srgb, var(--bg-0) 100%, transparent) 20%, color-mix(in srgb, var(--bg-0) 95%, transparent) 25%, color-mix(in srgb, var(--bg-0) 85%, transparent) 30%, color-mix(in srgb, var(--bg-0) 70%, transparent) 45%, color-mix(in srgb, var(--bg-0) 50%, transparent) 60%, color-mix(in srgb, var(--bg-0) 30%, transparent) 75%, color-mix(in srgb, var(--bg-0) 10%, transparent) 90%, transparent 100%)",
         }}
       />
       {selectedTrack && trackDetailsData && (

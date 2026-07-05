@@ -52,6 +52,7 @@ type UpdatePreferencesRequest struct {
 	GradientSpread     *int            `json:"gradient_spread,omitempty"`
 	ColorShiftRotation *int            `json:"color_shift_rotation,omitempty"`
 	AccentColor        *string         `json:"accent_color,omitempty"`
+	Theme              *string         `json:"theme,omitempty"`
 }
 
 type CreateProjectRequest struct {

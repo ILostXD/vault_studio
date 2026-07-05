@@ -14,7 +14,7 @@ const buttonVariants = cva(
           "bg-[linear-gradient(180deg,var(--button-gradient-from)_0%,var(--button-gradient-to)_100%)] text-primary-foreground hover:brightness-120",
         hot: "border-[var(--button-hot-border)] bg-[linear-gradient(180deg,var(--button-gradient-hot-from)_0%,var(--button-gradient-hot-to)_100%)] text-primary-foreground hover:brightness-120",
         destructive:
-          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "bg-destructive text-(--text-0) hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
           "border border-[var(--button-border)] bg-transparent text-foreground hover:bg-[linear-gradient(180deg,var(--button-gradient-from)_0%,var(--button-gradient-to)_100%)]",
         secondary:

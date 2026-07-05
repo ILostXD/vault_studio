@@ -1,6 +1,4 @@
-import { env } from '../env'
-
-const API_BASE_URL = env.VITE_API_URL || ''
+import { resolveApiUrl } from './server'
 
 export class ApiError extends Error {
   constructor(
@@ -34,7 +32,7 @@ async function apiClient<T>(
 ): Promise<T> {
   const { requiresAuth = true, headers = {}, ...restOptions } = options
 
-  const url = `${API_BASE_URL}${endpoint}`
+  const url = resolveApiUrl(endpoint)
 
 	const requestHeaders: Record<string, string> = {
 		'Content-Type': 'application/json',

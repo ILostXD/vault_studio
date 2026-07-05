@@ -22,6 +22,7 @@ import { useProject, projectKeys } from "@/hooks/useProjects";
 import { useTracks } from "@/hooks/useTracks";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
+import { usePreferences } from "@/contexts/PreferencesContext";
 import { toast } from "@/routes/__root";
 import { uploadTrack, reorderTracks } from "@/api/tracks";
 import { uploadVersion } from "@/api/versions";
@@ -57,6 +58,7 @@ function ProjectPage() {
 function ProjectPageContent({ projectId }: { projectId: string }) {
   const haptic = useWebHaptics();
   const { user } = useAuth();
+  const { preferences } = usePreferences();
   const { data: project, isLoading: projectLoading } = useProject(projectId);
   const { data: apiTracks = [], isLoading: tracksLoading } = useTracks(
     project ? project.id : null,
@@ -114,6 +116,10 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
   }, [isPlaying, currentTrack, tracks]);
 
   const playButton = usePlayButtonAnimation();
+  const normalizedTheme =
+    preferences?.theme === "oled" ? "black" : preferences?.theme ?? "default";
+  const isDefaultTheme =
+    normalizedTheme !== "light" && normalizedTheme !== "black";
 
   const editing = useProjectEditing({
     project: project ?? undefined,
@@ -626,10 +632,10 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
                     "radial-gradient(ellipse at center, #111 0%, #111 40%, transparent 70%)",
                 }}
               />
-              <p className="text-xl font-medium text-white relative">
+              <p className="text-xl font-medium text-(--text-0) relative">
                 Drop to upload tracks
               </p>
-              <p className="text-sm text-white/70 mt-1 relative">
+              <p className="text-sm text-(--text-0)/70 mt-1 relative">
                 Drop on a track to add as a new version
               </p>
             </div>
@@ -679,30 +685,30 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
                   variant="outline"
                   size="default"
                   onClick={() => setIsMetadataModalOpen(true)}
-                  className="flex flex-col sm:flex-row md:flex-col xl:flex-row items-center justify-center gap-1 xl:gap-1.5 bg-[#232323]/50 hover:bg-[#303030]/50 border-[#353333] hover:border-white/20 text-white/90 rounded-2xl h-14 md:h-16 xl:h-12 w-full py-1.5 sm:py-2 md:py-1.5 xl:py-2 transition-all"
+                  className="flex flex-col sm:flex-row md:flex-col xl:flex-row items-center justify-center gap-1 xl:gap-1.5 project-cover-control text-(--text-0)/90 rounded-2xl h-14 md:h-16 xl:h-12 w-full py-1.5 sm:py-2 md:py-1.5 xl:py-2 transition-all"
                   haptic="light"
                 >
-                  <Info className="size-4 text-white/70 shrink-0" />
+                  <Info className="size-4 text-(--text-0)/70 shrink-0" />
                   <span className="text-[9px] sm:text-[10px] font-semibold tracking-wider font-mono">DETAILS</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="default"
                   disabled
-                  className="flex flex-col sm:flex-row md:flex-col xl:flex-row items-center justify-center gap-1 xl:gap-1.5 bg-[#232323]/25 border-[#353333]/30 text-white/30 rounded-2xl h-14 md:h-16 xl:h-12 w-full py-1.5 sm:py-2 md:py-1.5 xl:py-2 cursor-not-allowed opacity-50"
+                  className="flex flex-col sm:flex-row md:flex-col xl:flex-row items-center justify-center gap-1 xl:gap-1.5 project-cover-control-disabled text-(--text-0)/30 rounded-2xl h-14 md:h-16 xl:h-12 w-full py-1.5 sm:py-2 md:py-1.5 xl:py-2 cursor-not-allowed opacity-50"
                   haptic="light"
                 >
-                  <Music className="size-4 text-white/20 shrink-0" />
+                  <Music className="size-4 text-(--text-0)/20 shrink-0" />
                   <span className="text-[9px] sm:text-[10px] font-semibold tracking-wider font-mono">DISTRO</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="default"
                   disabled
-                  className="flex flex-col sm:flex-row md:flex-col xl:flex-row items-center justify-center gap-1 xl:gap-1.5 bg-[#232323]/25 border-[#353333]/30 text-white/30 rounded-2xl h-14 md:h-16 xl:h-12 w-full py-1.5 sm:py-2 md:py-1.5 xl:py-2 cursor-not-allowed opacity-50"
+                  className="flex flex-col sm:flex-row md:flex-col xl:flex-row items-center justify-center gap-1 xl:gap-1.5 project-cover-control-disabled text-(--text-0)/30 rounded-2xl h-14 md:h-16 xl:h-12 w-full py-1.5 sm:py-2 md:py-1.5 xl:py-2 cursor-not-allowed opacity-50"
                   haptic="light"
                 >
-                  <LinkIcon className="size-4 text-white/20 shrink-0" />
+                  <LinkIcon className="size-4 text-(--text-0)/20 shrink-0" />
                   <span className="text-[9px] sm:text-[10px] font-semibold tracking-wider font-mono">PROMO</span>
                 </Button>
               </div></div>
@@ -715,7 +721,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
               opacity: showTracksPanel ? 1 : 0,
             }}
             transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
-            className="flex flex-col text-white pt-10 md:pt-0 md:pr-5 md:max-w-lg md:-ml-10"
+            className="flex flex-col text-(--text-0) pt-10 md:pt-0 md:pr-5 md:max-w-lg md:-ml-10"
           >
             <div className="mb-4 -space-y-1">
               <div className="flex items-center justify-between relative z-20">
@@ -729,7 +735,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") e.currentTarget.blur();
                   }}
-                  className="text-3xl font-semibold bg-transparent border-none p-0 m-0 h-auto outline-none text-white placeholder:text-white/50 w-full focus:outline-none focus:ring-0"
+                  className="text-3xl font-semibold bg-transparent border-none p-0 m-0 h-auto outline-none text-(--text-0) placeholder:text-(--text-0)/50 w-full focus:outline-none focus:ring-0"
                   placeholder="Project name"
                 />
                 <div className="flex items-center gap-2 shrink-0">
@@ -742,7 +748,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
                       blurOnClick(e);
                     }}
                     onKeyDown={preventSpacebarDefault}
-                    className={`transition-colors ${isShuffled ? "text-accent-blue" : "text-white hover:text-gray-300"}`}
+                    className={`transition-colors ${isShuffled ? "text-accent-blue" : "text-(--text-0) hover:text-gray-300"}`}
                     aria-label="Shuffle"
                     aria-pressed={isShuffled}
                   >
@@ -766,10 +772,20 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
                         ? "Pause"
                         : "Play"
                     }
-                    className="shadow-md size-12 rounded-2xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={`${isDefaultTheme ? "shadow-md" : ""} size-12 rounded-2xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed`}
                     style={{
                       backdropFilter: "url(#project-play-button-filter)",
-                      backgroundColor: playButton.backgroundColor,
+                      ...(isDefaultTheme
+                        ? {
+                            backgroundColor: playButton.backgroundColor,
+                            color: "#ffffff",
+                          }
+                        : {
+                            background: "var(--play-button-bg)",
+                            border: "1px solid var(--play-button-border)",
+                            boxShadow: "var(--play-button-shadow)",
+                            color: "var(--play-button-fg)",
+                          }),
                       scale: playButton.scaleSpring,
                     }}
                     onClick={() => { handlePlayPause(); haptic.trigger("medium"); }}
@@ -781,9 +797,9 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
                     {isPlaying &&
                     currentTrack &&
                     tracks.some((t) => t.public_id === currentTrack.id) ? (
-                      <Pause className="size-5" fill="white" />
+                      <Pause className="size-5" fill="currentColor" />
                     ) : (
-                      <Play className="size-5" fill="white" />
+                      <Play className="size-5" fill="currentColor" />
                     )}
                   </motion.button>
                 </div>
@@ -918,7 +934,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
         className="fixed bottom-0 left-0 right-0 h-[120px] z-100 pointer-events-none"
         style={{
           background:
-            "linear-gradient(to top, #181818 20%, rgba(24, 24, 24, 0.95) 25%, rgba(24, 24, 24, 0.85) 30%, rgba(24, 24, 24, 0.7) 45%, rgba(24, 24, 24, 0.5) 60%, rgba(24, 24, 24, 0.3) 75%, rgba(24, 24, 24, 0.1) 90%, transparent 100%)",
+            "linear-gradient(to top, color-mix(in srgb, var(--bg-0) 100%, transparent) 20%, color-mix(in srgb, var(--bg-0) 95%, transparent) 25%, color-mix(in srgb, var(--bg-0) 85%, transparent) 30%, color-mix(in srgb, var(--bg-0) 70%, transparent) 45%, color-mix(in srgb, var(--bg-0) 50%, transparent) 60%, color-mix(in srgb, var(--bg-0) 30%, transparent) 75%, color-mix(in srgb, var(--bg-0) 10%, transparent) 90%, transparent 100%)",
         }}
       />
 

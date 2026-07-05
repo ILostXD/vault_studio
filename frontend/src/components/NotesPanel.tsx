@@ -30,20 +30,20 @@ type NotesPanelProps = TrackNotesPanelProps | ProjectNotesPanelProps;
 
 function NoteItem({ note }: { note: Note }) {
   return (
-    <div className="bg-linear-to-b from-[#232323] to-[#201f1f] border border-[#353333] rounded-2xl overflow-hidden">
+    <div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-2xl overflow-hidden">
       <div className="flex items-center gap-2.5 px-4 py-3 border-b border-white/5">
-        <div className="size-6 rounded-full bg-white/10 flex items-center justify-center text-xs font-semibold text-white/70 shrink-0">
+        <div className="size-6 rounded-full bg-white/10 flex items-center justify-center text-xs font-semibold text-(--text-0)/70 shrink-0">
           {note.author_name[0]?.toUpperCase()}
         </div>
-        <span className="text-sm text-white/60">@{note.author_name}</span>
+        <span className="text-sm text-(--text-0)/60">@{note.author_name}</span>
       </div>
       <div className="px-4 py-4">
         <p
-          className="text-white/90 text-sm whitespace-pre-wrap leading-relaxed"
+          className="text-(--text-0)/90 text-sm whitespace-pre-wrap leading-relaxed"
           style={{ fontFamily: '"IBM Plex Mono", monospace' }}
         >
           {note.content || (
-            <span className="text-white/30 italic">No notes yet...</span>
+            <span className="text-(--text-0)/30 italic">No notes yet...</span>
           )}
         </p>
       </div>
@@ -152,15 +152,15 @@ function EditableNote({
   }, [content, initialContent]);
 
   return (
-    <div className="bg-linear-to-b from-[#232323] to-[#201f1f] border border-[#353333] rounded-2xl overflow-hidden">
+    <div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-2xl overflow-hidden">
       <div className="flex items-center justify-between gap-2.5 px-4 py-3 border-b border-white/5">
         <div className="flex items-center gap-2.5">
-          <div className="size-6 rounded-full bg-white/10 flex items-center justify-center text-xs font-semibold text-white/70 shrink-0">
+          <div className="size-6 rounded-full bg-white/10 flex items-center justify-center text-xs font-semibold text-(--text-0)/70 shrink-0">
             {authorName[0]?.toUpperCase()}
           </div>
-          <span className="text-sm text-white/60">@{authorName}</span>
+          <span className="text-sm text-(--text-0)/60">@{authorName}</span>
         </div>
-        <span className="text-xs text-white/25 select-none">Your note</span>
+        <span className="text-xs text-(--text-0)/25 select-none">Your note</span>
       </div>
       <div className="px-4 py-4">
         <textarea
@@ -171,7 +171,7 @@ function EditableNote({
             setContent(e.target.value);
           }}
           placeholder="Write your note..."
-          className="w-full bg-transparent border-none resize-none text-white/90 placeholder:text-white/25 focus:outline-none focus:ring-0 text-sm leading-relaxed min-h-30 max-h-80 overflow-y-auto"
+          className="w-full bg-transparent border-none resize-none text-(--text-0)/90 placeholder:text-(--text-0)/25 focus:outline-none focus:ring-0 text-sm leading-relaxed min-h-30 max-h-80 overflow-y-auto"
           style={{ fontFamily: '"IBM Plex Mono", monospace' }}
         />
       </div>
@@ -268,7 +268,7 @@ export default function NotesPanel(props: NotesPanelProps) {
       <div className="flex items-center justify-between mb-6">
         <div className="min-w-0 flex-1">
           <h2
-            className="text-xl font-light text-white"
+            className="text-xl font-light text-(--text-0)"
             style={{ fontFamily: '"IBM Plex Mono", monospace' }}
           >
             Notes
@@ -297,7 +297,7 @@ export default function NotesPanel(props: NotesPanelProps) {
           otherNotes.map((note) => <NoteItem key={note.id} note={note} />)}
 
         {!isLoading && notes.length === 0 && !user && (
-          <div className="text-[#848484] text-base text-center py-4">
+          <div className="text-(--text-1) text-base text-center py-4">
             No notes yet
           </div>
         )}

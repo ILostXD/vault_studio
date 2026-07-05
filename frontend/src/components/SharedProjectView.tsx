@@ -10,7 +10,7 @@ import { formatTrackDuration, formatDurationLong } from "@/lib/duration";
 import type { Track } from "@/types/api";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { env } from "@/env";
+import { resolveApiUrl } from "@/api/server";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -63,9 +63,8 @@ export default function SharedProjectView({
 
   const audioPlayerContext = useAudioPlayer();
 
-  const API_BASE_URL = env.VITE_API_URL || "";
   const projectCoverImage = project.cover_url
-    ? `${API_BASE_URL}/api/share/${shareToken}/cover?size=medium`
+    ? resolveApiUrl(`/api/share/${shareToken}/cover?size=medium`)
     : null;
 
   const isPlaying = audioPlayerContext.isPlaying;
@@ -256,7 +255,7 @@ export default function SharedProjectView({
 
     try {
       const toastId = toast.loading("Preparing download...");
-      const downloadUrl = `/api/share/${shareToken}/download`;
+      const downloadUrl = resolveApiUrl(`/api/share/${shareToken}/download`);
 
       const response = await fetch(downloadUrl);
 
@@ -286,14 +285,14 @@ export default function SharedProjectView({
   if (!project) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-white text-lg">Loading...</div>
+        <div className="text-(--text-0) text-lg">Loading...</div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-linear-to-b from-background from-30% to-transparent text-white md:p-10 p-6">
+      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-linear-to-b from-background from-30% to-transparent text-(--text-0) md:p-10 p-6">
         <div className="flex items-center">
           <div className="text-2xl font-medium">{"{ vault }"}</div>
         </div>
@@ -355,11 +354,11 @@ export default function SharedProjectView({
               opacity: showTracksPanel ? 1 : 0,
             }}
             transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
-            className="flex flex-col text-white pt-10 md:pt-0 md:pr-5 md:max-w-lg md:-ml-10"
+            className="flex flex-col text-(--text-0) pt-10 md:pt-0 md:pr-5 md:max-w-lg md:-ml-10"
           >
             <div className="mb-4 -space-y-1">
               <div className="flex items-center justify-between relative z-20">
-                <h1 className="text-3xl font-semibold text-white">
+                <h1 className="text-3xl font-semibold text-(--text-0)">
                   {project.name}
                 </h1>
                 <div className="flex items-center gap-2 shrink-0">

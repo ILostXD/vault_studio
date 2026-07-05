@@ -22,6 +22,7 @@ export interface UserPreferences {
   gradient_spread?: number
   color_shift_rotation?: number
   accent_color?: string
+  theme?: string
   created_at: string
   updated_at: string
 }
@@ -145,6 +146,7 @@ export interface UpdatePreferencesRequest {
   gradient_spread?: number
   color_shift_rotation?: number
   accent_color?: string
+  theme?: string
 }
 
 export interface UpdateInstanceNameRequest {

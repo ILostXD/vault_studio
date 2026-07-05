@@ -17,22 +17,30 @@ export function PreferencesProvider({ children }: { children: React.ReactNode })
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const applyTheme = (color?: string) => {
+  const applyTheme = (color?: string, themeMode?: string) => {
     const activeColor = color || "#ffba00";
+    const normalizedTheme = themeMode === "oled" ? "black" : themeMode;
     document.documentElement.style.setProperty("--accent-color", activeColor);
+
+    document.documentElement.classList.remove("black", "light");
+    if (normalizedTheme === "black") {
+      document.documentElement.classList.add("black");
+    } else if (normalizedTheme === "light") {
+      document.documentElement.classList.add("light");
+    }
   };
 
   const refreshPreferences = async () => {
     if (!isAuthenticated) {
       setPreferences(null);
-      applyTheme("#ffba00");
+      applyTheme("#ffba00", "default");
       setIsLoading(false);
       return;
     }
     try {
       const data = await fetchPrefs();
       setPreferences(data);
-      applyTheme(data.accent_color);
+      applyTheme(data.accent_color, data.theme);
     } catch (err) {
       console.error("Failed to load preferences:", err);
     } finally {
@@ -44,7 +52,7 @@ export function PreferencesProvider({ children }: { children: React.ReactNode })
     try {
       const updated = await updatePrefs(data);
       setPreferences(updated);
-      applyTheme(updated.accent_color);
+      applyTheme(updated.accent_color, updated.theme);
       return updated;
     } catch (err) {
       console.error("Failed to update preferences:", err);

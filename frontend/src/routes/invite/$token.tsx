@@ -102,13 +102,13 @@ function InvitePage() {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <div className="bg-linear-to-b from-[#1D1D1D] to-[#151515] border border-[#292828] rounded-3xl p-8">
+          <div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-3xl p-8">
             <div className="flex justify-center mb-6">
               <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center">
-                <Lock className="size-8 text-white" />
+                <Lock className="size-8 text-(--text-0)" />
               </div>
             </div>
-            <h1 className="text-2xl font-semibold text-white text-center mb-2">
+            <h1 className="text-2xl font-semibold text-(--text-0) text-center mb-2">
               Password Required
             </h1>
             <p className="text-muted-foreground text-center mb-6">
@@ -143,10 +143,10 @@ function InvitePage() {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-4">
         <div className="w-full max-w-2xl">
-          <div className="bg-linear-to-b from-[#1D1D1D] to-[#151515] border border-[#292828] rounded-[34px] p-8 md:p-12">
+          <div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-[34px] p-8 md:p-12">
             <div className="flex justify-center mb-8">
               <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center">
-                <Users className="size-10 text-white" />
+                <Users className="size-10 text-(--text-0)" />
               </div>
             </div>
 
@@ -154,7 +154,7 @@ function InvitePage() {
               <div className="text-sm text-muted-foreground mb-2">
                 You've been invited to
               </div>
-              <h1 className="text-4xl font-semibold text-white mb-2">
+              <h1 className="text-4xl font-semibold text-(--text-0) mb-2">
                 {resource.name || resource.title}
               </h1>
               <p className="text-xl text-muted-foreground">{resourceType}</p>
@@ -209,7 +209,7 @@ function InvitePage() {
             <div className="mt-8 text-center">
               <a
                 href="/"
-                className="text-sm text-muted-foreground hover:text-white transition-colors"
+                className="text-sm text-muted-foreground hover:text-(--text-0) transition-colors"
               >
                 Powered by Vault
               </a>

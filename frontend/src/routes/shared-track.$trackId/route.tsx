@@ -68,7 +68,7 @@ function SharedTrackLayout() {
 	return (
 		<>
 			<div className="min-h-screen bg-background">
-				<header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-linear-to-b from-background from-30% to-transparent text-white md:p-10 p-6">
+				<header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-linear-to-b from-background from-30% to-transparent text-(--text-0) md:p-10 p-6">
           <Button
             variant="default"
             size="icon-lg"

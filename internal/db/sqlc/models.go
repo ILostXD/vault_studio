@@ -259,6 +259,7 @@ type UserPreference struct {
 	GradientSpread     sql.NullInt64  `json:"gradient_spread"`
 	ColorShiftRotation sql.NullInt64  `json:"color_shift_rotation"`
 	AccentColor        string         `json:"accent_color"`
+	Theme              string         `json:"theme"`
 }
 
 type UserProjectShare struct {

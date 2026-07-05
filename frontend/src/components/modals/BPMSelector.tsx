@@ -76,7 +76,7 @@ export default function BPMSelector({
             "hover:bg-white/5 transition-colors duration-300",
           )}
         >
-          <Minus className="size-3.5 text-white/60" />
+          <Minus className="size-3.5 text-(--text-0)/60" />
         </button>
 
         <div className="relative h-8 w-28 overflow-hidden rounded-sm bg-[#2b2a2a]">
@@ -92,9 +92,9 @@ export default function BPMSelector({
             onKeyDown={handleKeyDown}
             className={cn(
               "h-full w-full appearance-none border-0 bg-transparent",
-              "text-center text-white outline-none",
-              "placeholder:text-white/40",
-              "selection:bg-[#6a6a6a] selection:text-white",
+              "text-center text-(--text-0) outline-none",
+              "placeholder:text-(--text-0)/40",
+              "selection:bg-[#6a6a6a] selection:text-(--text-0)",
               "[&::-webkit-outer-spin-button]:appearance-none",
               "[&::-webkit-inner-spin-button]:appearance-none",
             )}
@@ -115,7 +115,7 @@ export default function BPMSelector({
             "hover:bg-white/5 transition-colors duration-300",
           )}
         >
-          <Plus className="size-3.5 text-white/60" />
+          <Plus className="size-3.5 text-(--text-0)/60" />
         </button>
       </div>
     </div>

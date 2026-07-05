@@ -14,6 +14,7 @@ SET default_quality = COALESCE(sqlc.narg('default_quality'), default_quality),
     gradient_spread = COALESCE(sqlc.narg('gradient_spread'), gradient_spread),
     color_shift_rotation = COALESCE(sqlc.narg('color_shift_rotation'), color_shift_rotation),
     accent_color = COALESCE(sqlc.narg('accent_color'), accent_color),
+    theme = COALESCE(sqlc.narg('theme'), theme),
     updated_at = CURRENT_TIMESTAMP
 WHERE user_id = sqlc.arg('user_id')
 RETURNING *;

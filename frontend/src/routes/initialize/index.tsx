@@ -75,7 +75,7 @@ function InitializePage() {
   }, [error]);
 
   if (isChecking || authLoading || isAuthenticated || usersExist) {
-    return <div className="min-h-screen bg-[#181818]" />;
+    return <div className="min-h-screen bg-(--bg-0)" />;
   }
 
   const handleSubmit = async (e?: FormEvent) => {
@@ -126,7 +126,7 @@ function InitializePage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#181818] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-(--bg-0) p-4">
       <div className="w-full max-w-[500px]">
         <motion.div
           layout
@@ -138,16 +138,16 @@ function InitializePage() {
             filter: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
             layout: { type: "spring", stiffness: 400, damping: 25 },
           }}
-          className="border border-[#353333] rounded-[45px] px-10 py-12"
+          className="border border-(--card-border) rounded-[45px] px-10 py-12"
           style={{
             background: "linear-gradient(0deg, #131313 0%, #161616 100%)",
             boxShadow: "0 25px 27.4px -10px rgba(0, 0, 0, 0.19)",
           }}
         >
           <div className="text-center mb-8">
-            <h1 className="text-[39px] font-light text-white">{`{ vault }`}</h1>
+            <h1 className="text-[39px] font-light text-(--text-0)">{`{ vault }`}</h1>
             <p
-              className="text-[#7c7c7c] text-sm font-light mt-3"
+              className="text-(--text-2) text-sm font-light mt-3"
               style={{ fontFamily: '"IBM Plex Mono", monospace' }}
             >
               Create your first admin account
@@ -202,7 +202,7 @@ function InitializePage() {
             <div className="space-y-2">
               <Label
                 htmlFor="instanceName"
-                className="text-[#7c7c7c] text-base font-light ml-5"
+                className="text-(--text-2) text-base font-light ml-5"
                 style={{ fontFamily: '"IBM Plex Mono", monospace' }}
               >
                 instance name (optional)
@@ -223,8 +223,8 @@ function InitializePage() {
                 }}
                 disabled={isLoading}
                 placeholder="vault"
-                className="border-[#353333]/50 text-white text-lg
-                md:text-lg placeholder:text-white/40 h-12 rounded-2xl px-5"
+                className="border-(--card-border)/50 text-(--text-0) text-lg
+                md:text-lg placeholder:text-(--text-0)/40 h-12 rounded-2xl px-5"
                 style={{
                   background:
                     "linear-gradient(0deg, #1D1D1D 0%, rgba(40, 40, 40, 0.22) 100%)",
@@ -235,7 +235,7 @@ function InitializePage() {
             <div className="space-y-2">
               <Label
                 htmlFor="username"
-                className="text-[#7c7c7c] text-base font-light ml-5"
+                className="text-(--text-2) text-base font-light ml-5"
                 style={{ fontFamily: '"IBM Plex Mono", monospace' }}
               >
                 username
@@ -255,8 +255,8 @@ function InitializePage() {
                   }
                 }}
                 disabled={isLoading}
-                className="border-[#353333]/50 text-white text-lg
-                md:text-lg placeholder:text-white/40 h-12 rounded-2xl px-5"
+                className="border-(--card-border)/50 text-(--text-0) text-lg
+                md:text-lg placeholder:text-(--text-0)/40 h-12 rounded-2xl px-5"
                 style={{
                   background:
                     "linear-gradient(0deg, #1D1D1D 0%, rgba(40, 40, 40, 0.22) 100%)",
@@ -267,7 +267,7 @@ function InitializePage() {
             <div className="space-y-2">
               <Label
                 htmlFor="email"
-                className="text-[#7c7c7c] text-base font-light ml-5"
+                className="text-(--text-2) text-base font-light ml-5"
                 style={{ fontFamily: '"IBM Plex Mono", monospace' }}
               >
                 email
@@ -287,8 +287,8 @@ function InitializePage() {
                   }
                 }}
                 disabled={isLoading}
-                className="border-[#353333]/50 text-white text-lg
-                md:text-lg placeholder:text-white/40 h-12 rounded-2xl px-5"
+                className="border-(--card-border)/50 text-(--text-0) text-lg
+                md:text-lg placeholder:text-(--text-0)/40 h-12 rounded-2xl px-5"
                 style={{
                   background:
                     "linear-gradient(0deg, #1D1D1D 0%, rgba(40, 40, 40, 0.22) 100%)",
@@ -299,7 +299,7 @@ function InitializePage() {
             <div className="space-y-2">
               <Label
                 htmlFor="password"
-                className="text-[#7c7c7c] text-base font-light ml-5"
+                className="text-(--text-2) text-base font-light ml-5"
                 style={{ fontFamily: '"IBM Plex Mono", monospace' }}
               >
                 password
@@ -319,8 +319,8 @@ function InitializePage() {
                   }
                 }}
                 disabled={isLoading}
-                className="border-[#353333]/50 text-white text-lg
-                md:text-lg placeholder:text-white/40 h-12 rounded-2xl px-5"
+                className="border-(--card-border)/50 text-(--text-0) text-lg
+                md:text-lg placeholder:text-(--text-0)/40 h-12 rounded-2xl px-5"
                 style={{
                   background:
                     "linear-gradient(0deg, #1D1D1D 0%, rgba(40, 40, 40, 0.22) 100%)",
@@ -336,7 +336,7 @@ function InitializePage() {
                 handleSubmit();
               }}
               disabled={isLoading}
-              className="w-full border border-[#353333] hover:brightness-110 text-white font-semibold text-lg h-12 rounded-2xl transition-all mt-6 relative overflow-hidden"
+              className="w-full border border-(--card-border) hover:brightness-110 text-(--text-0) font-semibold text-lg h-12 rounded-2xl transition-all mt-6 relative overflow-hidden"
               style={{
                 background: "linear-gradient(0deg, #1D1D1D 0%, #282828 100%)",
               }}

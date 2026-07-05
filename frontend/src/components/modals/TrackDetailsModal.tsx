@@ -34,6 +34,7 @@ import { usePrefetchProjects } from "@/hooks/useProjects";
 import { useQueryClient } from "@tanstack/react-query";
 import { trackKeys } from "@/hooks/useTracks";
 import { usePrefetchSharingData } from "@/hooks/useSharing";
+import { resolveApiUrl } from "@/api/server";
 
 interface TrackDetailsModalProps {
   isOpen: boolean;
@@ -333,7 +334,9 @@ function TrackDetailsModal({
 
     try {
       const toastId = toast.loading("Preparing download...");
-      const downloadUrl = `/api/share/${shareToken}/track/${trackId}/download`;
+      const downloadUrl = resolveApiUrl(
+        `/api/share/${shareToken}/track/${trackId}/download`,
+      );
       const response = await fetch(downloadUrl);
 
       if (!response.ok) {
@@ -417,7 +420,7 @@ function TrackDetailsModal({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
-                className="fixed inset-0 z-1000 bg-black/80"
+                className="fixed inset-0 z-1000 overlay-backdrop"
                 onClick={handleClose}
               />
             )}
@@ -438,11 +441,7 @@ function TrackDetailsModal({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 8 }}
                   transition={{ duration: 0.15 }}
-                  className={`relative z-10 w-full ${isSharedView ? "max-w-md" : "max-w-md md:max-w-4xl"} border border-[#292828] rounded-[34px] shadow-2xl overflow-hidden pointer-events-auto`}
-                  style={{
-                    background:
-                      "linear-gradient(0deg, #151515 0%, #1D1D1D 100%)",
-                  }}
+                  className={`relative z-10 w-full ${isSharedView ? "max-w-md" : "max-w-md md:max-w-4xl"} border border-(--card-border) rounded-[34px] shadow-2xl overflow-hidden pointer-events-auto overlay-surface text-(--text-0)`}
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div
@@ -499,7 +498,7 @@ function TrackDetailsModal({
                                 }}
                                 disabled={!canEdit}
                                 className={cn(
-                                  "text-2xl font-semibold text-white text-center bg-transparent border-none outline-none focus:outline-none w-full disabled:opacity-50 disabled:cursor-not-allowed",
+                                  "text-2xl font-semibold text-(--text-0) text-center bg-transparent border-none outline-none focus:outline-none w-full disabled:opacity-50 disabled:cursor-not-allowed",
                                   showScrollingTitle && "text-transparent",
                                 )}
                                 style={{
@@ -509,7 +508,7 @@ function TrackDetailsModal({
                               <ScrollingText
                                 text={trackTitle}
                                 className={cn(
-                                  "absolute inset-0 flex items-center text-2xl font-semibold text-white pointer-events-none px-2 transition-opacity duration-150",
+                                  "absolute inset-0 flex items-center text-2xl font-semibold text-(--text-0) pointer-events-none px-2 transition-opacity duration-150",
                                   showScrollingTitle
                                     ? "opacity-100"
                                     : "opacity-0",
@@ -577,7 +576,7 @@ function TrackDetailsModal({
                               height="44"
                               viewBox={`0 0 ${barCount * 2} 44`}
                               preserveAspectRatio="none"
-                              className="text-white"
+                              className="text-(--text-0)"
                             >
                               {bars.map((height, i) => {
                                 const x = i * 2 + 1;
@@ -633,7 +632,7 @@ function TrackDetailsModal({
                     {!isSharedView && (
                       <div className="flex flex-col p-6">
                         <h3
-                          className="text-xl font-light text-white mb-4 md:mb-6"
+                          className="text-xl font-light text-(--text-0) mb-4 md:mb-6"
                           style={{
                             fontFamily: '"IBM Plex Mono", monospace',
                           }}
@@ -656,7 +655,7 @@ function TrackDetailsModal({
                             </div>
                           )}
 
-                          <div className="flex flex-col overflow-hidden rounded-2xl border border-white/10">
+                          <div className="flex flex-col overflow-hidden rounded-2xl border border-(--action-border)">
                             <ActionButton
                               icon={FileText}
                               label="Notes"
@@ -693,7 +692,7 @@ function TrackDetailsModal({
                           </div>
 
                           {isProjectOwned && (
-                            <div className="flex flex-col overflow-hidden rounded-2xl border border-white/10">
+                            <div className="flex flex-col overflow-hidden rounded-2xl border border-(--action-border)">
                               <ActionButton
                                 icon={FolderInput}
                                 label={isMovingTrack ? "Moving..." : "Move"}
@@ -822,13 +821,13 @@ function ActionButton({
       }}
       disabled={disabled}
       className={cn(
-        "px-4 py-3 text-left transition-all border-t border-white/5 bg-white/5 hover:bg-white/10 active:bg-white/15",
+        "px-4 py-3 text-left transition-all border-t border-(--action-divider) themed-action",
         isGrouped ? "group" : "flex items-center gap-4",
         position === "first" && "border-t-0",
         position === "single" &&
-          "rounded-2xl border border-white/10 active:scale-99",
-        variant === "default" && "text-white",
-        variant === "destructive" && "text-[rgb(235,94,94)]",
+          "rounded-2xl border border-(--action-border) active:scale-99",
+        variant === "default" && "text-(--text-0)",
+        variant === "destructive" && "themed-action-destructive",
         disabled && "opacity-50 cursor-not-allowed",
       )}
     >

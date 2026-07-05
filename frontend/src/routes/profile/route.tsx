@@ -61,7 +61,7 @@ function ProfileLayout() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between text-white md:p-10 p-6">
+      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between text-(--text-0) md:p-10 p-6">
         <Button
           variant="default"
           size="icon-lg"
@@ -80,7 +80,7 @@ function ProfileLayout() {
             <DropdownMenuContent
               align="end"
               sideOffset={8}
-              className="w-42 bg-[#1a1a1a] border border-[#353333] rounded-xl"
+              className="w-42 rounded-xl"
             >
               <DropdownMenuItem
                 onSelect={handleLogout}

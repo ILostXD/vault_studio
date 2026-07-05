@@ -19,6 +19,7 @@ import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { Button } from "@/components/ui/button";
 import { useWebHaptics } from "web-haptics/react";
 import { useProjectCoverImage } from "@/hooks/useProjectCoverImage";
+import { resolveApiMediaUrl } from "@/api/media";
 import {
   CROSSFADE_DURATION_MS,
   BLUR_DURATION_MS,
@@ -98,7 +99,8 @@ export function TrackCard({
     "#59AFFF",
   ]);
   const isDraggingRef = useRef(false);
-  const extractedColors = useColorExtractor(track.projectCoverUrl);
+  const resolvedProjectCoverUrl = resolveApiMediaUrl(track.projectCoverUrl);
+  const extractedColors = useColorExtractor(resolvedProjectCoverUrl);
   const [isTextCrossfading, setIsTextCrossfading] = useState(false);
   const prevHoverRef = useRef<boolean | undefined>(undefined);
   const { play, pause, isPlaying, currentTrack } = useAudioPlayer();
@@ -218,9 +220,9 @@ export function TrackCard({
       title: track.title,
       artist: track.artist ?? undefined,
       projectName: track.projectName ?? "Unknown Project",
-      coverUrl: track.projectCoverUrl,
+      coverUrl: resolvedProjectCoverUrl,
       projectId: track.project_id?.toString(),
-      projectCoverUrl: track.projectCoverUrl,
+      projectCoverUrl: resolvedProjectCoverUrl,
       waveform: track.waveform ?? undefined,
       versionId: undefined, // Shared tracks don't have version info in the grid view
       isSharedTrack: true,
@@ -307,7 +309,7 @@ export function TrackCard({
               y="0"
               width="200"
               height="200"
-              href={track.projectCoverUrl || "/placeholder-cover.jpg"}
+              href={resolvedProjectCoverUrl || "/placeholder-cover.jpg"}
               preserveAspectRatio="xMidYMid slice"
               mask={`url(#disc-mask-${track.public_id})`}
               className="object-cover"
@@ -325,7 +327,7 @@ export function TrackCard({
           </svg>
 
           {/* Background for non-masked area */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#232323] to-[#1a1a1a] rounded-full" />
+          <div className="absolute inset-0 bg-gradient-to-br from-(--card-gradient-from) to-[#1a1a1a] rounded-full" />
 
           {/* First gradient overlay layer */}
           <div
@@ -377,7 +379,7 @@ export function TrackCard({
                 decoding="async"
               />
             ) : (
-              <div className="size-full bg-neutral-800 flex items-center justify-center text-white text-lg font-bold">
+              <div className="size-full bg-neutral-800 flex items-center justify-center text-(--text-0) text-lg font-bold">
                 {String(
                   hoverFolderItems[0]?.name || hoverFolderItems[0]?.title || ""
                 )

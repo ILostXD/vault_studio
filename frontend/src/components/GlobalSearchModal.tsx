@@ -19,7 +19,7 @@ function ProjectSearchCover({ project }: { project: Project }) {
   if (!imageUrl) {
     return (
       <div className="w-full h-full bg-linear-to-br from-white/10 to-white/5 flex items-center justify-center">
-        <span className="text-xs text-white/30">
+        <span className="text-xs text-(--text-0)/30">
           {project.name?.charAt(0)?.toUpperCase()}
         </span>
       </div>
@@ -48,7 +48,7 @@ function TrackSearchCover({ track }: { track: any }) {
   if (!imageUrl) {
     return (
       <div className="w-full h-full bg-linear-to-br from-white/10 to-white/5 flex items-center justify-center rounded-full">
-        <span className="text-xs text-white/30">
+        <span className="text-xs text-(--text-0)/30">
           {track.title?.charAt(0)?.toUpperCase()}
         </span>
       </div>
@@ -348,7 +348,7 @@ export default function GlobalSearchModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.1 }}
-            className="fixed inset-0 z-1000 bg-black/80"
+            className="fixed inset-0 z-1000 overlay-backdrop"
             onClick={() => {
               onClose();
               setSearchQuery("");
@@ -372,10 +372,7 @@ export default function GlobalSearchModal({
             {/* Inner Content Container (Aligned to Top) */}
             <div className="flex flex-col justify-start h-full">
               <div
-                className="border border-[#292828] rounded-3xl shadow-2xl overflow-hidden"
-                style={{
-                  background: "linear-gradient(0deg, #151515 0%, #1D1D1D 100%)",
-                }}
+                className="border border-(--card-border) rounded-3xl shadow-2xl overflow-hidden overlay-surface text-(--text-0)"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="p-6">
@@ -387,7 +384,7 @@ export default function GlobalSearchModal({
                       placeholder="Search projects and tracks..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9 pr-9 h-12 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none rounded-2xl text-base! border-0 text-white bg-transparent"
+                      className="pl-9 pr-9 h-12 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none rounded-2xl text-base! border-0 text-(--text-0) bg-transparent"
                     />
                     {searchQuery && (
                       <Button
@@ -412,8 +409,8 @@ export default function GlobalSearchModal({
                       }}
                       className={`rounded-xl px-3 h-8 text-sm transition-colors ${
                         showMineOnly
-                          ? "bg-white/15 text-white hover:bg-white/20"
-                          : "bg-transparent text-white/50 hover:bg-white/5 hover:text-white/70"
+                          ? "bg-white/15 text-(--text-0) hover:bg-white/20"
+                          : "bg-transparent text-(--text-0)/50 hover:bg-white/5 hover:text-(--text-0)/70"
                       }`}
                     >
                       Mine
@@ -429,8 +426,8 @@ export default function GlobalSearchModal({
                       }}
                       className={`rounded-xl px-3 h-8 text-sm transition-colors ${
                         showType === "projects"
-                          ? "bg-white/15 text-white hover:bg-white/20"
-                          : "bg-transparent text-white/50 hover:bg-white/5 hover:text-white/70"
+                          ? "bg-white/15 text-(--text-0) hover:bg-white/20"
+                          : "bg-transparent text-(--text-0)/50 hover:bg-white/5 hover:text-(--text-0)/70"
                       }`}
                     >
                       Projects
@@ -444,8 +441,8 @@ export default function GlobalSearchModal({
                       }}
                       className={`rounded-xl px-3 h-8 text-sm transition-colors ${
                         showType === "tracks"
-                          ? "bg-white/15 text-white hover:bg-white/20"
-                          : "bg-transparent text-white/50 hover:bg-white/5 hover:text-white/70"
+                          ? "bg-white/15 text-(--text-0) hover:bg-white/20"
+                          : "bg-transparent text-(--text-0)/50 hover:bg-white/5 hover:text-(--text-0)/70"
                       }`}
                     >
                       Tracks
@@ -462,10 +459,10 @@ export default function GlobalSearchModal({
                           </div>
                         ) : (
                           <div>
-                            <p className="text-xl font-semibold text-white mb-1">
+                            <p className="text-xl font-semibold text-(--text-0) mb-1">
                               Search anything
                             </p>
-                            <p className="text-sm text-white/50">
+                            <p className="text-sm text-(--text-0)/50">
                               Search your library by title or artist
                             </p>
                           </div>
@@ -501,12 +498,12 @@ export default function GlobalSearchModal({
 
                             {/* Item info */}
                             <div className="flex flex-col text-left min-w-0">
-                              <span className="text-base font-semibold text-white line-clamp-1 break-all">
+                              <span className="text-base font-semibold text-(--text-0) line-clamp-1 break-all">
                                 {item.type === "project"
                                   ? item.name
                                   : item.title}
                               </span>
-                              <span className="text-sm text-white/40 line-clamp-1 break-all">
+                              <span className="text-sm text-(--text-0)/40 line-clamp-1 break-all">
                                 {item.type === "project"
                                   ? item.author_override ||
                                     item.owner_username ||

@@ -163,7 +163,7 @@ export default function QueuePanel({ isOpen, onClose }: QueuePanelProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.1 }}
-            className="fixed inset-0 z-119 bg-black/20"
+            className="fixed inset-0 z-119 overlay-backdrop"
             onClick={onClose}
           />
 
@@ -179,17 +179,12 @@ export default function QueuePanel({ isOpen, onClose }: QueuePanelProps) {
             className="fixed bottom-[145px] left-1/2 -translate-x-1/2 z-120 w-[calc(100%-1rem)] sm:w-[calc(100%-3rem)] max-w-[800px]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div
-              className="relative flex max-h-[500px] w-full flex-col overflow-hidden rounded-3xl text-white shadow-2xl border border-[#353333]"
-              style={{
-                background: "linear-gradient(0deg, #151515 0%, #1D1D1D 100%)",
-              }}
-            >
+            <div className="relative flex max-h-[500px] w-full flex-col overflow-hidden rounded-3xl text-(--text-0) shadow-2xl border border-(--card-border) overlay-surface">
               <div className="flex w-full items-center justify-between gap-5 p-5">
                 <div className="flex items-center gap-3">
                   <Button
                     aria-label="Close queue manager"
-                    className="h-8 w-8 rounded-lg bg-[#191919] border border-[#353333] p-0 text-center hover:bg-[#252525] transition-all duration-200 flex items-center justify-center"
+                    className="h-8 w-8 rounded-lg bg-(--inner-card-bg) border border-(--card-border) p-0 text-center hover:bg-[#252525] transition-all duration-200 flex items-center justify-center"
                     type="button"
                     onClick={onClose}
                   >
@@ -197,14 +192,14 @@ export default function QueuePanel({ isOpen, onClose }: QueuePanelProps) {
                   </Button>
                   <h3 className="text-lg font-semibold">Queue</h3>
                   {queue.length > 0 && (
-                    <span className="text-sm text-white/40">
+                    <span className="text-sm text-(--text-0)/40">
                       {queue.length} {queue.length === 1 ? "track" : "tracks"}
                     </span>
                   )}
                 </div>
                 {queue.length > 0 && (
                   <Button
-                    className="bg-[#191919] border border-[#353333] rounded-2xl px-3 py-1 text-white text-xs h-auto hover:bg-[#252525] transition-all duration-200"
+                    className="bg-(--inner-card-bg) border border-(--card-border) rounded-2xl px-3 py-1 text-(--text-0) text-xs h-auto hover:bg-[#252525] transition-all duration-200"
                     onClick={handleClearQueue}
                   >
                     Clear
@@ -230,7 +225,7 @@ export default function QueuePanel({ isOpen, onClose }: QueuePanelProps) {
               >
                 {queue.length === 0 ? (
                   <div className="flex flex-col text-center items-center justify-center pb-14">
-                    <p className="text-white/40">No tracks in queue</p>
+                    <p className="text-(--text-0)/40">No tracks in queue</p>
                   </div>
                 ) : (
                   <DragDropContext onDragEnd={handleDragEnd}>
@@ -243,7 +238,7 @@ export default function QueuePanel({ isOpen, onClose }: QueuePanelProps) {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            className="relative flex items-center justify-between gap-3 rounded-2xl p-3 bg-[#1D1D1D] shadow-lg ring-1 ring-white/20 text-white cursor-grabbing"
+                            className="relative flex items-center justify-between gap-3 rounded-2xl p-3 bg-[#1D1D1D] shadow-lg ring-1 ring-white/20 text-(--text-0) cursor-grabbing"
                             style={{
                               ...provided.draggableProps.style,
                               width: "calc(min(100vw - 1rem, 800px) - 20px)",
@@ -255,10 +250,10 @@ export default function QueuePanel({ isOpen, onClose }: QueuePanelProps) {
                                 <QueueTrackCover track={track} />
                               </div>
                               <div className="flex max-w-full flex-col text-left min-w-0">
-                                <span className="text-sm font-semibold line-clamp-1 break-all text-white">
+                                <span className="text-sm font-semibold line-clamp-1 break-all text-(--text-0)">
                                   {track.title}
                                 </span>
-                                <span className="text-xs text-white/40 line-clamp-1 break-all">
+                                <span className="text-xs text-(--text-0)/40 line-clamp-1 break-all">
                                   {(track.artist &&
                                   track.artist.trim().length > 0
                                     ? track.artist
@@ -304,7 +299,7 @@ export default function QueuePanel({ isOpen, onClose }: QueuePanelProps) {
                                       <span className="text-sm font-semibold line-clamp-1 break-all">
                                         {track.title}
                                       </span>
-                                      <span className="text-xs text-white/40 line-clamp-1 break-all">
+                                      <span className="text-xs text-(--text-0)/40 line-clamp-1 break-all">
                                         {(track.artist &&
                                         track.artist.trim().length > 0
                                           ? track.artist

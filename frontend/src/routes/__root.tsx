@@ -4,11 +4,15 @@ import {
   useRouterState,
   useNavigate,
 } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { App } from "@capacitor/app";
+import { Capacitor, SystemBars, SystemBarsStyle } from "@capacitor/core";
+import { EdgeToEdge } from "@capawesome/capacitor-android-edge-to-edge-support";
 
 import { toast as sonnerToast, Toaster } from "sonner";
 import MusicPlayer from "../components/MusicPlayer";
 import { useAuth } from "../contexts/AuthContext";
+import { usePreferences } from "../contexts/PreferencesContext";
 import { Button } from "../components/ui/button";
 import { checkUsersExist } from "../api/auth";
 import { useWebSocket } from "../hooks/useWebSocket";
@@ -123,14 +127,135 @@ function CustomToast(props: ToastProps) {
   );
 }
 
+const ROOT_EXIT_PATHS = new Set([
+  "/",
+  "/login",
+  "/register",
+  "/initialize",
+  "/reset-setup",
+]);
+
+function hasOpenOverlay() {
+  return Boolean(
+    document.querySelector(
+      [
+        "[data-modal-backdrop='true']",
+        "[data-modal-container='true']",
+        "[data-modal-content='true']",
+        "[data-slot='dropdown-menu-content']",
+        "[data-slot='popover-content']",
+        "[data-radix-popper-content-wrapper]",
+        "[role='dialog']",
+        ".overlay-backdrop",
+      ].join(","),
+    ),
+  );
+}
+
+function closeTopOverlay() {
+  if (!hasOpenOverlay()) return false;
+
+  document.dispatchEvent(
+    new KeyboardEvent("keydown", {
+      key: "Escape",
+      code: "Escape",
+      bubbles: true,
+      cancelable: true,
+    }),
+  );
+
+  const backdrop = document.querySelector<HTMLElement>(
+    "[data-modal-backdrop='true'], .overlay-backdrop",
+  );
+  backdrop?.click();
+  return true;
+}
+
+function getAndroidSystemBarColor(theme?: string | null) {
+  const normalizedTheme = theme === "oled" ? "black" : theme;
+
+  if (normalizedTheme === "light") {
+    return {
+      color: "#f4f4f5",
+      style: SystemBarsStyle.Light,
+    };
+  }
+
+  if (normalizedTheme === "black") {
+    return {
+      color: "#000000",
+      style: SystemBarsStyle.Dark,
+    };
+  }
+
+  return {
+    color: "#121212",
+    style: SystemBarsStyle.Dark,
+  };
+}
+
 function RootComponent() {
   const routerState = useRouterState();
   const isProfileRoute = routerState.location.pathname.startsWith("/profile");
   const isSetupRoute = routerState.location.pathname.startsWith("/reset-setup");
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { preferences } = usePreferences();
   const navigate = useNavigate();
   const [hasCheckedUsers, setHasCheckedUsers] = useState(false);
   const [isCheckingUsers, setIsCheckingUsers] = useState(false);
+  const currentPathRef = useRef(routerState.location.pathname);
+
+  useEffect(() => {
+    currentPathRef.current = routerState.location.pathname;
+  }, [routerState.location.pathname]);
+
+  useEffect(() => {
+    if (Capacitor.getPlatform() !== "android") return;
+
+    const { color, style } = getAndroidSystemBarColor(preferences?.theme);
+
+    EdgeToEdge.enable()
+      .then(() =>
+        Promise.all([
+          SystemBars.setStyle({ style }),
+          EdgeToEdge.setStatusBarColor({ color }),
+          EdgeToEdge.setNavigationBarColor({ color }),
+        ]),
+      )
+      .catch((error) => {
+        console.warn("Failed to apply Android system bar styling:", error);
+      });
+  }, [preferences?.theme]);
+
+  useEffect(() => {
+    if (Capacitor.getPlatform() !== "android") return;
+
+    let listener: { remove: () => Promise<void> } | undefined;
+
+    App.addListener("backButton", ({ canGoBack }) => {
+      if (closeTopOverlay()) return;
+
+      const pathname = currentPathRef.current;
+      const isExitPath = ROOT_EXIT_PATHS.has(pathname);
+
+      if (!isExitPath) {
+        if (canGoBack) {
+          window.history.back();
+        } else {
+          navigate({ to: "/" });
+        }
+        return;
+      }
+
+      App.exitApp();
+    }).then((handle) => {
+      listener = handle;
+    });
+
+    return () => {
+      listener?.remove();
+    };
+  }, [navigate]);
 
   useWebSocket(isAuthenticated);
 

@@ -20,7 +20,7 @@ function ProjectCover({ project }: { project: Project }) {
   }
 
   return (
-    <div className="size-full bg-neutral-800 flex items-center justify-center text-white text-xs font-bold border border-white/10 rounded-md">
+    <div className="size-full bg-neutral-800 flex items-center justify-center text-(--text-0) text-xs font-bold border border-white/10 rounded-md">
       {String(project.name).charAt(0).toUpperCase()}
     </div>
   );
@@ -69,10 +69,10 @@ export default function MoveTrackModal({
     >
       <div className="p-6 md:p-8 space-y-6">
         <div className="text-center space-y-3 p-3">
-          <h2 className="text-2xl font-semibold text-white">Move Track</h2>
+          <h2 className="text-2xl font-semibold text-(--text-0)">Move Track</h2>
           <p className="text-sm text-muted-foreground">
             Click a project to move{" "}
-            <span className="text-white font-medium">
+            <span className="text-(--text-0) font-medium">
               &ldquo;{trackName}&rdquo;
             </span>{" "}
             to.
@@ -106,7 +106,7 @@ export default function MoveTrackModal({
                       <div className="size-8 rounded-md overflow-hidden shrink-0">
                         <ProjectCover project={project} />
                       </div>
-                      <span className="text-base font-medium text-white">
+                      <span className="text-base font-medium text-(--text-0)">
                         {project.name}
                       </span>
                     </button>

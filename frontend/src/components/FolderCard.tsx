@@ -25,6 +25,7 @@ import {
   useProjectCoverImage,
   preloadCover,
 } from "@/hooks/useProjectCoverImage";
+import { resolveApiMediaUrl } from "@/api/media";
 import { useDeleteFolder, useMoveFolder } from "@/hooks/useFolders";
 import DeleteFolderModal from "./modals/DeleteFolderModal";
 import MoveFolderModal from "./modals/MoveFolderModal";
@@ -58,7 +59,7 @@ function ProjectCoverThumbnail({ project }: { project: Project }) {
 
   return (
     <div className="size-full bg-neutral-800 border-(--card-border) border rounded-2xl flex items-center justify-center">
-      <span className="text-white/30 text-lg font-bold">
+      <span className="text-(--text-0)/30 text-lg font-bold">
         {String(project.name).charAt(0).toUpperCase()}
       </span>
     </div>
@@ -68,7 +69,7 @@ function ProjectCoverThumbnail({ project }: { project: Project }) {
 function FolderThumbnail({}: { folder: Folder }) {
   return (
     <div className="size-full bg-neutral-700/50 border-(--card-border) border rounded-2xl flex items-center justify-center">
-      <FolderIcon className="size-6 text-white/40" />
+      <FolderIcon className="size-6 text-(--text-0)/40" />
     </div>
   );
 }
@@ -88,7 +89,7 @@ function SharedTrackCoverThumbnail({ track }: { track: SharedTrackResponse }) {
   );
 
   const resolvedCover = imageUrl ||
-    (track.cover_url
+    resolveApiMediaUrl(track.cover_url
       ? `${track.cover_url}${track.cover_url.includes("?") ? "&" : "?"}size=medium`
       : undefined);
 
@@ -110,7 +111,7 @@ function SharedTrackCoverThumbnail({ track }: { track: SharedTrackResponse }) {
           decoding="sync"
         />
       ) : (
-        <span className="text-white/30 text-lg font-bold">
+        <span className="text-(--text-0)/30 text-lg font-bold">
           {String(track.title).charAt(0).toUpperCase()}
         </span>
       )}
@@ -144,7 +145,7 @@ function IncomingItemCover({ project }: { project: Project }) {
 
   return (
     <div className="size-full bg-neutral-800 flex items-center justify-center">
-      <span className="text-white text-lg font-bold">
+      <span className="text-(--text-0) text-lg font-bold">
         {String(project.name).charAt(0).toUpperCase()}
       </span>
     </div>

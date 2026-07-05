@@ -1,9 +1,7 @@
 import { useEffect, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { trackKeys } from './useTracks'
-import { env } from '@/env'
-
-const API_BASE_URL = env.VITE_API_URL || ''
+import { resolveWebSocketUrl } from '@/api/server'
 
 interface WSMessage {
   type: string
@@ -42,11 +40,7 @@ export function useWebSocket(enabled: boolean = true) {
         return
       }
 
-		const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-		const wsHost = API_BASE_URL
-			? new URL(API_BASE_URL).host
-			: window.location.host
-		const wsUrl = `${wsProtocol}//${wsHost}/api/ws`
+		const wsUrl = resolveWebSocketUrl()
 
       const ws = new WebSocket(wsUrl)
 
@@ -111,11 +105,7 @@ export function useWebSocket(enabled: boolean = true) {
     disconnect()
     isIntentionalDisconnect = false
     setTimeout(() => {
-		const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-		const wsHost = API_BASE_URL
-			? new URL(API_BASE_URL).host
-			: window.location.host
-		const wsUrl = `${wsProtocol}//${wsHost}/api/ws`
+		const wsUrl = resolveWebSocketUrl()
 
       globalWs = new WebSocket(wsUrl)
     }, 100)

@@ -10,11 +10,13 @@ import { motion, AnimatePresence } from "motion/react";
 interface LoginFormProps {
   buttonText?: string;
   onSubmitSuccess?: () => void;
+  onBeforeSubmit?: () => boolean;
 }
 
 export function LoginForm({
   buttonText = "Sign in",
   onSubmitSuccess,
+  onBeforeSubmit,
 }: LoginFormProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -65,6 +67,11 @@ export function LoginForm({
     setError("");
 
     try {
+      if (onBeforeSubmit && !onBeforeSubmit()) {
+        setIsLoading(false);
+        return;
+      }
+
       await login({ username: trimmedUsername, password: trimmedPassword });
       onSubmitSuccess?.();
     } catch (err) {
@@ -135,7 +142,7 @@ export function LoginForm({
         <div className="space-y-2">
           <Label
             htmlFor="username"
-            className="text-[#7c7c7c] text-base font-light ml-5"
+            className="text-(--text-2) text-base font-light ml-5"
             style={{ fontFamily: '"IBM Plex Mono", monospace' }}
           >
             username
@@ -155,8 +162,8 @@ export function LoginForm({
               }
             }}
             disabled={isLoading}
-            className="border-[#353333]/50 text-white text-lg
-            md:text-lg placeholder:text-white/40 h-12 rounded-2xl px-5"
+            className="border-(--card-border)/50 text-(--text-0) text-lg
+            md:text-lg placeholder:text-(--text-0)/40 h-12 rounded-2xl px-5"
             style={{
               background:
                 "linear-gradient(0deg, #1D1D1D 0%, rgba(40, 40, 40, 0.22) 100%)",
@@ -167,7 +174,7 @@ export function LoginForm({
         <div className="space-y-2">
           <Label
             htmlFor="password"
-            className="text-[#7c7c7c] text-base font-light ml-5"
+            className="text-(--text-2) text-base font-light ml-5"
             style={{ fontFamily: '"IBM Plex Mono", monospace' }}
           >
             password
@@ -187,8 +194,8 @@ export function LoginForm({
               }
             }}
             disabled={isLoading}
-            className="border-[#353333]/50 text-white text-lg
-            md:text-lg placeholder:text-white/40 h-12 rounded-2xl px-5"
+            className="border-(--card-border)/50 text-(--text-0) text-lg
+            md:text-lg placeholder:text-(--text-0)/40 h-12 rounded-2xl px-5"
             style={{
               background:
                 "linear-gradient(0deg, #1D1D1D 0%, rgba(40, 40, 40, 0.22) 100%)",
@@ -204,7 +211,7 @@ export function LoginForm({
             handleSubmit();
           }}
           disabled={isLoading}
-          className="w-full border border-[#353333] hover:brightness-110 text-white font-semibold text-lg h-12 rounded-2xl transition-all mt-6 relative overflow-hidden"
+          className="w-full border border-(--card-border) hover:brightness-110 text-(--text-0) font-semibold text-lg h-12 rounded-2xl transition-all mt-6 relative overflow-hidden"
           style={{
             background: "linear-gradient(0deg, #1D1D1D 0%, #282828 100%)",
           }}

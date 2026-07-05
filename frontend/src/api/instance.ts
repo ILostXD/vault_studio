@@ -1,4 +1,5 @@
 import { get, post, getCSRFToken } from './client'
+import { resolveApiUrl } from './server'
 
 export async function getExportSize(): Promise<number> {
   const res = await get<{ size_bytes: number }>('/api/admin/instance/export/size')
@@ -12,7 +13,7 @@ export interface ExportResult {
 
 export async function exportInstance(): Promise<ExportResult> {
 	try {
-		const response = await fetch('/api/admin/instance/export', {
+		const response = await fetch(resolveApiUrl('/api/admin/instance/export'), {
 			method: 'GET',
 			credentials: 'include',
 		})
@@ -51,7 +52,7 @@ export async function importInstance(file: File): Promise<void> {
 	const formData = new FormData()
 	formData.append('backup', file)
 
-	const response = await fetch('/api/admin/instance/import', {
+	const response = await fetch(resolveApiUrl('/api/admin/instance/import'), {
 		method: 'POST',
 		credentials: 'include',
 		headers: getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {},

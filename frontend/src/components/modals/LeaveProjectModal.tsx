@@ -23,13 +23,13 @@ export default function LeaveProjectModal({
       <div className="p-6 md:p-8">
         <ModalIcon icon={AlertTriangle} variant="destructive" />
 
-        <h2 className="text-2xl font-semibold text-white text-center mb-3">
+        <h2 className="text-2xl font-semibold text-(--text-0) text-center mb-3">
           Leave Project
         </h2>
 
         <p className="text-sm text-muted-foreground text-center mb-6">
           You will lose access to{" "}
-          <span className="text-white font-medium">&quot;{projectName}&quot;</span>{" "}
+          <span className="text-(--text-0) font-medium">&quot;{projectName}&quot;</span>{" "}
           and all its tracks. You can request access again from the project owner
           if needed.
         </p>

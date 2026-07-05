@@ -34,13 +34,13 @@ export default function DeleteFolderModal({
       <div className="p-6 md:p-8">
         <ModalIcon icon={AlertTriangle} variant="destructive" />
 
-        <h2 className="text-2xl font-semibold text-white text-center mb-3">
+        <h2 className="text-2xl font-semibold text-(--text-0) text-center mb-3">
           Delete Folder
         </h2>
 
         <p className="text-sm text-muted-foreground text-center mb-6">
           Are you sure you want to delete{" "}
-          <span className="text-white font-medium">"{folderName}"</span>?{" "}
+          <span className="text-(--text-0) font-medium">"{folderName}"</span>?{" "}
           {itemCount > 0 ? (
             <>
               {itemCount === 1

@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/routes/__root";
 import { useAuth } from "@/contexts/AuthContext";
 import { getCSRFToken } from "@/api/client";
+import { resolveApiUrl } from "@/api/server";
 import type { VisibilityStatus, ShareToken } from "@/types/api";
 import {
   createTrackShare,
@@ -151,7 +152,7 @@ export default function ShareModal({
             ? `/api/tracks/${resourceId}/share-with-users`
             : `/api/projects/${resourceId}/share-with-users`;
 
-        const response = await fetch(endpoint, {
+        const response = await fetch(resolveApiUrl(endpoint), {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -177,7 +178,7 @@ export default function ShareModal({
             ? `/api/user-shares/projects/${share.id}`
             : `/api/user-shares/tracks/${share.id}`;
 
-        const response = await fetch(endpoint, {
+        const response = await fetch(resolveApiUrl(endpoint), {
           method: "DELETE",
           headers: {
             ...(getCSRFToken() ? { "X-CSRF-Token": getCSRFToken() as string } : {}),
@@ -552,7 +553,7 @@ export default function ShareModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-1000 bg-black/80"
+            className="fixed inset-0 z-1000 overlay-backdrop"
             onClick={handleClose}
           />
         )}
@@ -593,10 +594,7 @@ export default function ShareModal({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
               transition={{ duration: 0.15 }}
-              className="relative z-10 w-full max-w-2xl border border-[#292828] rounded-[34px] shadow-2xl overflow-hidden pointer-events-auto max-h-[90vh] flex flex-col"
-              style={{
-                background: "linear-gradient(0deg, #151515 0%, #1D1D1D 100%)",
-              }}
+              className="relative z-10 w-full max-w-2xl border border-(--card-border) rounded-[34px] shadow-2xl overflow-hidden pointer-events-auto max-h-[90vh] flex flex-col overlay-surface text-(--text-0)"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6 overflow-y-auto flex-1">
@@ -606,7 +604,7 @@ export default function ShareModal({
                   </Button>
                   <div className="flex-1 min-w-0">
                     <h2
-                      className="text-xl font-light text-white"
+                      className="text-xl font-light text-(--text-0)"
                       style={{
                         fontFamily: '"IBM Plex Mono", monospace',
                       }}
@@ -637,8 +635,8 @@ export default function ShareModal({
                             "relative z-10 flex-1 px-4 py-2 rounded-lg transition-colors duration-200",
                             "flex flex-row items-center justify-center gap-2 min-w-0",
                             isActive
-                              ? "text-white"
-                              : "text-muted-foreground hover:text-white/80",
+                              ? "text-(--text-0)"
+                              : "text-muted-foreground hover:text-(--text-0)/80",
                           )}
                         >
                           <Icon className="size-4 shrink-0" />
@@ -676,12 +674,12 @@ export default function ShareModal({
                       placeholder="Search users..."
                       value={userSearchQuery}
                       onChange={(e) => setUserSearchQuery(e.target.value)}
-                      className="pl-9 pr-8 text-white rounded-xl text-sm bg-white/5 border-white/10"
+                      className="pl-9 pr-8 text-(--text-0) rounded-xl text-sm bg-white/5 border-white/10"
                     />
                     {userSearchQuery && (
                       <button
                         onClick={() => setUserSearchQuery("")}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-(--text-0) transition-colors"
                       >
                         <X className="size-3.5" />
                       </button>
@@ -731,7 +729,7 @@ export default function ShareModal({
                             className="flex items-center justify-between gap-3 px-3 py-2.5 min-h-[57px] hover:bg-white/5 transition-colors"
                           >
                             <div className="flex-1 min-w-0">
-                              <div className="text-sm font-medium text-white truncate">
+                              <div className="text-sm font-medium text-(--text-0) truncate">
                                 @{u.username}
                               </div>
                               <div className="text-xs text-muted-foreground truncate">
@@ -780,7 +778,7 @@ export default function ShareModal({
                             ) : (
                               <button
                                 onClick={() => handleShareToggle(u.id, true)}
-                                className="px-3 py-1 text-xs bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors text-white whitespace-nowrap"
+                                className="px-3 py-1 text-xs bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors text-(--text-0) whitespace-nowrap"
                               >
                                 Share
                               </button>
@@ -826,7 +824,7 @@ export default function ShareModal({
                               type="text"
                               value={getShareUrl()}
                               readOnly
-                              className="flex-1 text-white rounded-2xl text-sm"
+                              className="flex-1 text-(--text-0) rounded-2xl text-sm"
                             />
                             <Button
                               size="icon"
@@ -873,7 +871,7 @@ export default function ShareModal({
                           <div className="space-y-4 border-t border-white/10 pt-4">
                             <div className="flex items-center justify-between">
                               <div>
-                                <div className="text-sm font-medium text-white">
+                                <div className="text-sm font-medium text-(--text-0)">
                                   Allow Downloads
                                 </div>
                                 <div className="text-xs text-muted-foreground">
@@ -896,7 +894,7 @@ export default function ShareModal({
                             <div className="border-t border-white/10 pt-4">
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <div className="text-sm font-medium text-white">
+                                  <div className="text-sm font-medium text-(--text-0)">
                                     Password Protection
                                   </div>
                                   <div className="text-xs text-muted-foreground">
@@ -941,14 +939,14 @@ export default function ShareModal({
                                           onChange={(e) =>
                                             setPassword(e.target.value)
                                           }
-                                          className="pr-10 text-white rounded-2xl"
+                                          className="pr-10 text-(--text-0) rounded-2xl"
                                         />
                                         <button
                                           type="button"
                                           onClick={() =>
                                             setShowPassword(!showPassword)
                                           }
-                                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white"
+                                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-(--text-0)"
                                         >
                                           {showPassword ? (
                                             <EyeOff className="size-4" />

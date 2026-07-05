@@ -288,7 +288,7 @@ export function UserManagementModal({
             {/* Backdrop */}
             <button
               type="button"
-              className="absolute inset-0 bg-black/80"
+              className="absolute inset-0 overlay-backdrop"
               onClick={onClose}
               aria-label="Close user management modal"
             />
@@ -299,10 +299,7 @@ export function UserManagementModal({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
               transition={{ duration: 0.15 }}
-              className="relative z-10 w-full max-w-2xl border border-[#292828] rounded-[34px] shadow-2xl overflow-hidden"
-              style={{
-                background: "linear-gradient(0deg, #151515 0%, #1D1D1D 100%)",
-              }}
+              className="relative z-10 w-full max-w-2xl border border-(--card-border) rounded-[34px] shadow-2xl overflow-hidden overlay-surface text-(--text-0)"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="scroll-fade-y-parent flex flex-col h-[620px] relative">
@@ -313,7 +310,7 @@ export function UserManagementModal({
                   </Button>
                   <div className="flex-1 min-w-0">
                     <h2
-                      className="text-xl font-light text-white"
+                      className="text-xl font-light text-(--text-0)"
                       style={{ fontFamily: '"IBM Plex Mono", monospace' }}
                     >
                       Instance Users
@@ -334,7 +331,7 @@ export function UserManagementModal({
                           <X className="size-4 text-red-400" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-white">
+                          <p className="text-sm font-medium text-(--text-0)">
                             Failed to load users
                           </p>
                           <p className="text-xs text-red-400/70 mt-0.5">
@@ -349,7 +346,7 @@ export function UserManagementModal({
                   {isLoading && (
                     <div className="flex flex-col items-center justify-center py-16">
                       <div className="relative">
-                        <div className="h-10 w-10 animate-spin rounded-full border-3 border-[#2a2a2a] border-t-accent-blue" />
+                        <div className="h-10 w-10 animate-spin rounded-full border-3 border-(--border-0) border-t-accent-blue" />
                       </div>
                       <p className="text-sm text-[#6a6a6a] mt-4">
                         Loading users...
@@ -367,13 +364,13 @@ export function UserManagementModal({
                           placeholder="Search users..."
                           value={userSearchQuery}
                           onChange={(e) => setUserSearchQuery(e.target.value)}
-                          className="pl-9 pr-8 text-white rounded-xl text-sm bg-white/5 border-white/10"
+                          className="pl-9 pr-8 text-(--text-0) rounded-xl text-sm bg-white/5 border-white/10"
                         />
                         {userSearchQuery && (
                           <button
                             type="button"
                             onClick={() => setUserSearchQuery("")}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white transition-colors"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-(--text-0) transition-colors"
                           >
                             <X className="size-3.5" />
                           </button>
@@ -471,7 +468,7 @@ export function UserManagementModal({
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-medium text-white">
+                            <h3 className="text-sm font-medium text-(--text-0)">
                               {copiedTitleTokenId === generatedInvite.id
                                 ? "Invite link copied"
                                 : "Invite link created"}
@@ -480,13 +477,13 @@ export function UserManagementModal({
                           <button
                             type="button"
                             onClick={() => setGeneratedInvite(null)}
-                            className="p-1 rounded-md text-[#6a6a6a] hover:text-white hover:bg-white/5 transition-all"
+                            className="p-1 rounded-md text-[#6a6a6a] hover:text-(--text-0) hover:bg-white/5 transition-all"
                           >
                             <X className="h-3.5 w-3.5" />
                           </button>
                         </div>
 
-                        <div className="bg-[#0d0d0d] rounded-lg p-2.5 border border-[#2a2a2a] flex items-center gap-2">
+                        <div className="bg-[#0d0d0d] rounded-lg p-2.5 border border-(--border-0) flex items-center gap-2">
                           <code className="text-[11px] text-emerald-400 break-all flex-1 font-mono">
                             {generatedInvite.link}
                           </code>
@@ -498,7 +495,7 @@ export function UserManagementModal({
                                 generatedInvite.id,
                               )
                             }
-                            className="shrink-0 rounded-md bg-black/80 border border-emerald-500/60 p-2 hover:border-emerald-400 transition-colors"
+                            className="shrink-0 rounded-md themed-control border-emerald-500/60 p-2 hover:border-emerald-400 transition-colors"
                           >
                             <motion.div
                               key={`invite-copy-${invitePulse}`}
@@ -571,7 +568,7 @@ export function UserManagementModal({
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-medium text-white">
+                            <h3 className="text-sm font-medium text-(--text-0)">
                               {copiedTitleTokenId === generatedResetLink.id
                                 ? "Reset link copied"
                                 : "Reset link created"}
@@ -580,13 +577,13 @@ export function UserManagementModal({
                           <button
                             type="button"
                             onClick={() => setGeneratedResetLink(null)}
-                            className="p-1 rounded-md text-[#6a6a6a] hover:text-white hover:bg-white/5 transition-all"
+                            className="p-1 rounded-md text-[#6a6a6a] hover:text-(--text-0) hover:bg-white/5 transition-all"
                           >
                             <X className="h-3.5 w-3.5" />
                           </button>
                         </div>
 
-                        <div className="bg-[#0d0d0d] rounded-lg p-2.5 border border-[#2a2a2a] flex items-center gap-2">
+                        <div className="bg-[#0d0d0d] rounded-lg p-2.5 border border-(--border-0) flex items-center gap-2">
                            <code className="text-[11px] text-accent-blue break-all flex-1 font-mono">
                             {generatedResetLink.link}
                           </code>
@@ -598,7 +595,7 @@ export function UserManagementModal({
                                 generatedResetLink.id,
                               )
                             }
-                             className="shrink-0 rounded-md bg-black/80 border border-accent-blue/70 p-2 hover:border-accent-blue/90 transition-colors"
+                             className="shrink-0 rounded-md themed-control border-accent-blue/70 p-2 hover:border-accent-blue/90 transition-colors"
                           >
                             <motion.div
                               key={`reset-copy-${resetPulse}`}
@@ -659,7 +656,7 @@ export function UserManagementModal({
                   {/* Buttons */}
                   <div className="flex items-center gap-3">
                     <Button
-                      className="flex-1 bg-gradient-to-b from-[#222222] to-[#1a1a1a] border border-[#3a3a3a] hover:border-[#4a4a4a] hover:from-[#2a2a2a] hover:to-[#222222] text-white rounded-xl h-11 shadow-lg shadow-black/20 scale-100"
+                      className="flex-1 bg-gradient-to-b from-[#222222] to-[#1a1a1a] border border-(--border-0) hover:border-(--border-0) hover:from-[#2a2a2a] hover:to-[#222222] text-(--text-0) rounded-xl h-11 shadow-lg shadow-black/20 scale-100"
                       onClick={handleCreateInvite}
                     >
                       <Plus className="size-4" />
@@ -667,7 +664,7 @@ export function UserManagementModal({
                     </Button>
                     <Button
                       onClick={onClose}
-                      className="flex-1 bg-gradient-to-b from-[#3a3a3a] to-[#2a2a2a] hover:from-[#444444] hover:to-[#333333] text-white border border-[#4a4a4a] rounded-xl h-11 shadow-lg shadow-black/20 scale-100"
+                      className="flex-1 bg-gradient-to-b from-[#3a3a3a] to-[#2a2a2a] hover:from-[#444444] hover:to-[#333333] text-(--text-0) border border-[#4a4a4a] rounded-xl h-11 shadow-lg shadow-black/20 scale-100"
                     >
                       <span className="text-sm font-medium">Done</span>
                     </Button>
@@ -766,7 +763,7 @@ function UserCard({
           <div className="relative min-w-0">
             {/* Always rendered for stable layout sizing */}
             <span
-              className={`text-base font-medium block whitespace-pre ${isRenaming ? "invisible" : "text-white truncate"}`}
+              className={`text-base font-medium block whitespace-pre ${isRenaming ? "invisible" : "text-(--text-0) truncate"}`}
             >
               {isRenaming ? newUsername : user.username}
             </span>
@@ -776,7 +773,7 @@ function UserCard({
                 type="text"
                 value={newUsername}
                 onChange={(e) => onRenameChange(e.target.value)}
-                className="absolute inset-0 text-base font-medium text-white bg-transparent border-none outline-none focus:outline-none w-full"
+                className="absolute inset-0 text-base font-medium text-(--text-0) bg-transparent border-none outline-none focus:outline-none w-full"
                 style={{ caretColor: "white" }}
                 onBlur={() => {
                   if (!hasFocusedRef.current) return;
@@ -804,7 +801,7 @@ function UserCard({
             )}
             {user.is_admin && (
               <div
-                className="px-2 py-0.5 bg-[#151414] border border-[#595959] rounded-md text-[10px] text-white"
+                className="px-2 py-0.5 bg-[#151414] border border-[#595959] rounded-md text-[10px] text-(--text-0)"
                 style={{
                   fontFamily: '"IBM Plex Mono", monospace',
                   fontWeight: 300,
@@ -844,7 +841,7 @@ function UserCard({
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="w-52 bg-[#1a1a1a] border-[#2a2a2a] rounded-xl z-1100"
+            className="w-52 rounded-xl z-1100"
             onCloseAutoFocus={(e) => {
               if (pendingRenameRef.current) e.preventDefault();
             }}
@@ -852,7 +849,7 @@ function UserCard({
             {isCurrentUser && (
               <DropdownMenuItem
                 onClick={handleRenameMenuClick}
-                className="text-white hover:bg-white/5 cursor-pointer rounded-lg mx-1"
+                className="text-(--text-0) hover:bg-white/5 cursor-pointer rounded-lg mx-1"
               >
                 <Pencil className="size-4 mr-2 text-[#6a6a6a]" />
                 Rename
@@ -863,7 +860,7 @@ function UserCard({
               <DropdownMenuItem
                 onClick={onToggleAdmin}
                 disabled={isUpdateRoleMutating}
-                className="text-white hover:bg-white/5 cursor-pointer rounded-lg mx-1"
+                className="text-(--text-0) hover:bg-white/5 cursor-pointer rounded-lg mx-1"
               >
                 {user.is_admin ? (
                   <>
@@ -882,7 +879,7 @@ function UserCard({
             <DropdownMenuItem
               onClick={onCreateResetLink}
               disabled={isCreateResetMutating}
-              className="text-white hover:bg-white/5 cursor-pointer rounded-lg mx-1"
+              className="text-(--text-0) hover:bg-white/5 cursor-pointer rounded-lg mx-1"
             >
               <RotateCcw className="size-4 mr-2 text-[#6a6a6a]" />
               {isCreateResetMutating ? "Generating..." : "Reset Password"}
@@ -890,7 +887,7 @@ function UserCard({
 
             {!user.is_owner && (
               <>
-                <DropdownMenuSeparator className="bg-[#2a2a2a] my-1" />
+                <DropdownMenuSeparator className="my-1" />
                 <DropdownMenuItem
                   onClick={onDelete}
                   disabled={isDeleteMutating}

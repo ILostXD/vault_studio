@@ -28,6 +28,7 @@ import type {
   InstanceInfo,
   Quality,
 } from "@/types/api";
+import { ToggleGroup } from "@/components/ui/toggle-group";
 
 export const Route = createFileRoute("/profile/")({
   component: ProfilePage,
@@ -211,7 +212,7 @@ function ProfilePage() {
               </motion.div>
               <motion.button
                 onClick={() => setIsEditProfileModalOpen(true)}
-                className="mt-4 text-[#848484] hover:text-white text-sm transition-colors cursor-pointer"
+                className="mt-4 text-(--text-1) hover:text-(--text-0) text-sm transition-colors cursor-pointer"
                 animate={{ opacity: isEditProfileModalOpen ? 0 : 1 }}
                 transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
               >
@@ -224,9 +225,9 @@ function ProfilePage() {
                 }`}
               aria-busy={isLoading}
             >
-              <div className="bg-linear-to-b from-[#262626] to-[#201f1f] border border-[#353333] rounded-3xl p-6">
+              <div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-3xl p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-medium text-white">
+                  <h2 className="text-2xl font-medium text-(--text-0)">
                     Storage Overview
                   </h2>
                 </div>
@@ -234,17 +235,17 @@ function ProfilePage() {
                 {quotaGB ? (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                      <div className="bg-[#191919] border border-[#353333] rounded-[21px] p-4">
-                        <p className="text-[#9f9f9f] text-xs font-['IBM_Plex_Mono'] mb-2">
+                      <div className="bg-(--inner-card-bg) border border-(--card-border) rounded-[21px] p-4">
+                        <p className="text-(--text-2) text-xs font-['IBM_Plex_Mono'] mb-2">
                           USED
                         </p>
-                        <p className="text-white text-3xl font-semibold">
+                        <p className="text-(--text-0) text-3xl font-semibold">
                           {totalGB} GB
                         </p>
-                        <p className="text-[#919191] text-sm font-medium mb-3">
+                        <p className="text-(--text-1) text-sm font-medium mb-3">
                           {utilizedPercent}% utilized
                         </p>
-                        <div className="bg-[#383838] border border-[#353333] h-[5.345px] rounded-[21px] overflow-hidden">
+                        <div className="bg-[#383838] border border-(--card-border) h-[5.345px] rounded-[21px] overflow-hidden">
                           <div
                             className="bg-accent-blue h-full rounded-[21px]"
                             style={{
@@ -254,27 +255,27 @@ function ProfilePage() {
                         </div>
                       </div>
 
-                      <div className="bg-[#191919] border border-[#353333] rounded-[21px] p-4">
-                        <p className="text-[#9f9f9f] text-xs font-['IBM_Plex_Mono'] mb-2">
+                      <div className="bg-(--inner-card-bg) border border-(--card-border) rounded-[21px] p-4">
+                        <p className="text-(--text-2) text-xs font-['IBM_Plex_Mono'] mb-2">
                           AVAILABLE
                         </p>
-                        <p className="text-white text-3xl font-semibold">
+                        <p className="text-(--text-0) text-3xl font-semibold">
                           {availableGB} GB
                         </p>
-                        <p className="text-[#919191] text-sm font-medium">
+                        <p className="text-(--text-1) text-sm font-medium">
                           {Math.round((availableGB / quotaGB) * 100)}% remaining
                         </p>
                       </div>
                     </div>
 
-                    <div className="bg-[#191919] border border-[#353333] rounded-[21px] p-4 mb-6">
-                      <p className="text-[#9f9f9f] text-xs font-['IBM_Plex_Mono'] mb-2">
+                    <div className="bg-(--inner-card-bg) border border-(--card-border) rounded-[21px] p-4 mb-6">
+                      <p className="text-(--text-2) text-xs font-['IBM_Plex_Mono'] mb-2">
                         TOTAL QUOTA
                       </p>
-                      <p className="text-white text-3xl font-semibold mb-1">
+                      <p className="text-(--text-0) text-3xl font-semibold mb-1">
                         {quotaGB} GB
                       </p>
-                      <p className="text-[#919191] text-sm font-medium">
+                      <p className="text-(--text-1) text-sm font-medium">
                         Allocated
                       </p>
                     </div>
@@ -283,28 +284,28 @@ function ProfilePage() {
                   <div
                     className={`grid gap-4 mb-6 ${user?.is_admin ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}
                   >
-                    <div className="bg-[#191919] border border-[#353333] rounded-[21px] p-4">
-                      <p className="text-[#9f9f9f] text-xs font-['IBM_Plex_Mono'] mb-2">
+                    <div className="bg-(--inner-card-bg) border border-(--card-border) rounded-[21px] p-4">
+                      <p className="text-(--text-2) text-xs font-['IBM_Plex_Mono'] mb-2">
                         USER STORAGE
                       </p>
-                      <p className="text-white text-3xl font-semibold mb-1">
+                      <p className="text-(--text-0) text-3xl font-semibold mb-1">
                         {totalGB} GB
                       </p>
-                      <p className="text-[#919191] text-sm font-medium">
+                      <p className="text-(--text-1) text-sm font-medium">
                         {storageStats?.file_count || 0} files across{" "}
                         {storageStats?.track_count || 0} tracks
                       </p>
                     </div>
 
                     {user?.is_admin && globalStorageStats && (
-                      <div className="bg-[#191919] border border-[#353333] rounded-[21px] p-4">
-                        <p className="text-[#9f9f9f] text-xs font-['IBM_Plex_Mono'] mb-2">
+                      <div className="bg-(--inner-card-bg) border border-(--card-border) rounded-[21px] p-4">
+                        <p className="text-(--text-2) text-xs font-['IBM_Plex_Mono'] mb-2">
                           TOTAL STORAGE
                         </p>
-                        <p className="text-white text-3xl font-semibold mb-1">
+                        <p className="text-(--text-0) text-3xl font-semibold mb-1">
                           {bytesToGB(globalStorageStats.total_size_bytes)} GB
                         </p>
-                        <p className="text-[#919191] text-sm font-medium">
+                        <p className="text-(--text-1) text-sm font-medium">
                           {globalStorageStats.file_count} files across{" "}
                           {globalStorageStats.track_count} tracks
                         </p>
@@ -314,22 +315,22 @@ function ProfilePage() {
                 )}
 
                 <div>
-                  <p className="text-[#848484] text-base font-['IBM_Plex_Mono'] mb-4">
+                  <p className="text-(--text-1) text-base font-['IBM_Plex_Mono'] mb-4">
                     STORAGE BY QUALITY
                   </p>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between border-t border-[#353333] pt-3">
-                      <p className="text-[#848484] text-base">Source (WAV)</p>
-                      <p className="text-white text-base font-medium">
+                    <div className="flex items-center justify-between border-t border-(--card-border) pt-3">
+                      <p className="text-(--text-1) text-base">Source (WAV)</p>
+                      <p className="text-(--text-0) text-base font-medium">
                         {user?.is_admin && globalStorageStats
                           ? bytesToGB(globalStorageStats.source_size_bytes)
                           : sourceGB}{" "}
                         GB
                       </p>
                     </div>
-                    <div className="flex items-center justify-between border-t border-[#353333] pt-3">
-                      <p className="text-[#848484] text-base">Lossy (MP3)</p>
-                      <p className="text-white text-base font-medium">
+                    <div className="flex items-center justify-between border-t border-(--card-border) pt-3">
+                      <p className="text-(--text-1) text-base">Lossy (MP3)</p>
+                      <p className="text-(--text-0) text-base font-medium">
                         {user?.is_admin && globalStorageStats
                           ? bytesToGB(globalStorageStats.lossy_size_bytes)
                           : lossyGB}{" "}
@@ -341,18 +342,18 @@ function ProfilePage() {
               </div>
 
               {user?.is_admin && (
-                <div className="bg-linear-to-b from-[#232323] to-[#201f1f] border border-[#353333] rounded-3xl p-6">
+                <div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-3xl p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h2 className="text-2xl font-medium text-white">
+                      <h2 className="text-2xl font-medium text-(--text-0)">
                         Instance Users
                       </h2>
-                      <p className="text-[#7c7c7c] text-sm mt-1">
+                      <p className="text-(--text-2) text-sm mt-1">
                         Manage instance users and permissions
                       </p>
                     </div>
                     <Button
-                      className="bg-accent-blue rounded-[7px] px-6 py-2 text-white font-medium hover:bg-accent-blue/80 flex items-center gap-2 h-auto"
+                      className="bg-accent-blue rounded-[7px] px-6 py-2 text-(--text-0) font-medium hover:bg-accent-blue/80 flex items-center gap-2 h-auto"
                       onClick={() => setIsUserManagementModalOpen(true)}
                     >
                       <Users className="h-4 w-4" />
@@ -362,21 +363,21 @@ function ProfilePage() {
                 </div>
               )}
 
-              <div className="bg-linear-to-b from-[#232323] to-[#201f1f] border border-[#353333] rounded-3xl p-6">
-                <h2 className="text-2xl font-medium text-white mb-6">
+              <div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-3xl p-6">
+                <h2 className="text-2xl font-medium text-(--text-0) mb-6">
                   Settings
                 </h2>
 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between border-b border-[#353333] pb-4">
-                    <div>
-                      <p className="text-white text-base">Quality</p>
-                      <p className="text-[#7c7c7c] text-sm">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-(--card-border) pb-4">
+                    <div className="min-w-0">
+                      <p className="text-(--text-0) text-base">Quality</p>
+                      <p className="text-(--text-2) text-sm">
                         Default audio quality for streaming
                       </p>
                     </div>
                     <Button
-                      className="bg-[#393939] rounded-[7px] px-4 py-1 text-white text-sm font-medium text-center min-w-[130px] h-auto hover:bg-[#4a4a4a]"
+                      className="self-start sm:self-auto bg-(--muted-2) rounded-[7px] px-4 py-1 text-(--text-0) text-sm font-medium text-center min-w-[130px] h-auto hover:bg-(--muted-1)"
                       onClick={() => {
                         if (!preferences) return;
                         const nextQuality: Quality =
@@ -392,20 +393,45 @@ function ProfilePage() {
                     </Button>
                   </div>
 
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-(--card-border) pb-4">
+                    <div className="min-w-0">
+                      <p className="text-(--text-0) text-base">Theme</p>
+                      <p className="text-(--text-2) text-sm">
+                        App appearance and contrast
+                      </p>
+                    </div>
+                    <ToggleGroup
+                      className="w-full sm:w-auto sm:min-w-[260px] h-[36px]"
+                      options={[
+                        { label: "Light", value: "light" },
+                        { label: "Default", value: "default" },
+                        { label: "Black", value: "black" },
+                      ]}
+                      value={preferences?.theme === "oled" ? "black" : preferences?.theme || "default"}
+                      onValueChange={async (val) => {
+                        try {
+                          await updatePreferences({ theme: val });
+                        } catch (error) {
+                          console.error("Failed to update theme:", error);
+                        }
+                      }}
+                    />
+                  </div>
+
                   <div className="flex flex-col gap-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-white text-base">Accent Color</p>
-                        <p className="text-[#7c7c7c] text-sm">
+                        <p className="text-(--text-0) text-base">Accent Color</p>
+                        <p className="text-(--text-2) text-sm">
                           Choose your preferred app accent color
                         </p>
                       </div>
                       <div
-                        className="w-10 h-10 rounded-lg border border-[#353333] shadow-inner transition-colors duration-200"
+                        className="w-10 h-10 rounded-lg border border-(--card-border) shadow-inner transition-colors duration-200"
                         style={{ backgroundColor: preferences?.accent_color || "#ffba00" }}
                       />
                     </div>
-                    <div className="bg-[#191919] border border-[#353333] rounded-[12px] p-4 flex justify-center relative overflow-hidden select-none">
+                    <div className="bg-(--inner-card-bg) border border-(--card-border) rounded-[12px] p-4 flex justify-center relative overflow-hidden select-none">
                       <DotPattern
                         width={8}
                         height={8}
@@ -442,28 +468,28 @@ function ProfilePage() {
                   </div>
 
                   <div className="hidden">
-                    <div className="flex items-center justify-between border-b border-[#353333] pb-4">
+                    <div className="flex items-center justify-between border-b border-(--card-border) pb-4">
                       <div>
-                        <p className="text-white text-base">Stem Separation</p>
-                        <p className="text-[#7c7c7c] text-sm">
+                        <p className="text-(--text-0) text-base">Stem Separation</p>
+                        <p className="text-(--text-2) text-sm">
                           Enable local AI stem separation
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between border-b border-[#353333] pb-4">
+                    <div className="flex items-center justify-between border-b border-(--card-border) pb-4">
                       <div>
-                        <p className="text-white text-base">Public Sharing</p>
-                        <p className="text-[#7c7c7c] text-sm">
+                        <p className="text-(--text-0) text-base">Public Sharing</p>
+                        <p className="text-(--text-2) text-sm">
                           Allow tracks to be shared publicly
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between border-b border-[#353333] pb-4">
+                    <div className="flex items-center justify-between border-b border-(--card-border) pb-4">
                       <div>
-                        <p className="text-white text-base">Backup</p>
-                        <p className="text-[#7c7c7c] text-sm">
+                        <p className="text-(--text-0) text-base">Backup</p>
+                        <p className="text-(--text-2) text-sm">
                           Automatically backup data 24 hours
                         </p>
                       </div>
@@ -472,14 +498,14 @@ function ProfilePage() {
                 </div>
               </div>
 
-              <div className="bg-linear-to-b from-[#232323] to-[#201f1f] border border-[#353333] rounded-3xl p-6">
-                <h2 className="text-2xl font-medium text-white mb-6">
+              <div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-3xl p-6">
+                <h2 className="text-2xl font-medium text-(--text-0) mb-6">
                   Instance Information
                 </h2>
 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between border-b border-[#353333] pb-4">
-                    <p className="text-[#848484] text-base">Instance Name</p>
+                  <div className="flex items-center justify-between border-b border-(--card-border) pb-4">
+                    <p className="text-(--text-1) text-base">Instance Name</p>
                     {user?.is_admin ? (
                       <div className="flex items-center gap-2 group">
                         <input
@@ -493,29 +519,29 @@ function ProfilePage() {
                               e.currentTarget.blur();
                             }
                           }}
-                          className="text-white text-base font-medium text-right bg-transparent border-none outline-none focus:outline-none cursor-text"
+                          className="text-(--text-0) text-base font-medium text-right bg-transparent border-none outline-none focus:outline-none cursor-text"
                           style={{
                             caretColor: "white",
                           }}
                         />
                         <Pencil
-                          className="size-3.5 text-[#848484] opacity-50 group-hover:opacity-100 transition-opacity cursor-pointer"
+                          className="size-3.5 text-(--text-1) opacity-50 group-hover:opacity-100 transition-opacity cursor-pointer"
                           onClick={() => instanceNameInputRef.current?.focus()}
                         />
                       </div>
                     ) : (
-                      <p className="text-white text-base font-medium">
+                      <p className="text-(--text-0) text-base font-medium">
                         {instanceName}
                       </p>
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between border-b border-[#353333] pb-4">
-                    <p className="text-[#848484] text-base">Version</p>
-                    <p className="text-white text-base font-medium">
+                  <div className="flex items-center justify-between border-b border-(--card-border) pb-4">
+                    <p className="text-(--text-1) text-base">Version</p>
+                    <p className="text-(--text-0) text-base font-medium">
                       {instanceInfo?.version || ""}
                       {instanceInfo?.commit_sha && (
-                        <span className="text-[#848484] text-sm font-mono ml-2">
+                        <span className="text-(--text-1) text-sm font-mono ml-2">
                           ({instanceInfo.commit_sha.substring(0, 7)})
                         </span>
                       )}
@@ -524,8 +550,8 @@ function ProfilePage() {
 
                   {instanceInfo?.created_at && (
                     <div className="flex items-center justify-between">
-                      <p className="text-[#848484] text-base">Created</p>
-                      <p className="text-white text-base font-medium">
+                      <p className="text-(--text-1) text-base">Created</p>
+                      <p className="text-(--text-0) text-base font-medium">
                         {new Date(instanceInfo.created_at).toLocaleDateString(
                           "en-US",
                           {
@@ -541,36 +567,36 @@ function ProfilePage() {
               </div>
 
               {user?.is_admin && (
-                <div className="bg-linear-to-b from-[#232323] to-[#201f1f] border border-[#353333] rounded-3xl p-6">
-                  <h2 className="text-2xl font-medium text-white mb-6">
+                <div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-3xl p-6">
+                  <h2 className="text-2xl font-medium text-(--text-0) mb-6">
                     Danger Zone
                   </h2>
 
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between border-b border-[#353333] pb-4">
+                    <div className="flex items-center justify-between border-b border-(--card-border) pb-4">
                       <div>
-                        <p className="text-white text-base">Export Data</p>
-                        <p className="text-[#7c7c7c] text-sm">
+                        <p className="text-(--text-0) text-base">Export Data</p>
+                        <p className="text-(--text-2) text-sm">
                           Download a complete backup of your instance data
                         </p>
                       </div>
                       <Button
-                        className="bg-[#393939] rounded-[7px] px-4 py-1 text-white text-sm font-medium h-auto hover:bg-[#4a4a4a]"
+                        className="bg-(--muted-2) rounded-[7px] px-4 py-1 text-(--text-0) text-sm font-medium h-auto hover:bg-(--muted-1)"
                         onClick={() => setIsExportModalOpen(true)}
                       >
                         Export
                       </Button>
                     </div>
 
-                    <div className="flex items-center justify-between border-b border-[#353333] pb-4">
+                    <div className="flex items-center justify-between border-b border-(--card-border) pb-4">
                       <div>
-                        <p className="text-white text-base">Import Data</p>
-                        <p className="text-[#7c7c7c] text-sm">
+                        <p className="text-(--text-0) text-base">Import Data</p>
+                        <p className="text-(--text-2) text-sm">
                           Restore from a backup file (replaces current data)
                         </p>
                       </div>
                       <Button
-                        className="bg-[#393939] rounded-[7px] px-4 py-1 text-white text-sm font-medium h-auto hover:bg-[#4a4a4a]"
+                        className="bg-(--muted-2) rounded-[7px] px-4 py-1 text-(--text-0) text-sm font-medium h-auto hover:bg-(--muted-1)"
                         onClick={() => setIsImportModalOpen(true)}
                       >
                         Import
@@ -579,8 +605,8 @@ function ProfilePage() {
 
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-white text-base">Reset Instance</p>
-                        <p className="text-[#7c7c7c] text-sm">
+                        <p className="text-(--text-0) text-base">Reset Instance</p>
+                        <p className="text-(--text-2) text-sm">
                           Clear all data and restore to default settings
                         </p>
                       </div>
@@ -604,7 +630,7 @@ function ProfilePage() {
         className="fixed top-0 left-0 right-0 h-[130px] z-10 pointer-events-none"
         style={{
           background:
-            "linear-gradient(to bottom, #181818 5%, rgba(24, 24, 24, 0.95) 20%, rgba(24, 24, 24, 0.85) 30%, rgba(24, 24, 24, 0.7) 45%, rgba(24, 24, 24, 0.5) 60%, rgba(24, 24, 24, 0.3) 75%, rgba(24, 24, 24, 0.1) 90%, transparent 100%)",
+            "linear-gradient(to bottom, color-mix(in srgb, var(--bg-0) 100%, transparent) 5%, color-mix(in srgb, var(--bg-0) 95%, transparent) 20%, color-mix(in srgb, var(--bg-0) 85%, transparent) 30%, color-mix(in srgb, var(--bg-0) 70%, transparent) 45%, color-mix(in srgb, var(--bg-0) 50%, transparent) 60%, color-mix(in srgb, var(--bg-0) 30%, transparent) 75%, color-mix(in srgb, var(--bg-0) 10%, transparent) 90%, transparent 100%)",
         }}
       />
 
@@ -612,7 +638,7 @@ function ProfilePage() {
         className="fixed bottom-0 left-0 right-0 h-[70px] z-100 pointer-events-none"
         style={{
           background:
-            "linear-gradient(to top, #181818 4%, rgba(24, 24, 24, 0.95) 20%, rgba(24, 24, 24, 0.85) 30%, rgba(24, 24, 24, 0.7) 45%, rgba(24, 24, 24, 0.5) 60%, rgba(24, 24, 24, 0.3) 76%, rgba(24, 24, 24, 0.1) 89%, transparent 100%)",
+            "linear-gradient(to top, color-mix(in srgb, var(--bg-0) 100%, transparent) 20%, color-mix(in srgb, var(--bg-0) 95%, transparent) 25%, color-mix(in srgb, var(--bg-0) 85%, transparent) 30%, color-mix(in srgb, var(--bg-0) 70%, transparent) 45%, color-mix(in srgb, var(--bg-0) 50%, transparent) 60%, color-mix(in srgb, var(--bg-0) 30%, transparent) 75%, color-mix(in srgb, var(--bg-0) 10%, transparent) 90%, transparent 100%)",
         }}
       />
 
