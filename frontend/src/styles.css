@@ -35,7 +35,6 @@ code,
 /* Design tokens from Figma palette */
 /* Base colors */
 :root {
-  --mobile-ui-scale: 1;
   --bg-0: #181818;
   --bg-1: #191919;
   --bg-2: #201f1f;
@@ -102,19 +101,6 @@ code,
   --project-control-border-hover: rgba(255, 255, 255, 0.2);
   --project-control-disabled-bg: rgba(35, 35, 35, 0.25);
   --project-control-disabled-border: rgba(53, 51, 51, 0.3);
-}
-
-@media (pointer: coarse) {
-  html.mobile-ui-scaled,
-  html.mobile-ui-scaled body {
-    overflow-x: hidden;
-  }
-
-  html.mobile-ui-scaled #app {
-    width: calc(100% / var(--mobile-ui-scale));
-    min-height: calc(100vh / var(--mobile-ui-scale));
-    zoom: var(--mobile-ui-scale);
-  }
 }
 
 .dark {

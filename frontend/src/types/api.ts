@@ -23,7 +23,6 @@ export interface UserPreferences {
   color_shift_rotation?: number
   accent_color?: string
   theme?: string
-  ui_scale?: number
   created_at: string
   updated_at: string
 }
@@ -148,7 +147,6 @@ export interface UpdatePreferencesRequest {
   color_shift_rotation?: number
   accent_color?: string
   theme?: string
-  ui_scale?: number
 }
 
 export interface UpdateInstanceNameRequest {
