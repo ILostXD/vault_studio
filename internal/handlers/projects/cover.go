@@ -86,7 +86,18 @@ func (h *ProjectsHandler) DeleteProjectCover(w http.ResponseWriter, r *http.Requ
 func (h *ProjectsHandler) GetProjectCover(w http.ResponseWriter, r *http.Request) error {
 	userID, err := httputil.RequireUserID(r)
 	if err != nil {
-		return apperr.NewUnauthorized("user not found in context")
+		if !middleware.SignedURLValid(r.Context()) {
+			return apperr.NewUnauthorized("user not found in context")
+		}
+		signedUserID := r.URL.Query().Get("user_id")
+		if signedUserID == "" {
+			return apperr.NewUnauthorized("user not found in context")
+		}
+		parsed, parseErr := strconv.Atoi(signedUserID)
+		if parseErr != nil {
+			return apperr.NewBadRequest("invalid user_id")
+		}
+		userID = parsed
 	}
 
 	publicID := r.PathValue("id")

@@ -1,13 +1,30 @@
 import { get } from './client'
 import { resolveApiUrl } from './server'
+import { getAuthTokens } from './session'
+
+function appendAccessToken(url: string): string {
+	const accessToken = getAuthTokens()?.accessToken
+	if (!accessToken || url.includes('/api/share/')) return url
+
+	try {
+		const parsed = new URL(url)
+		if (!parsed.pathname.startsWith('/api/')) return url
+		if (!parsed.searchParams.has('access_token')) {
+			parsed.searchParams.set('access_token', accessToken)
+		}
+		return parsed.toString()
+	} catch {
+		return url
+	}
+}
 
 export function resolveApiMediaUrl(url?: string | null): string | undefined {
 	if (!url) return undefined
 	if (/^[a-z][a-z\d+\-.]*:\/\//i.test(url) || url.startsWith('blob:') || url.startsWith('data:')) {
-		return url
+		return appendAccessToken(url)
 	}
 	if (url.startsWith('/api/')) {
-		return resolveApiUrl(url)
+		return appendAccessToken(resolveApiUrl(url))
 	}
 	return url
 }

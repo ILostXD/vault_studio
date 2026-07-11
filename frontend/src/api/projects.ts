@@ -108,6 +108,7 @@ export async function fetchProjectCover(
 		}
 		const response = await fetch(url, {
 			credentials: 'include',
+			headers: getAuthHeaders(),
 		})
 		if (!response.ok) {
 			throw new Error('Failed to load cover art')
@@ -118,6 +119,7 @@ export async function fetchProjectCover(
 	const signed = await getProjectCoverUrl(id, { size })
 	const response = await fetch(resolveApiUrl(signed.url), {
 		credentials: 'include',
+		headers: getAuthHeaders(),
 	})
 
 	if (!response.ok) {
