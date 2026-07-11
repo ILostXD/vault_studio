@@ -353,7 +353,7 @@ func serviceUserToResponse(user *authsvc.User) map[string]interface{} {
 	return response
 }
 
-func authResponse(user *authsvc.User, session *authsvc.Session) map[string]interface{} {
+func authResponse(user *authsvc.User, session *authsvc.SessionTokens) map[string]interface{} {
 	return map[string]interface{}{
 		"user":          serviceUserToResponse(user),
 		"access_token":  session.AccessToken,
