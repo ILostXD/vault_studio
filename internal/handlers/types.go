@@ -57,6 +57,7 @@ type UpdatePreferencesRequest struct {
 	ColorShiftRotation *int            `json:"color_shift_rotation,omitempty"`
 	AccentColor        *string         `json:"accent_color,omitempty"`
 	Theme              *string         `json:"theme,omitempty"`
+	UIScale            *int            `json:"ui_scale,omitempty"`
 }
 
 type CreateProjectRequest struct {

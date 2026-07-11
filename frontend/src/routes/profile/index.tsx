@@ -418,6 +418,33 @@ function ProfilePage() {
                     />
                   </div>
 
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-(--card-border) pb-4">
+                    <div className="min-w-0">
+                      <p className="text-(--text-0) text-base">UI Scale</p>
+                      <p className="text-(--text-2) text-sm">
+                        Increase interface size on mobile devices
+                      </p>
+                    </div>
+                    <ToggleGroup
+                      size="sm"
+                      className="w-full sm:w-auto sm:min-w-[260px] h-[34px]"
+                      options={[
+                        { label: "100%", value: "100" },
+                        { label: "110%", value: "110" },
+                        { label: "120%", value: "120" },
+                        { label: "130%", value: "130" },
+                      ]}
+                      value={String(preferences?.ui_scale || 100)}
+                      onValueChange={async (val) => {
+                        try {
+                          await updatePreferences({ ui_scale: Number(val) });
+                        } catch (error) {
+                          console.error("Failed to update UI scale:", error);
+                        }
+                      }}
+                    />
+                  </div>
+
                   <div className="flex flex-col gap-4">
                     <div className="flex items-center justify-between">
                       <div>

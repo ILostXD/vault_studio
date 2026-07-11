@@ -21,6 +21,7 @@ type PreferencesResponse struct {
 	ColorShiftRotation *int      `json:"color_shift_rotation,omitempty"`
 	AccentColor        string    `json:"accent_color"`
 	Theme              string    `json:"theme"`
+	UIScale            int64     `json:"ui_scale"`
 	CreatedAt          string    `json:"created_at"`
 	UpdatedAt          string    `json:"updated_at"`
 }
@@ -39,6 +40,7 @@ func toPreferencesResponse(prefs sqlc.UserPreference) PreferencesResponse {
 		DefaultQuality: prefs.DefaultQuality,
 		AccentColor:    prefs.AccentColor,
 		Theme:          prefs.Theme,
+		UIScale:        prefs.UiScale,
 		CreatedAt:      prefs.CreatedAt.Time.Format(time.RFC3339),
 		UpdatedAt:      prefs.UpdatedAt.Time.Format(time.RFC3339),
 	}
@@ -105,6 +107,12 @@ func (h *PreferencesHandler) UpdatePreferences(w http.ResponseWriter, r *http.Re
 		}
 	}
 
+	if req.UIScale != nil {
+		if *req.UIScale < 90 || *req.UIScale > 130 {
+			return apperr.NewBadRequest("ui scale must be between 90 and 130")
+		}
+	}
+
 	ctx := r.Context()
 
 	params := sqlc.UpdateUserPreferencesParams{
@@ -141,6 +149,10 @@ func (h *PreferencesHandler) UpdatePreferences(w http.ResponseWriter, r *http.Re
 
 	if req.Theme != nil {
 		params.Theme = sql.NullString{String: *req.Theme, Valid: true}
+	}
+
+	if req.UIScale != nil {
+		params.UiScale = sql.NullInt64{Int64: int64(*req.UIScale), Valid: true}
 	}
 
 	prefs, err := h.db.UpdateUserPreferences(ctx, params)
