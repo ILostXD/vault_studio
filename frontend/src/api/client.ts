@@ -1,4 +1,5 @@
 import { resolveApiUrl } from './server'
+import { getAuthTokens, getAuthorizationHeader } from './session'
 
 export class ApiError extends Error {
   constructor(
@@ -23,7 +24,11 @@ function getCookieValue(name: string): string | null {
 }
 
 export function getCSRFToken(): string | null {
-	return getCookieValue('csrf_token')
+	return getCookieValue('csrf_token') || getAuthTokens()?.csrfToken || null
+}
+
+export function getAuthHeaders(): Record<string, string> {
+	return getAuthorizationHeader()
 }
 
 async function apiClient<T>(
@@ -36,6 +41,7 @@ async function apiClient<T>(
 
 	const requestHeaders: Record<string, string> = {
 		'Content-Type': 'application/json',
+		...(requiresAuth ? getAuthHeaders() : {}),
 		...(headers as Record<string, string>),
 	}
 

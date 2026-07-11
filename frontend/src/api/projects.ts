@@ -1,4 +1,4 @@
-import { get, post, put, del, getCSRFToken } from './client'
+import { get, post, put, del, getCSRFToken, getAuthHeaders } from './client'
 import { getProjectCoverUrl } from './media'
 import type { Project, CreateProjectRequest, UpdateProjectRequest, MoveProjectRequest } from '../types/api'
 import { resolveApiUrl } from './server'
@@ -60,7 +60,10 @@ export async function uploadProjectCover(id: string, file: File): Promise<Projec
 	const response = await fetch(resolveApiUrl(`/api/projects/${id}/cover`), {
 		method: 'PUT',
 		credentials: 'include',
-		headers: getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {},
+		headers: {
+			...getAuthHeaders(),
+			...(getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {}),
+		},
 		body: formData,
 	})
 
@@ -76,7 +79,10 @@ export async function deleteProjectCover(id: string): Promise<Project> {
 	const response = await fetch(resolveApiUrl(`/api/projects/${id}/cover`), {
 		method: 'DELETE',
 		credentials: 'include',
-		headers: getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {},
+		headers: {
+			...getAuthHeaders(),
+			...(getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {}),
+		},
 	})
 
   if (!response.ok) {
@@ -128,6 +134,7 @@ export async function duplicateProject(id: string): Promise<Project> {
 export async function exportProject(id: string): Promise<Blob> {
 	const response = await fetch(resolveApiUrl(`/api/projects/${id}/export`), {
 		credentials: 'include',
+		headers: getAuthHeaders(),
 	})
 
   if (!response.ok) {

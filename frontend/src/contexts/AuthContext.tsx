@@ -7,6 +7,7 @@ import type {
   AuthResponse,
 } from "../types/api";
 import * as authApi from "../api/auth";
+import { clearAuthTokens, storeAuthTokensFromResponse } from "../api/session";
 
 interface AuthContextType {
 	user: User | null;
@@ -33,9 +34,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	useEffect(() => {
 		const initAuth = async () => {
 			try {
-				await authApi.refresh();
-				const userData = await authApi.getMe();
-				setUser(userData);
+				const response = await authApi.refresh();
+				storeAuthTokensFromResponse(response);
+				setUser(response.user);
 			} catch (error: any) {
 				setUser(null);
 			}
@@ -47,15 +48,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 	const login = async (credentials: LoginRequest) => {
 		const response: AuthResponse = await authApi.login(credentials);
+		storeAuthTokensFromResponse(response);
 		setUser(response.user);
 	};
 
 	const register = async (data: RegisterRequest) => {
 		const response: AuthResponse = await authApi.register(data);
+		storeAuthTokensFromResponse(response);
 		setUser(response.user);
 	};
 
 	const setAuthFromResponse = (response: AuthResponse) => {
+		storeAuthTokensFromResponse(response);
 		setUser(response.user);
 	};
 
@@ -64,6 +68,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			await authApi.logout();
 		} catch {
 		}
+		clearAuthTokens();
 		setUser(null);
 	};
 

@@ -2,6 +2,7 @@ import { useEffect, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { trackKeys } from './useTracks'
 import { resolveWebSocketUrl } from '@/api/server'
+import { getAuthTokens } from '@/api/session'
 
 interface WSMessage {
   type: string
@@ -15,6 +16,15 @@ let globalReconnectTimeout: ReturnType<typeof setTimeout> | null = null
 let globalConnectTimeout: ReturnType<typeof setTimeout> | null = null
 let isIntentionalDisconnect = false
 const messageListeners = new Set<WSMessageListener>()
+
+function getAuthenticatedWebSocketUrl() {
+	const url = new URL(resolveWebSocketUrl())
+	const accessToken = getAuthTokens()?.accessToken
+	if (accessToken) {
+		url.searchParams.set('access_token', accessToken)
+	}
+	return url.toString()
+}
 
 export function onWSMessage(listener: WSMessageListener) {
   messageListeners.add(listener)
@@ -40,7 +50,7 @@ export function useWebSocket(enabled: boolean = true) {
         return
       }
 
-		const wsUrl = resolveWebSocketUrl()
+		const wsUrl = getAuthenticatedWebSocketUrl()
 
       const ws = new WebSocket(wsUrl)
 
@@ -105,7 +115,7 @@ export function useWebSocket(enabled: boolean = true) {
     disconnect()
     isIntentionalDisconnect = false
     setTimeout(() => {
-		const wsUrl = resolveWebSocketUrl()
+		const wsUrl = getAuthenticatedWebSocketUrl()
 
       globalWs = new WebSocket(wsUrl)
     }, 100)

@@ -46,6 +46,9 @@ func createAuthMiddleware(jwtSecret string, sessionValidator ...SessionValidator
 					}
 				}
 			}
+			if token == "" {
+				token = r.URL.Query().Get("access_token")
+			}
 
 			// No token found
 			if token == "" {
@@ -116,6 +119,9 @@ func OptionalAuthMiddleware(jwtSecret string, sessionValidator ...SessionValidat
 						token = parts[1]
 					}
 				}
+			}
+			if token == "" {
+				token = r.URL.Query().Get("access_token")
 			}
 
 			if token == "" {

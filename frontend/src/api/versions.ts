@@ -1,4 +1,4 @@
-import { get, put, del, getCSRFToken } from './client'
+import { get, put, del, getCSRFToken, getAuthHeaders } from './client'
 import type { VersionWithMetadata, UpdateVersionRequest } from '../types/api'
 import { resolveApiUrl } from './server'
 
@@ -27,7 +27,10 @@ export async function uploadVersion(
 	const response = await fetch(resolveApiUrl(`/api/tracks/${trackId}/versions/upload`), {
 		method: 'POST',
 		credentials: 'include',
-		headers: getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {},
+		headers: {
+			...getAuthHeaders(),
+			...(getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {}),
+		},
 		body: formData,
 	})
 
@@ -50,7 +53,10 @@ export async function activateVersion(versionId: number): Promise<void> {
 	const response = await fetch(resolveApiUrl(`/api/versions/${versionId}/activate`), {
 		method: 'POST',
 		credentials: 'include',
-		headers: getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {},
+		headers: {
+			...getAuthHeaders(),
+			...(getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {}),
+		},
 	})
 
   if (!response.ok) {
@@ -71,6 +77,7 @@ export async function downloadVersion(trackId: string, versionId: number): Promi
 	const response = await fetch(getVersionDownloadUrl(trackId, versionId), {
 		method: 'GET',
 		credentials: 'include',
+		headers: getAuthHeaders(),
 	})
 
   if (!response.ok) {

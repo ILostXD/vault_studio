@@ -35,6 +35,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { trackKeys } from "@/hooks/useTracks";
 import { usePrefetchSharingData } from "@/hooks/useSharing";
 import { resolveApiUrl } from "@/api/server";
+import { getAuthHeaders } from "@/api/client";
 
 interface TrackDetailsModalProps {
   isOpen: boolean;
@@ -337,7 +338,9 @@ function TrackDetailsModal({
       const downloadUrl = resolveApiUrl(
         `/api/share/${shareToken}/track/${trackId}/download`,
       );
-      const response = await fetch(downloadUrl);
+      const response = await fetch(downloadUrl, {
+        headers: getAuthHeaders(),
+      });
 
       if (!response.ok) {
         throw new Error(`Download failed: ${response.statusText}`);

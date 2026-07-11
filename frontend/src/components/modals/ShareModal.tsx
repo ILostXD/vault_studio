@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { toast } from "@/routes/__root";
 import { useAuth } from "@/contexts/AuthContext";
-import { getCSRFToken } from "@/api/client";
+import { getAuthHeaders, getCSRFToken } from "@/api/client";
 import { resolveApiUrl } from "@/api/server";
 import type { VisibilityStatus, ShareToken } from "@/types/api";
 import {
@@ -155,6 +155,7 @@ export default function ShareModal({
         const response = await fetch(resolveApiUrl(endpoint), {
           method: "POST",
           headers: {
+            ...getAuthHeaders(),
             "Content-Type": "application/json",
             ...(getCSRFToken() ? { "X-CSRF-Token": getCSRFToken() as string } : {}),
           },
@@ -181,6 +182,7 @@ export default function ShareModal({
         const response = await fetch(resolveApiUrl(endpoint), {
           method: "DELETE",
           headers: {
+            ...getAuthHeaders(),
             ...(getCSRFToken() ? { "X-CSRF-Token": getCSRFToken() as string } : {}),
           },
           credentials: "include",

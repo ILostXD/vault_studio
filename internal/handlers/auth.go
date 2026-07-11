@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"net"
 	"net/http"
 
@@ -74,9 +75,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) error {
 
 	httputil.SetAuthCookies(w, session.AccessToken, session.RefreshToken, session.CSRFToken, h.authConfig)
 
-	return httputil.CreatedResult(w, map[string]interface{}{
-		"user": serviceUserToResponse(result.User),
-	})
+	return httputil.CreatedResult(w, authResponse(result.User, session))
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) error {
@@ -102,9 +101,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) error {
 
 	httputil.SetAuthCookies(w, session.AccessToken, session.RefreshToken, session.CSRFToken, h.authConfig)
 
-	return httputil.OKResult(w, map[string]interface{}{
-		"user": serviceUserToResponse(user),
-	})
+	return httputil.OKResult(w, authResponse(user, session))
 }
 
 func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) error {
@@ -189,9 +186,7 @@ func (h *AuthHandler) RegisterWithInvite(w http.ResponseWriter, r *http.Request)
 
 	httputil.SetAuthCookies(w, session.AccessToken, session.RefreshToken, session.CSRFToken, h.authConfig)
 
-	return httputil.CreatedResult(w, map[string]interface{}{
-		"user": serviceUserToResponse(result.User),
-	})
+	return httputil.CreatedResult(w, authResponse(result.User, session))
 }
 
 func (h *AuthHandler) ResetPassword(w http.ResponseWriter, r *http.Request) error {
@@ -291,21 +286,31 @@ func (h *AuthHandler) DeleteSelf(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) error {
+	refreshToken := ""
 	refreshCookie, err := r.Cookie(auth.RefreshTokenCookieName)
-	if err != nil || refreshCookie.Value == "" {
+	if err == nil {
+		refreshToken = refreshCookie.Value
+	}
+
+	if refreshToken == "" {
+		var req RefreshRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err == nil {
+			refreshToken = req.RefreshToken
+		}
+	}
+
+	if refreshToken == "" {
 		return apperr.NewUnauthorized("missing refresh token")
 	}
 
 	meta := sessionMetaFromRequest(r)
-	session, err := h.authService.RefreshSession(r.Context(), refreshCookie.Value, meta)
+	session, err := h.authService.RefreshSession(r.Context(), refreshToken, meta)
 	if err != nil {
 		return mapAuthError(err)
 	}
 
 	httputil.SetAuthCookies(w, session.AccessToken, session.RefreshToken, session.CSRFToken, h.authConfig)
-	return httputil.OKResult(w, map[string]interface{}{
-		"user": serviceUserToResponse(session.User),
-	})
+	return httputil.OKResult(w, authResponse(session.User, session))
 }
 
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) error {
@@ -346,4 +351,13 @@ func serviceUserToResponse(user *authsvc.User) map[string]interface{} {
 	}
 
 	return response
+}
+
+func authResponse(user *authsvc.User, session *authsvc.Session) map[string]interface{} {
+	return map[string]interface{}{
+		"user":          serviceUserToResponse(user),
+		"access_token":  session.AccessToken,
+		"refresh_token": session.RefreshToken,
+		"csrf_token":    session.CSRFToken,
+	}
 }

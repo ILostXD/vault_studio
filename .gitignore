@@ -1,6 +1,7 @@
 bin/
 /server
 tmp/
+.cache/
 *.exe
 *.exe~
 *.dll

@@ -162,12 +162,8 @@ export function LoginForm({
               }
             }}
             disabled={isLoading}
-            className="border-(--card-border)/50 text-(--text-0) text-lg
+            className="themed-input-surface text-(--text-0) text-lg
             md:text-lg placeholder:text-(--text-0)/40 h-12 rounded-2xl px-5"
-            style={{
-              background:
-                "linear-gradient(0deg, #1D1D1D 0%, rgba(40, 40, 40, 0.22) 100%)",
-            }}
           />
         </div>
 
@@ -194,12 +190,8 @@ export function LoginForm({
               }
             }}
             disabled={isLoading}
-            className="border-(--card-border)/50 text-(--text-0) text-lg
+            className="themed-input-surface text-(--text-0) text-lg
             md:text-lg placeholder:text-(--text-0)/40 h-12 rounded-2xl px-5"
-            style={{
-              background:
-                "linear-gradient(0deg, #1D1D1D 0%, rgba(40, 40, 40, 0.22) 100%)",
-            }}
           />
         </div>
 
@@ -211,10 +203,7 @@ export function LoginForm({
             handleSubmit();
           }}
           disabled={isLoading}
-          className="w-full border border-(--card-border) hover:brightness-110 text-(--text-0) font-semibold text-lg h-12 rounded-2xl transition-all mt-6 relative overflow-hidden"
-          style={{
-            background: "linear-gradient(0deg, #1D1D1D 0%, #282828 100%)",
-          }}
+          className="w-full btn-surface hover:brightness-110 text-(--text-0) font-semibold text-lg h-12 rounded-2xl transition-all mt-6 relative overflow-hidden"
         >
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.div

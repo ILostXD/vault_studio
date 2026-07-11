@@ -150,13 +150,12 @@ function LoginPage() {
                     }
                   }}
                   placeholder="http://192.168.1.253:8080"
-                  className="border-(--card-border)/50 text-(--text-0) text-base md:text-base placeholder:text-(--text-0)/40 h-12 rounded-2xl px-5"
+                  className="themed-input-surface text-(--text-0) text-base md:text-base placeholder:text-(--text-0)/40 h-12 rounded-2xl px-5"
                 />
                 <Button
                   type="button"
-                  variant="outline"
                   onClick={() => applyServerUrl({ recheck: true })}
-                  className="h-12 rounded-2xl px-4"
+                  className="btn-surface h-12 rounded-2xl px-5 min-w-[94px]"
                 >
                   Apply
                 </Button>

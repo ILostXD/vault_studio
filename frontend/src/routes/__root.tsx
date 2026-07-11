@@ -189,7 +189,7 @@ function getAndroidSystemBarColor(theme?: string | null) {
   }
 
   return {
-    color: "#121212",
+    color: "#181818",
     style: SystemBarsStyle.Dark,
   };
 }

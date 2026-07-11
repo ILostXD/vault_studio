@@ -43,7 +43,7 @@ import * as organizationApi from "@/api/organization";
 import * as sharingApi from "@/api/sharing";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { downloadTrack, getTrack } from "@/api/tracks";
-import { getCSRFToken } from "@/api/client";
+import { getAuthHeaders, getCSRFToken } from "@/api/client";
 import { resolveApiMediaUrl } from "@/api/media";
 import { resolveApiUrl } from "@/api/server";
 import { toast } from "@/routes/__root";
@@ -804,6 +804,7 @@ export default function DraggableProjectGrid({
         {
           method: "DELETE",
           headers: {
+            ...getAuthHeaders(),
             ...(getCSRFToken()
               ? { "X-CSRF-Token": getCSRFToken() as string }
               : {}),

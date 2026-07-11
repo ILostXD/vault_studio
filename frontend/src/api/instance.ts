@@ -1,4 +1,4 @@
-import { get, post, getCSRFToken } from './client'
+import { get, post, getCSRFToken, getAuthHeaders } from './client'
 import { resolveApiUrl } from './server'
 
 export async function getExportSize(): Promise<number> {
@@ -16,6 +16,7 @@ export async function exportInstance(): Promise<ExportResult> {
 		const response = await fetch(resolveApiUrl('/api/admin/instance/export'), {
 			method: 'GET',
 			credentials: 'include',
+			headers: getAuthHeaders(),
 		})
 
     if (!response.ok) {
@@ -55,7 +56,10 @@ export async function importInstance(file: File): Promise<void> {
 	const response = await fetch(resolveApiUrl('/api/admin/instance/import'), {
 		method: 'POST',
 		credentials: 'include',
-		headers: getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {},
+		headers: {
+			...getAuthHeaders(),
+			...(getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {}),
+		},
 		body: formData,
 	})
 

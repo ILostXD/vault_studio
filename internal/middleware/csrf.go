@@ -26,6 +26,11 @@ func CSRFMiddleware(config CSRFMiddlewareConfig) func(http.Handler) http.Handler
 				}
 			}
 
+			if strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") {
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			csrfCookie, err := r.Cookie(auth.CSRFCookieName)
 			if err != nil || csrfCookie.Value == "" {
 				http.Error(w, "missing csrf token", http.StatusForbidden)

@@ -1,4 +1,4 @@
-import { get, post, put, del, getCSRFToken } from './client'
+import { get, post, put, del, getCSRFToken, getAuthHeaders } from './client'
 import type { Track, TrackWithShareInfo, CreateTrackRequest, UpdateTrackRequest } from '../types/api'
 import { resolveApiUrl } from './server'
 
@@ -56,7 +56,10 @@ export async function uploadTrack(
 	const response = await fetch(resolveApiUrl('/api/library/upload'), {
 		method: 'POST',
 		credentials: 'include',
-		headers: getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {},
+		headers: {
+			...getAuthHeaders(),
+			...(getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {}),
+		},
 		body: formData,
 	})
 
@@ -79,6 +82,7 @@ export async function downloadTrack(trackId: string, versionId: number): Promise
 	const response = await fetch(resolveApiUrl(`/api/tracks/${trackId}/versions/${versionId}/download`), {
 		method: 'GET',
 		credentials: 'include',
+		headers: getAuthHeaders(),
 	})
 
   if (!response.ok) {

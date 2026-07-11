@@ -12,6 +12,7 @@ import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveApiUrl } from "@/api/server";
 import { Button } from "@/components/ui/button";
+import { getAuthHeaders } from "@/api/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -257,7 +258,9 @@ export default function SharedProjectView({
       const toastId = toast.loading("Preparing download...");
       const downloadUrl = resolveApiUrl(`/api/share/${shareToken}/download`);
 
-      const response = await fetch(downloadUrl);
+      const response = await fetch(downloadUrl, {
+        headers: getAuthHeaders(),
+      });
 
       if (!response.ok) {
         throw new Error(`Download failed: ${response.statusText}`);

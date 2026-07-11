@@ -13,12 +13,17 @@
   font-weight: 100 200 300 400 500 600 700 800 900;
 }
 
+html,
+body,
+#app {
+  background-color: var(--bg-0);
+}
+
 body {
   @apply m-0;
   font-family: "Overused Grotesk", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--bg-0);
 }
 
 code,
