@@ -7,7 +7,7 @@ import {
   useEffect,
   useCallback,
 } from "react";
-import { getStreamUrl } from "../api/media";
+import { getStreamUrl, resolveApiMediaUrl } from "../api/media";
 import { resolveApiUrl } from "../api/server";
 import { createShuffledPlaylist } from "../lib/optimalShuffle";
 import { useAuth } from "./AuthContext";
@@ -15,6 +15,11 @@ import { usePreferences } from "./PreferencesContext";
 import { getTrack as fetchTrack } from "../api/tracks";
 import { getVersions } from "../api/versions";
 import { preloadCover } from "../hooks/useProjectCoverImage";
+import {
+  hasNativeMediaSession,
+  NativeMediaSession,
+  type NativeMediaActionEvent,
+} from "../lib/nativeMediaSession";
 
 interface Track {
   id: string;
@@ -464,9 +469,28 @@ export function AudioPlayerProvider({
       const isPreloaded =
         preloadedTrackIdRef.current === track.id && preloadAudioRef.current;
 
+      const preloadedStreamUrl =
+        isPreloaded && !forceReload ? preloadAudioRef.current?.src : null;
+
       if (isPreloaded && !forceReload) {
         preloadedTrackIdRef.current = null;
         preloadAudioRef.current = null;
+      }
+
+      if (preloadedStreamUrl) {
+        setCurrentTrack(track);
+        setAudioUrl(preloadedStreamUrl);
+        setIsPlaying(autoPlay);
+
+        void ensureTrackWaveform(track).then((trackWithWaveform) => {
+          if (playRequestIdRef.current !== requestId) return;
+          setCurrentTrack((activeTrack) =>
+            activeTrack?.id === track.id ? trackWithWaveform : activeTrack,
+          );
+        });
+
+        setTimeout(() => preloadNextTrack(), 100);
+        return;
       }
 
       let trackToPlay = track;
@@ -807,6 +831,27 @@ export function AudioPlayerProvider({
   }, []);
 
   useEffect(() => {
+    if (hasNativeMediaSession) {
+      if (!currentTrack) return;
+
+      const artist =
+        (typeof currentTrack.artist === "string" &&
+        currentTrack.artist.trim().length > 0
+          ? currentTrack.artist
+          : currentTrack.projectName) ?? "Unknown Artist";
+      const artworkUrl = resolveApiMediaUrl(currentTrack.projectCoverUrl);
+
+      void NativeMediaSession.setMetadata({
+        title: currentTrack.title || "Unknown Track",
+        artist,
+        album: currentTrack.projectName ?? "{vault}",
+        ...(artworkUrl ? { artworkUrl } : {}),
+      }).catch((error) => {
+        console.error("[Native Media Session] Failed to set metadata:", error);
+      });
+      return;
+    }
+
     if (!("mediaSession" in navigator) || !currentTrack) {
       if ("mediaSession" in navigator) {
         navigator.mediaSession.metadata = null;
@@ -848,11 +893,76 @@ export function AudioPlayerProvider({
   }, [queue, currentTrack]);
 
   useEffect(() => {
+    if (hasNativeMediaSession) {
+      void NativeMediaSession.setPlaybackState({
+        state: currentTrack ? (isPlaying ? "playing" : "paused") : "none",
+      }).catch((error) => {
+        console.error(
+          "[Native Media Session] Failed to set playback state:",
+          error,
+        );
+      });
+      return;
+    }
+
     if (!("mediaSession" in navigator)) return;
-    navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
-  }, [isPlaying]);
+    navigator.mediaSession.playbackState = currentTrack
+      ? isPlaying
+        ? "playing"
+        : "paused"
+      : "none";
+  }, [currentTrack, isPlaying]);
 
   useEffect(() => {
+    if (hasNativeMediaSession) {
+      let listener: { remove: () => Promise<void> } | undefined;
+      let disposed = false;
+
+      const handleAction = (event: NativeMediaActionEvent) => {
+        switch (event.action) {
+          case "play":
+            resume();
+            break;
+          case "pause":
+            pause();
+            break;
+          case "previousTrack":
+            previousTrack();
+            break;
+          case "nextTrack":
+            nextTrack();
+            break;
+          case "seekTo":
+            if (event.seekTime !== undefined) seekTo(event.seekTime);
+            break;
+          case "stop":
+            stop();
+            break;
+        }
+      };
+
+      void NativeMediaSession.addListener("action", handleAction).then(
+        (handle) => {
+          if (disposed) {
+            void handle.remove();
+          } else {
+            listener = handle;
+          }
+        },
+        (error) => {
+          console.error(
+            "[Native Media Session] Failed to register controls:",
+            error,
+          );
+        },
+      );
+
+      return () => {
+        disposed = true;
+        if (listener) void listener.remove();
+      };
+    }
+
     if (!("mediaSession" in navigator)) return;
 
     const handlers = {
@@ -880,10 +990,36 @@ export function AudioPlayerProvider({
         navigator.mediaSession.playbackState = "none";
       }
     };
-  }, [resume, pause, previousTrack, nextTrack, seekTo]);
+  }, [resume, pause, previousTrack, nextTrack, seekTo, stop]);
 
   useEffect(() => {
-    if (!("mediaSession" in navigator) || !currentTrack) return;
+    if (!currentTrack) return;
+
+    if (hasNativeMediaSession) {
+      const updateNativePosition = () => {
+        const audio = audioPlayerRef.current?.audio?.current;
+        if (!audio || Number.isNaN(audio.duration) || audio.duration <= 0) {
+          return;
+        }
+
+        void NativeMediaSession.setPositionState({
+          duration: audio.duration,
+          playbackRate: audio.playbackRate,
+          position: audio.currentTime,
+        }).catch((error) => {
+          console.error(
+            "[Native Media Session] Failed to set position:",
+            error,
+          );
+        });
+      };
+
+      updateNativePosition();
+      const interval = setInterval(updateNativePosition, 1000);
+      return () => clearInterval(interval);
+    }
+
+    if (!("mediaSession" in navigator)) return;
 
     const updatePosition = () => {
       if (!audioPlayerRef.current?.audio?.current) return;
@@ -936,6 +1072,10 @@ export function AudioPlayerProvider({
       if ("mediaSession" in navigator) {
         navigator.mediaSession.metadata = null;
         navigator.mediaSession.playbackState = "none";
+      }
+
+      if (hasNativeMediaSession) {
+        void NativeMediaSession.setPlaybackState({ state: "none" });
       }
 
       setShareTokenVersion((version) => version + 1);

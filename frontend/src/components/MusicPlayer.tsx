@@ -838,6 +838,7 @@ export default function MusicPlayer({
         loop={loopMode === "track"}
         preload="auto"
         crossOrigin="anonymous"
+        playsInline
       />
 
       {!hideControls && (
