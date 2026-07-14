@@ -18,6 +18,7 @@ services:
       - SIGNED_URL_TTL=${SIGNED_URL_TTL:-5m}
       - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost,http://192.168.1.253}
       - LOG_LEVEL=${LOG_LEVEL:-warn}
+      - AUDIO_ANALYSIS_URL=http://audio-analysis:8001
     volumes:
       - ./data:/app/data
     healthcheck:
@@ -29,6 +30,33 @@ services:
           "--tries=1",
           "--spider",
           "http://localhost:8080/api/health",
+        ]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - vault-network
+    depends_on:
+      audio-analysis:
+        condition: service_healthy
+
+  audio-analysis:
+    build:
+      context: ./audio-analysis
+    container_name: vault-audio-analysis
+    restart: unless-stopped
+    environment:
+      - AUDIO_DATA_ROOT=/app/data
+    volumes:
+      - ./data:/app/data:ro
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python3",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8001/health', timeout=2)",
         ]
       interval: 30s
       timeout: 3s

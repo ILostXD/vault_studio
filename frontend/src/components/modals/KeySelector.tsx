@@ -370,7 +370,7 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
                     "text-[9px] font-medium flex items-center justify-center",
                     flatSelected
                       ? "bg-blue-500 text-(--text-0) shadow-lg shadow-blue-500/50 z-20"
-                      : "bg-linear-to-b from-[#252525] to-[#1a1a1a] text-(--text-0)/40 hover:from-[#2e2e2e] hover:to-[#2a2a2a]",
+                      : "bg-linear-to-b from-(--button-gradient-from) to-(--button-gradient-to) text-(--text-0)/40 hover:brightness-110",
                     "border-l border-r border-b border-white/5",
                   )}
                 >

@@ -358,6 +358,17 @@ code,
   );
 }
 
+.overlay-fade-bottom {
+  background: linear-gradient(
+    to top,
+    var(--surface-overlay-from) 50%,
+    color-mix(in srgb, var(--surface-overlay-from) 85%, transparent) 65%,
+    color-mix(in srgb, var(--surface-overlay-from) 60%, transparent) 75%,
+    color-mix(in srgb, var(--surface-overlay-from) 10%, transparent) 90%,
+    transparent 100%
+  );
+}
+
 .themed-control {
   border: 1px solid var(--control-border);
   background: var(--control-bg);

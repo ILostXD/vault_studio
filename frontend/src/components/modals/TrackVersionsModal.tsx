@@ -62,6 +62,8 @@ interface TrackVersionsModalProps {
   onTrackUpdate?: (updates: {
     active_version_id?: number;
     title?: string;
+    bpm?: number;
+    key?: string;
   }) => void;
   showBackdrop?: boolean;
   canEdit?: boolean;
@@ -92,6 +94,9 @@ export default function TrackVersionsModal({
   const [versions, setVersions] = useState<VersionWithMetadata[]>([]);
   const [isLoadingVersions, setIsLoadingVersions] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [activatingVersionId, setActivatingVersionId] = useState<number | null>(
+    null,
+  );
   const [activeVersionId, setActiveVersionId] = useState<number | null>(
     track.active_version_id || null,
   );
@@ -514,11 +519,22 @@ export default function TrackVersionsModal({
   };
 
   const handleActivateVersion = async (versionId: number) => {
+    setActivatingVersionId(versionId);
     try {
-      await activateVersion(versionId);
+      const analysis = await activateVersion(versionId);
       hapticFeedback.trigger("success");
       setActiveVersionId(versionId);
-      onTrackUpdate?.({ active_version_id: versionId });
+      if (analysis.bpm !== undefined) {
+        setEditedBpm(analysis.bpm);
+      }
+      if (analysis.key !== undefined) {
+        setEditedKey(analysis.key);
+      }
+      onTrackUpdate?.({
+        active_version_id: versionId,
+        bpm: analysis.bpm,
+        key: analysis.key,
+      });
 
       if (currentTrack?.id === trackId) {
         clearPreloadedAudio();
@@ -537,6 +553,8 @@ export default function TrackVersionsModal({
       hapticFeedback.trigger("error");
       toast.error("Failed to activate version");
       console.error("Failed to activate version:", error);
+    } finally {
+      setActivatingVersionId(null);
     }
   };
 
@@ -1268,7 +1286,13 @@ export default function TrackVersionsModal({
                                   </p>
                                 </div>
 
-                                <div onClick={(e) => e.stopPropagation()}>
+                                <div
+                                  className="flex items-center gap-2"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {activatingVersionId === version.id && (
+                                    <Loader2 className="size-4 animate-spin text-(--text-0)/70" />
+                                  )}
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                       <Button
@@ -1326,13 +1350,7 @@ export default function TrackVersionsModal({
                       )}
                     </div>
 
-                    <div
-                      className="absolute bottom-0 left-0 right-0 h-[140px] z-10 pointer-events-none rounded-bl-[33px] rounded-br-[33px]"
-                      style={{
-                        background:
-                          "linear-gradient(to top, #151515 50%, rgba(21, 21, 21, 1) 55%, rgba(21, 21, 21, 0.85) 60%, rgba(21, 21, 21, 0.7) 65%, rgba(21, 21, 21, 0.6) 70%, rgba(21, 21, 21, 0.3) 75%, rgba(21, 21, 21, 0.1) 90%, transparent 100%)",
-                      }}
-                    />
+                    <div className="overlay-fade-bottom absolute bottom-0 left-0 right-0 h-[140px] z-10 pointer-events-none rounded-bl-[33px] rounded-br-[33px]" />
 
                     <input
                       ref={fileInputRef}
@@ -1344,7 +1362,8 @@ export default function TrackVersionsModal({
 
                     <div className="absolute bottom-0 left-0 right-0 flex items-center gap-4 px-6 pb-6 z-20">
                       <Button
-                        className="flex-1 bg-[#1e1e1e] border border-[#2e2e2e] hover:bg-[#252525] active:bg-[#2a2a2a] text-(--text-0) rounded-xl h-[41px]"
+                        variant="outline"
+                        className="flex-1 rounded-xl h-[41px]"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isUploading || !canEdit}
                       >

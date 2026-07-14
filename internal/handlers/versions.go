@@ -16,6 +16,7 @@ import (
 	sqlc "bungleware/vault/internal/db/sqlc"
 	"bungleware/vault/internal/handlers/tracks"
 	"bungleware/vault/internal/httputil"
+	"bungleware/vault/internal/service"
 	"bungleware/vault/internal/storage"
 	"bungleware/vault/internal/transcoding"
 )
@@ -254,7 +255,24 @@ func (h *VersionsHandler) ActivateVersion(w http.ResponseWriter, r *http.Request
 		return apperr.NewInternal("failed to activate version", err)
 	}
 
-	return httputil.NoContentResult(w)
+	response := ActivateVersionResponse{}
+	sourceFile, err := h.db.GetTrackFile(ctx, sqlc.GetTrackFileParams{
+		VersionID: versionID,
+		Quality:   "source",
+	})
+	if err == nil {
+		analysis, analysisErr := service.AnalyzeTrack(ctx, h.db.Queries, track.ID, sourceFile.FilePath)
+		if analysisErr != nil {
+			slog.Warn("automatic audio analysis failed", "track_id", track.ID, "version_id", versionID, "error", analysisErr)
+		} else {
+			response.BPM = &analysis.BPM
+			response.Key = &analysis.Key
+		}
+	} else {
+		slog.Warn("source file unavailable for automatic audio analysis", "track_id", track.ID, "version_id", versionID, "error", err)
+	}
+
+	return httputil.OKResult(w, response)
 }
 
 func (h *VersionsHandler) DeleteVersion(w http.ResponseWriter, r *http.Request) error {

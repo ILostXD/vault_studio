@@ -49,7 +49,12 @@ export async function updateVersion(
   return put<VersionWithMetadata>(`/api/versions/${versionId}`, data)
 }
 
-export async function activateVersion(versionId: number): Promise<void> {
+export interface ActivateVersionResponse {
+  bpm?: number
+  key?: string
+}
+
+export async function activateVersion(versionId: number): Promise<ActivateVersionResponse> {
 	const response = await fetch(resolveApiUrl(`/api/versions/${versionId}/activate`), {
 		method: 'POST',
 		credentials: 'include',
@@ -63,6 +68,8 @@ export async function activateVersion(versionId: number): Promise<void> {
     const error = await response.json().catch(() => ({ error: 'Failed to activate version' }))
     throw new Error(error.error || 'Failed to activate version')
   }
+
+  return response.json()
 }
 
 export async function deleteVersion(versionId: number): Promise<void> {

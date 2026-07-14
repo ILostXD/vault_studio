@@ -491,7 +491,7 @@ export default function GlobalSearchModal({
                                 <ProjectSearchCover project={item} />
                               </div>
                             ) : (
-                              <div className="relative h-14 w-14 shrink-0 rounded-full bg-[#1a1a1a] overflow-hidden border border-[rgba(124,124,124,0.3)]">
+                              <div className="relative h-14 w-14 shrink-0 rounded-full bg-(--bg-2) overflow-hidden border border-(--control-border)">
                                 <TrackSearchCover track={item} />
                               </div>
                             )}

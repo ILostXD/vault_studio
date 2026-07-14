@@ -228,8 +228,8 @@ export default function EditProfileModal({
 
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-1000 flex items-center justify-center p-0 md:p-4 pointer-events-none">
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-0 md:gap-8 pointer-events-auto max-h-full md:max-h-none overflow-y-auto md:overflow-visible">
+          <div className="fixed inset-0 z-1000 flex items-stretch md:items-center justify-center p-0 md:p-4 pointer-events-none overflow-y-auto overscroll-contain">
+            <div className="flex min-h-full w-full flex-col items-center gap-0 py-0 pointer-events-auto md:min-h-0 md:w-auto md:flex-row md:items-start md:gap-8 md:py-4">
               <motion.div
                 layoutId="profile-disc-badge"
                 className="hidden md:flex flex-col items-center"
@@ -273,10 +273,10 @@ export default function EditProfileModal({
                   damping: 35,
                   mass: 0.8,
                 }}
-                className="relative z-10 w-full max-w-full md:max-w-[500px] min-h-[100dvh] md:min-h-0 border-0 md:border border-(--card-border) rounded-none md:rounded-[34px] shadow-2xl overflow-hidden overlay-surface text-(--text-0)"
+                className="relative z-10 w-full max-w-full md:max-w-[500px] min-h-[100dvh] md:min-h-0 border-0 md:border border-(--card-border) rounded-none md:rounded-[34px] shadow-2xl overflow-visible md:overflow-hidden overlay-surface text-(--text-0)"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="p-6">
+                <div className="p-4 sm:p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-medium text-(--text-0)">
                       Edit Profile
@@ -312,7 +312,7 @@ export default function EditProfileModal({
                       <label className="text-(--text-1) text-sm mb-2 block">
                         Disc Colors
                       </label>
-                      <div className="bg-(--inner-card-bg) border border-(--card-border) rounded-[12px] p-6 relative">
+                      <div className="bg-(--inner-card-bg) border border-(--card-border) rounded-[12px] p-3 sm:p-6 relative overflow-hidden">
                         <DotPattern
                           width={10}
                           height={10}
@@ -322,7 +322,7 @@ export default function EditProfileModal({
                         />
                         <div className="flex flex-col items-center gap-4 relative z-10">
                           <ColorPicker
-                            size={280}
+                            size={Math.max(180, Math.min(280, typeof window === "undefined" ? 280 : window.innerWidth - 88))}
                             padding={20}
                             bulletRadius={24}
                             spreadFactor={gradientSpread / 100}

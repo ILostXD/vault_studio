@@ -238,7 +238,7 @@ export default function QueuePanel({ isOpen, onClose }: QueuePanelProps) {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            className="relative flex items-center justify-between gap-3 rounded-2xl p-3 bg-[#1D1D1D] shadow-lg ring-1 ring-white/20 text-(--text-0) cursor-grabbing"
+                            className="relative flex items-center justify-between gap-3 rounded-2xl p-3 bg-(--bg-2) shadow-lg ring-1 ring-(--control-border) text-(--text-0) cursor-grabbing"
                             style={{
                               ...provided.draggableProps.style,
                               width: "calc(min(100vw - 1rem, 800px) - 20px)",

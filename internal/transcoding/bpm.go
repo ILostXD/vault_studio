@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -40,12 +43,29 @@ type ErrorResponse struct {
 }
 
 const (
-	BPMServiceURL     = "http://127.0.0.1:8001"
-	BPMServiceTimeout = 30 * time.Second
+	defaultAudioAnalysisServiceURL = "http://127.0.0.1:8001"
+	audioAnalysisServiceTimeout    = 2 * time.Minute
 )
 
-func callAudioService[T any](endpoint string, filePath string, serviceName string) (T, error) {
+var ErrAudioAnalysisDisabled = errors.New("audio analysis is disabled")
+
+func audioAnalysisServiceURL() string {
+	serviceURL := strings.TrimSpace(os.Getenv("AUDIO_ANALYSIS_URL"))
+	if serviceURL == "disabled" {
+		return ""
+	}
+	if serviceURL == "" {
+		return defaultAudioAnalysisServiceURL
+	}
+	return strings.TrimRight(serviceURL, "/")
+}
+
+func callAudioService[T any](ctx context.Context, endpoint string, filePath string, serviceName string) (T, error) {
 	var result T
+	serviceURL := audioAnalysisServiceURL()
+	if serviceURL == "" {
+		return result, ErrAudioAnalysisDisabled
+	}
 
 	absFilePath, err := filepath.Abs(filePath)
 	if err != nil {
@@ -62,16 +82,16 @@ func callAudioService[T any](endpoint string, filePath string, serviceName strin
 	}
 
 	client := &http.Client{
-		Timeout: BPMServiceTimeout,
+		Timeout: audioAnalysisServiceTimeout,
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), BPMServiceTimeout)
+	ctx, cancel := context.WithTimeout(ctx, audioAnalysisServiceTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(
 		ctx,
 		"POST",
-		BPMServiceURL+endpoint,
+		serviceURL+endpoint,
 		bytes.NewBuffer(jsonData),
 	)
 	if err != nil {
@@ -83,7 +103,7 @@ func callAudioService[T any](endpoint string, filePath string, serviceName strin
 	resp, err := client.Do(req)
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
-			return result, fmt.Errorf("%s timed out after %v", serviceName, BPMServiceTimeout)
+			return result, fmt.Errorf("%s timed out after %v", serviceName, audioAnalysisServiceTimeout)
 		}
 		return result, fmt.Errorf("failed to connect to audio service: %w (is the service running?)", err)
 	}
@@ -109,8 +129,8 @@ func callAudioService[T any](endpoint string, filePath string, serviceName strin
 	return result, nil
 }
 
-func DetectBPM(filePath string) (int, error) {
-	result, err := callAudioService[BPMResponse]("/detect-bpm", filePath, "BPM detection")
+func DetectBPM(ctx context.Context, filePath string) (int, error) {
+	result, err := callAudioService[BPMResponse](ctx, "/detect-bpm", filePath, "BPM detection")
 	if err != nil {
 		return 0, err
 	}
@@ -122,8 +142,8 @@ func DetectBPM(filePath string) (int, error) {
 	return result.BPM, nil
 }
 
-func DetectKey(filePath string) (string, error) {
-	result, err := callAudioService[KeyResponse]("/detect-key", filePath, "key detection")
+func DetectKey(ctx context.Context, filePath string) (string, error) {
+	result, err := callAudioService[KeyResponse](ctx, "/detect-key", filePath, "key detection")
 	if err != nil {
 		return "", err
 	}
@@ -131,8 +151,8 @@ func DetectKey(filePath string) (string, error) {
 	return result.KeyString, nil
 }
 
-func AnalyzeAudio(filePath string) (bpm int, key string, err error) {
-	result, err := callAudioService[AnalysisResponse]("/analyze", filePath, "audio analysis")
+func AnalyzeAudio(ctx context.Context, filePath string) (bpm int, key string, err error) {
+	result, err := callAudioService[AnalysisResponse](ctx, "/analyze", filePath, "audio analysis")
 	if err != nil {
 		return 0, "", err
 	}

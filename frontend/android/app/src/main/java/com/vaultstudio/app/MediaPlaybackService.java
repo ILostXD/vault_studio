@@ -7,6 +7,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
@@ -81,6 +82,13 @@ public class MediaPlaybackService extends Service {
             MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
             MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
         );
+        mediaSession.setPlaybackToLocal(AudioManager.STREAM_MUSIC);
+        mediaSession.setSessionActivity(PendingIntent.getActivity(
+            this,
+            0,
+            new Intent(this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        ));
         mediaSession.setCallback(new MediaSessionCompat.Callback() {
             @Override public void onPlay() { sendAction("play"); }
             @Override public void onPause() { sendAction("pause"); }
@@ -157,10 +165,15 @@ public class MediaPlaybackService extends Service {
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, safe(title, "Unknown Track"))
             .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, safe(artist, "Unknown Artist"))
             .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, safe(album, "{vault}"))
+            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, safe(artist, "Unknown Artist"))
+            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, safe(title, "Unknown Track"))
+            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, safe(artist, "Unknown Artist"))
+            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, safe(album, "{vault}"))
             .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, durationMs);
         if (artwork != null) {
             builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, artwork);
             builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, artwork);
+            builder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, artwork);
         }
         mediaSession.setMetadata(builder.build());
     }
@@ -200,7 +213,7 @@ public class MediaPlaybackService extends Service {
         PendingIntent next = serviceAction(ACTION_NEXT, 3);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_media_play)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(safe(title, "Unknown Track"))
             .setContentText(safe(artist, "Unknown Artist"))
             .setSubText(safe(album, "{vault}"))

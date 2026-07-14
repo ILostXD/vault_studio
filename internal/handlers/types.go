@@ -136,6 +136,11 @@ type UpdateVersionRequest struct {
 	Notes       *string `json:"notes,omitempty"`
 }
 
+type ActivateVersionResponse struct {
+	BPM *int    `json:"bpm,omitempty"`
+	Key *string `json:"key,omitempty"`
+}
+
 type VersionWithMetadata struct {
 	ID                     int64    `json:"id"`
 	TrackID                int64    `json:"track_id"`

@@ -443,13 +443,7 @@ export function UserManagementModal({
                 </div>
 
                 {/* Bottom gradient overlay */}
-                <div
-                  className="scroll-fade-bottom-gradient absolute bottom-0 left-0 right-0 h-[140px] z-10 pointer-events-none rounded-bl-[33px] rounded-br-[33px]"
-                  style={{
-                    background:
-                      "linear-gradient(to top, #151515 50%, rgba(21, 21, 21, 1) 55%, rgba(21, 21, 21, 0.85) 60%, rgba(21, 21, 21, 0.7) 65%, rgba(21, 21, 21, 0.6) 70%, rgba(21, 21, 21, 0.3) 75%, rgba(21, 21, 21, 0.1) 90%, transparent 100%)",
-                  }}
-                />
+                <div className="scroll-fade-bottom-gradient overlay-fade-bottom absolute bottom-0 left-0 right-0 h-[140px] z-10 pointer-events-none rounded-bl-[33px] rounded-br-[33px]" />
 
                 {/* Bottom Area */}
                 <div className="absolute bottom-0 left-0 right-0 z-20 px-6 pb-6 flex flex-col gap-3">
@@ -463,7 +457,7 @@ export function UserManagementModal({
                         className="rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 p-3"
                         style={{
                           background:
-                            "linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.03) 100%), #151515",
+                            "linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.03) 100%), var(--surface-overlay-from)",
                         }}
                       >
                         <div className="flex items-center justify-between mb-2">
@@ -561,10 +555,10 @@ export function UserManagementModal({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
                          className="rounded-xl border border-accent-blue/20 p-3"
-                         style={{
-                           background:
-                             "linear-gradient(135deg, color-mix(in oklab, var(--accent-color) 10%, transparent) 0%, color-mix(in oklab, var(--accent-color) 3%, transparent) 100%), #151515",
-                         }}
+                           style={{
+                             background:
+                               "linear-gradient(135deg, color-mix(in oklab, var(--accent-color) 10%, transparent) 0%, color-mix(in oklab, var(--accent-color) 3%, transparent) 100%), var(--surface-overlay-from)",
+                           }}
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
@@ -656,7 +650,8 @@ export function UserManagementModal({
                   {/* Buttons */}
                   <div className="flex items-center gap-3">
                     <Button
-                      className="flex-1 bg-gradient-to-b from-[#222222] to-[#1a1a1a] border border-(--border-0) hover:border-(--border-0) hover:from-[#2a2a2a] hover:to-[#222222] text-(--text-0) rounded-xl h-11 shadow-lg shadow-black/20 scale-100"
+                      variant="outline"
+                      className="flex-1 rounded-xl h-11 shadow-lg shadow-black/20 scale-100"
                       onClick={handleCreateInvite}
                     >
                       <Plus className="size-4" />
@@ -664,7 +659,7 @@ export function UserManagementModal({
                     </Button>
                     <Button
                       onClick={onClose}
-                      className="flex-1 bg-gradient-to-b from-[#3a3a3a] to-[#2a2a2a] hover:from-[#444444] hover:to-[#333333] text-(--text-0) border border-[#4a4a4a] rounded-xl h-11 shadow-lg shadow-black/20 scale-100"
+                      className="flex-1 rounded-xl h-11 shadow-lg shadow-black/20 scale-100"
                     >
                       <span className="text-sm font-medium">Done</span>
                     </Button>

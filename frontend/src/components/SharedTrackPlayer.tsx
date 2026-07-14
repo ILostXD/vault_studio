@@ -616,7 +616,7 @@ export default function SharedTrackPlayer({
         onEnded={() => setIsPlaying(false)}
       />
 
-      <div className="w-full sm:w-[200px] aspect-square sm:aspect-auto sm:h-full relative shrink-0 bg-[#1D1D1D] border-b sm:border-b-0 sm:border-r border-(--card-border) pointer-events-none select-none ">
+      <div className="w-full sm:w-[200px] aspect-square sm:aspect-auto sm:h-full relative shrink-0 bg-(--bg-1) border-b sm:border-b-0 sm:border-r border-(--card-border) pointer-events-none select-none ">
         {coverUrl ? (
           <img
             src={coverUrl}
@@ -697,7 +697,7 @@ export default function SharedTrackPlayer({
           </div>
         </div>
 
-        <div className="h-[57px] sm:h-[80px] bg-linear-to-t from-(--card-gradient-from) to-[#282828] border-t border-(--card-border) px-4 sm:px-8 sm:py-0 flex flex-row items-center justify-between relative z-10">
+        <div className="h-[57px] sm:h-[80px] overlay-surface border-t border-(--card-border) px-4 sm:px-8 sm:py-0 flex flex-row items-center justify-between relative z-10">
           <div className="flex flex-col min-w-0 mr-2 sm:mr-auto sm:pr-8 max-w-[25%] sm:max-w-[30%]">
             {allowEditing ? (
               <input
@@ -815,7 +815,7 @@ export default function SharedTrackPlayer({
                     : "opacity-0 pointer-events-none"
                 }`}
               >
-                <div className="bg-[#282828] border border-(--card-border) rounded-2xl px-3 py-3 shadow-lg flex flex-col items-center gap-2 mb-10">
+                <div className="overlay-surface border border-(--card-border) rounded-2xl px-3 py-3 shadow-lg flex flex-col items-center gap-2 mb-10">
                   <Filter
                     id="volume-filter-shared"
                     blur={volumeBlur}

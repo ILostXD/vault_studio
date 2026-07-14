@@ -463,7 +463,7 @@ function TrackDetailsModal({
                       }}
                     >
                       <div
-                        className={`sticky top-0 z-10 ${isSharedView ? "pt-0 px-6 pb-4 md:pb-4 bg-none" : "pt-6 px-6 pb-2 md:static md:p-0 bg-linear-to-b from-[#1a1a1a] from-70% to-transparent md:bg-none"}`}
+                        className={`sticky top-0 z-10 ${isSharedView ? "pt-0 px-6 pb-4 md:pb-4 bg-none" : "pt-6 px-6 pb-2 md:static md:p-0 bg-linear-to-b from-(--surface-overlay-from) from-70% to-transparent md:bg-none"}`}
                       >
                         <Button
                           size="icon-lg"
@@ -516,7 +516,7 @@ function TrackDetailsModal({
                                     ? "opacity-100"
                                     : "opacity-0",
                                 )}
-                                gradientColor="#151515"
+                                gradientColor="#000000"
                                 align="center"
                                 pauseOnHover={false}
                                 isActive={showScrollingTitle}

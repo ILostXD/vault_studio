@@ -1,9 +1,8 @@
-import { DotIcon, Shuffle, Play, Pause, LinkIcon, Users, Info, Music } from "lucide-react";
+import { DotIcon, Shuffle, Play, Pause, LinkIcon, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useWebHaptics } from "web-haptics/react";
 import AlbumCover from "@/components/AlbumCover";
-import ProjectMetadataPanel from "@/components/ProjectMetadataPanel";
-import BaseModal from "@/components/modals/BaseModal";
+import ScrollingText from "@/components/ScrollingText";
 import NotesPanel from "@/components/NotesPanel";
 import LinkNotAvailable from "@/components/LinkNotAvailable";
 import { createFileRoute } from "@tanstack/react-router";
@@ -131,7 +130,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
   const [showCoverPanel, setShowCoverPanel] = useState(false);
   const [coverColorsReady, setCoverColorsReady] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
-  const [isMobileScreen, setIsMobileScreen] = useState(false);
+  const [isEditingMobileTitle, setIsEditingMobileTitle] = useState(false);
 
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -144,7 +143,6 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
   const [isNotesOpen, setIsNotesOpen] = useState(false);
   const [notesTrack, setNotesTrack] = useState<Track | null>(null);
   const [_isDragging, setIsDragging] = useState(false);
-  const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false);
 
   const handleTrackClickRef = useRef<(track: Track) => void>(() => {});
 
@@ -493,20 +491,15 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 
   useEffect(() => {
     const mdQuery = window.matchMedia("(max-width: 768px)");
-    const smQuery = window.matchMedia("(max-width: 640px)");
-    
+
     setIsSmallScreen(mdQuery.matches);
-    setIsMobileScreen(smQuery.matches);
 
     const handleMdChange = (e: MediaQueryListEvent) => setIsSmallScreen(e.matches);
-    const handleSmChange = (e: MediaQueryListEvent) => setIsMobileScreen(e.matches);
 
     mdQuery.addEventListener("change", handleMdChange);
-    smQuery.addEventListener("change", handleSmChange);
 
     return () => {
       mdQuery.removeEventListener("change", handleMdChange);
-      smQuery.removeEventListener("change", handleSmChange);
     };
   }, []);
 
@@ -671,47 +664,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
                 className="hidden"
                 onChange={handleCoverFileChange}
               />
-              
-              <div
-                className="grid grid-cols-3 gap-2 mt-5 w-full transition-transform duration-300 ease-in-out"
-                style={{
-                  transform:
-                    isCurrentProjectPlaying && !isMobileScreen
-                      ? "translateX(0)"
-                      : "translateX(2rem)",
-                }}
-              >
-                <Button
-                  variant="outline"
-                  size="default"
-                  onClick={() => setIsMetadataModalOpen(true)}
-                  className="flex flex-col sm:flex-row md:flex-col xl:flex-row items-center justify-center gap-1 xl:gap-1.5 project-cover-control text-(--text-0)/90 rounded-2xl h-14 md:h-16 xl:h-12 w-full py-1.5 sm:py-2 md:py-1.5 xl:py-2 transition-all"
-                  haptic="light"
-                >
-                  <Info className="size-4 text-(--text-0)/70 shrink-0" />
-                  <span className="text-[9px] sm:text-[10px] font-semibold tracking-wider font-mono">DETAILS</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="default"
-                  disabled
-                  className="flex flex-col sm:flex-row md:flex-col xl:flex-row items-center justify-center gap-1 xl:gap-1.5 project-cover-control-disabled text-(--text-0)/30 rounded-2xl h-14 md:h-16 xl:h-12 w-full py-1.5 sm:py-2 md:py-1.5 xl:py-2 cursor-not-allowed opacity-50"
-                  haptic="light"
-                >
-                  <Music className="size-4 text-(--text-0)/20 shrink-0" />
-                  <span className="text-[9px] sm:text-[10px] font-semibold tracking-wider font-mono">DISTRO</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="default"
-                  disabled
-                  className="flex flex-col sm:flex-row md:flex-col xl:flex-row items-center justify-center gap-1 xl:gap-1.5 project-cover-control-disabled text-(--text-0)/30 rounded-2xl h-14 md:h-16 xl:h-12 w-full py-1.5 sm:py-2 md:py-1.5 xl:py-2 cursor-not-allowed opacity-50"
-                  haptic="light"
-                >
-                  <LinkIcon className="size-4 text-(--text-0)/20 shrink-0" />
-                  <span className="text-[9px] sm:text-[10px] font-semibold tracking-wider font-mono">PROMO</span>
-                </Button>
-              </div></div>
+            </div>
           </motion.div>
 
           <motion.div
@@ -724,7 +677,37 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
             className="flex flex-col text-(--text-0) pt-10 md:pt-0 md:pr-5 md:max-w-lg md:-ml-10"
           >
             <div className="mb-4 -space-y-1">
-              <div className="flex items-center justify-between relative z-20">
+              <div className="flex items-center justify-between gap-2 relative z-20">
+                {isEditingMobileTitle ? (
+                  <input
+                    type="text"
+                    autoFocus
+                    value={editing.projectName}
+                    onChange={(e) => editing.setProjectName(e.target.value)}
+                    onBlur={() => {
+                      editing.handleSaveProjectName();
+                      setIsEditingMobileTitle(false);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") e.currentTarget.blur();
+                    }}
+                    className="sm:hidden min-w-0 flex-1 text-3xl font-semibold bg-transparent border-none p-0 h-auto outline-none text-(--text-0) placeholder:text-(--text-0)/50 focus:ring-0"
+                    placeholder="Project name"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => canEditProject && setIsEditingMobileTitle(true)}
+                    className="sm:hidden min-w-0 flex-1 text-left"
+                    aria-label={canEditProject ? "Edit project name" : undefined}
+                  >
+                    <ScrollingText
+                      text={editing.projectName || "Project name"}
+                      className="text-3xl font-semibold text-(--text-0)"
+                      gradientColor="#000000"
+                    />
+                  </button>
+                )}
                 <input
                   ref={editing.titleInputRef}
                   type="text"
@@ -735,7 +718,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") e.currentTarget.blur();
                   }}
-                  className="text-3xl font-semibold bg-transparent border-none p-0 m-0 h-auto outline-none text-(--text-0) placeholder:text-(--text-0)/50 w-full focus:outline-none focus:ring-0"
+                  className="hidden sm:block min-w-0 flex-1 text-3xl font-semibold bg-transparent border-none p-0 m-0 h-auto outline-none text-(--text-0) placeholder:text-(--text-0)/50 focus:outline-none focus:ring-0"
                   placeholder="Project name"
                 />
                 <div className="flex items-center gap-2 shrink-0">
@@ -993,9 +976,6 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
         isGlobalSearchOpen={search.isGlobalSearchOpen}
         onCloseGlobalSearch={() => search.setIsGlobalSearchOpen(false)}
       />
-      <BaseModal isOpen={isMetadataModalOpen} onClose={() => setIsMetadataModalOpen(false)} maxWidth="lg">
-        <ProjectMetadataPanel project={project} canEdit={!!canEditProject} onClose={() => setIsMetadataModalOpen(false)} />
-      </BaseModal>
     </>
   );
 }

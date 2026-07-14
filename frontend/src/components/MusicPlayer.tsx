@@ -918,7 +918,8 @@ export default function MusicPlayer({
           <div
             className="relative h-[50px] sm:h-[55px] grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-4 border border-(--card-border) border-t-0 rounded-b-[22px] shadow-md"
             style={{
-              background: "linear-gradient(0deg, #1D1D1D 0%, #282828 100%)",
+              background:
+                "linear-gradient(0deg, var(--surface-overlay-from) 0%, var(--surface-overlay-to) 100%)",
             }}
           >
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 z-10 ml-1.5 sm:ml-2">
@@ -951,12 +952,12 @@ export default function MusicPlayer({
                 <ScrollingText
                   text={playerTitle}
                   className="text-(--text-0) font-medium text-sm sm:text-base leading-tight hover:opacity-80 transition-opacity"
-                  gradientColor="#1D1D1D"
+                  gradientColor="#000000"
                 />
                 <ScrollingText
                   text={playerArtist}
                   className="text-[#858585] text-xs sm:text-sm leading-tight hover:opacity-80 transition-opacity"
-                  gradientColor="#1D1D1D"
+                  gradientColor="#000000"
                 />
               </div>
             </div>
@@ -1174,7 +1175,7 @@ export default function MusicPlayer({
                       : "opacity-0 pointer-events-none"
                   }`}
                 >
-                  <div className="bg-[#282828] border border-(--card-border) rounded-[18px] px-3 py-3 shadow-lg flex flex-col items-center gap-2">
+                  <div className="overlay-surface border border-(--card-border) rounded-[18px] px-3 py-3 shadow-lg flex flex-col items-center gap-2">
                     <Filter
                       id="volume-filter"
                       blur={volumeBlur}
