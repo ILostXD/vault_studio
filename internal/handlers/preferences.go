@@ -21,6 +21,7 @@ type PreferencesResponse struct {
 	ColorShiftRotation *int      `json:"color_shift_rotation,omitempty"`
 	AccentColor        string    `json:"accent_color"`
 	Theme              string    `json:"theme"`
+	SystemDarkTheme    string    `json:"system_dark_theme"`
 	CreatedAt          string    `json:"created_at"`
 	UpdatedAt          string    `json:"updated_at"`
 }
@@ -35,12 +36,13 @@ func NewPreferencesHandler(database *db.DB) *PreferencesHandler {
 
 func toPreferencesResponse(prefs sqlc.UserPreference) PreferencesResponse {
 	resp := PreferencesResponse{
-		UserID:         prefs.UserID,
-		DefaultQuality: prefs.DefaultQuality,
-		AccentColor:    prefs.AccentColor,
-		Theme:          prefs.Theme,
-		CreatedAt:      prefs.CreatedAt.Time.Format(time.RFC3339),
-		UpdatedAt:      prefs.UpdatedAt.Time.Format(time.RFC3339),
+		UserID:          prefs.UserID,
+		DefaultQuality:  prefs.DefaultQuality,
+		AccentColor:     prefs.AccentColor,
+		Theme:           prefs.Theme,
+		SystemDarkTheme: prefs.SystemDarkTheme,
+		CreatedAt:       prefs.CreatedAt.Time.Format(time.RFC3339),
+		UpdatedAt:       prefs.UpdatedAt.Time.Format(time.RFC3339),
 	}
 
 	if prefs.DiscColors.Valid && prefs.DiscColors.String != "" {
@@ -105,6 +107,18 @@ func (h *PreferencesHandler) UpdatePreferences(w http.ResponseWriter, r *http.Re
 		}
 	}
 
+	if req.Theme != nil {
+		switch *req.Theme {
+		case "light", "default", "black", "system":
+		default:
+			return apperr.NewBadRequest("invalid theme value")
+		}
+	}
+
+	if req.SystemDarkTheme != nil && *req.SystemDarkTheme != "default" && *req.SystemDarkTheme != "black" {
+		return apperr.NewBadRequest("invalid system dark theme value")
+	}
+
 	ctx := r.Context()
 
 	params := sqlc.UpdateUserPreferencesParams{
@@ -141,6 +155,10 @@ func (h *PreferencesHandler) UpdatePreferences(w http.ResponseWriter, r *http.Re
 
 	if req.Theme != nil {
 		params.Theme = sql.NullString{String: *req.Theme, Valid: true}
+	}
+
+	if req.SystemDarkTheme != nil {
+		params.SystemDarkTheme = sql.NullString{String: *req.SystemDarkTheme, Valid: true}
 	}
 
 	prefs, err := h.db.UpdateUserPreferences(ctx, params)

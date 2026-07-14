@@ -199,7 +199,7 @@ function RootComponent() {
   const isProfileRoute = routerState.location.pathname.startsWith("/profile");
   const isSetupRoute = routerState.location.pathname.startsWith("/reset-setup");
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { preferences } = usePreferences();
+  const { effectiveTheme } = usePreferences();
   const navigate = useNavigate();
   const [hasCheckedUsers, setHasCheckedUsers] = useState(false);
   const [isCheckingUsers, setIsCheckingUsers] = useState(false);
@@ -212,7 +212,7 @@ function RootComponent() {
   useEffect(() => {
     if (Capacitor.getPlatform() !== "android") return;
 
-    const { color, style } = getAndroidSystemBarColor(preferences?.theme);
+    const { color, style } = getAndroidSystemBarColor(effectiveTheme);
 
     EdgeToEdge.enable()
       .then(() =>
@@ -225,7 +225,7 @@ function RootComponent() {
       .catch((error) => {
         console.warn("Failed to apply Android system bar styling:", error);
       });
-  }, [preferences?.theme]);
+  }, [effectiveTheme]);
 
   useEffect(() => {
     if (Capacitor.getPlatform() !== "android") return;

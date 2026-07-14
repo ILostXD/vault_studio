@@ -362,6 +362,17 @@ code,
   );
 }
 
+.project-cover-hover {
+  background: transparent;
+  transition: background-color 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .project-cover:hover .project-cover-hover {
+    background: rgb(0 0 0 / 0.2);
+  }
+}
+
 .overlay-fade-bottom {
   background: linear-gradient(
     to top,

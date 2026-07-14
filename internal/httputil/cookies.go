@@ -9,9 +9,13 @@ import (
 )
 
 func SetAuthCookies(w http.ResponseWriter, accessToken, refreshToken, csrfToken string, config auth.Config) {
-	accessCookie := buildCookie(auth.AccessTokenCookieName, accessToken, config, config.JWTExpiration, true)
-	refreshCookie := buildCookie(auth.RefreshTokenCookieName, refreshToken, config, config.RefreshExpiration, true)
-	csrfCookie := buildCookie(auth.CSRFCookieName, csrfToken, config, config.RefreshExpiration, false)
+	SetAuthCookiesWithPersistence(w, accessToken, refreshToken, csrfToken, config, true)
+}
+
+func SetAuthCookiesWithPersistence(w http.ResponseWriter, accessToken, refreshToken, csrfToken string, config auth.Config, persistent bool) {
+	accessCookie := buildCookie(auth.AccessTokenCookieName, accessToken, config, config.JWTExpiration, true, persistent)
+	refreshCookie := buildCookie(auth.RefreshTokenCookieName, refreshToken, config, config.RefreshExpiration, true, persistent)
+	csrfCookie := buildCookie(auth.CSRFCookieName, csrfToken, config, config.RefreshExpiration, false, persistent)
 
 	http.SetCookie(w, accessCookie)
 	http.SetCookie(w, refreshCookie)
@@ -20,7 +24,7 @@ func SetAuthCookies(w http.ResponseWriter, accessToken, refreshToken, csrfToken 
 
 func ClearAuthCookies(w http.ResponseWriter, config auth.Config) {
 	clearCookie := func(name string, httpOnly bool) {
-		cookie := buildCookie(name, "", config, -1*time.Hour, httpOnly)
+		cookie := buildCookie(name, "", config, -1*time.Hour, httpOnly, true)
 		cookie.MaxAge = -1
 		http.SetCookie(w, cookie)
 	}
@@ -30,8 +34,8 @@ func ClearAuthCookies(w http.ResponseWriter, config auth.Config) {
 	clearCookie(auth.CSRFCookieName, false)
 }
 
-func buildCookie(name, value string, config auth.Config, ttl time.Duration, httpOnly bool) *http.Cookie {
-	return &http.Cookie{
+func buildCookie(name, value string, config auth.Config, ttl time.Duration, httpOnly, persistent bool) *http.Cookie {
+	cookie := &http.Cookie{
 		Name:     name,
 		Value:    value,
 		Path:     "/",
@@ -39,8 +43,11 @@ func buildCookie(name, value string, config auth.Config, ttl time.Duration, http
 		HttpOnly: httpOnly,
 		Secure:   config.CookieSecure,
 		SameSite: parseSameSite(config.CookieSameSite),
-		Expires:  time.Now().Add(ttl),
 	}
+	if persistent {
+		cookie.Expires = time.Now().Add(ttl)
+	}
+	return cookie
 }
 
 func parseSameSite(value string) http.SameSite {

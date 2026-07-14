@@ -99,7 +99,8 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) error {
 		return apperr.NewInternal("failed to create session", err)
 	}
 
-	httputil.SetAuthCookies(w, session.AccessToken, session.RefreshToken, session.CSRFToken, h.authConfig)
+	rememberMe := req.RememberMe == nil || *req.RememberMe
+	httputil.SetAuthCookiesWithPersistence(w, session.AccessToken, session.RefreshToken, session.CSRFToken, h.authConfig, rememberMe)
 
 	return httputil.OKResult(w, authResponse(user, session))
 }
@@ -286,6 +287,10 @@ func (h *AuthHandler) DeleteSelf(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) error {
+	var req RefreshRequest
+	_ = json.NewDecoder(r.Body).Decode(&req)
+	rememberMe := req.RememberMe == nil || *req.RememberMe
+
 	refreshToken := ""
 	refreshCookie, err := r.Cookie(auth.RefreshTokenCookieName)
 	if err == nil {
@@ -293,10 +298,7 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if refreshToken == "" {
-		var req RefreshRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err == nil {
-			refreshToken = req.RefreshToken
-		}
+		refreshToken = req.RefreshToken
 	}
 
 	if refreshToken == "" {
@@ -309,7 +311,7 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) error {
 		return mapAuthError(err)
 	}
 
-	httputil.SetAuthCookies(w, session.AccessToken, session.RefreshToken, session.CSRFToken, h.authConfig)
+	httputil.SetAuthCookiesWithPersistence(w, session.AccessToken, session.RefreshToken, session.CSRFToken, h.authConfig, rememberMe)
 	return httputil.OKResult(w, authResponse(session.User, session))
 }
 

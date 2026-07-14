@@ -260,6 +260,7 @@ type UserPreference struct {
 	ColorShiftRotation sql.NullInt64  `json:"color_shift_rotation"`
 	AccentColor        string         `json:"accent_color"`
 	Theme              string         `json:"theme"`
+	SystemDarkTheme    string         `json:"system_dark_theme"`
 }
 
 type UserProjectShare struct {

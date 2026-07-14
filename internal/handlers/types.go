@@ -16,12 +16,14 @@ type RegisterRequest struct {
 }
 
 type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username   string `json:"username"`
+	Password   string `json:"password"`
+	RememberMe *bool  `json:"remember_me,omitempty"`
 }
 
 type RefreshRequest struct {
 	RefreshToken string `json:"refresh_token"`
+	RememberMe   *bool  `json:"remember_me,omitempty"`
 }
 
 type UpdateUsernameRequest struct {
@@ -57,6 +59,7 @@ type UpdatePreferencesRequest struct {
 	ColorShiftRotation *int            `json:"color_shift_rotation,omitempty"`
 	AccentColor        *string         `json:"accent_color,omitempty"`
 	Theme              *string         `json:"theme,omitempty"`
+	SystemDarkTheme    *string         `json:"system_dark_theme,omitempty"`
 }
 
 type CreateProjectRequest struct {

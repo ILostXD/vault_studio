@@ -430,7 +430,7 @@ export default function ProjectCard({
     >
       <div
         className={cn(
-          "relative aspect-square rounded-(--card-border-radius) border border-(--card-border) bg-neutral-800/40",
+          "project-cover relative aspect-square rounded-(--card-border-radius) border border-(--card-border) bg-neutral-800/40",
         )}
         style={{ touchAction: "auto" }}
         {...dragHandleProps}
@@ -460,6 +460,14 @@ export default function ProjectCard({
             <div className="size-full bg-neutral-800 flex items-center justify-center"></div>
           )}
         </motion.div>
+
+        <div
+          className={cn(
+            "project-cover-hover absolute inset-0 rounded-(--card-border-radius) pointer-events-none z-[1]",
+            (isDragging || hoverAsFolder) && "opacity-0",
+          )}
+          aria-hidden="true"
+        />
 
         {isDropping && hoverFolderItems.length > 0 && (
           <motion.div

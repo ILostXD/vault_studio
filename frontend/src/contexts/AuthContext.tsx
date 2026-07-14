@@ -7,7 +7,15 @@ import type {
   AuthResponse,
 } from "../types/api";
 import * as authApi from "../api/auth";
-import { clearAuthTokens, storeAuthTokensFromResponse } from "../api/session";
+import { ApiError } from "../api/client";
+import {
+	clearAuthTokens,
+	getAuthTokens,
+	getCachedUser,
+	isPersistentAuthSession,
+	storeAuthTokensFromResponse,
+	storeCachedUser,
+} from "../api/session";
 
 interface AuthContextType {
 	user: User | null;
@@ -33,12 +41,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 	useEffect(() => {
 		const initAuth = async () => {
+			const cachedUser = getCachedUser();
 			try {
-				const response = await authApi.refresh();
-				storeAuthTokensFromResponse(response);
-				setUser(response.user);
-			} catch (error: any) {
-				setUser(null);
+				if (getAuthTokens()) {
+					const userData = await authApi.getMe();
+					storeCachedUser(userData, isPersistentAuthSession());
+					setUser(userData);
+				} else {
+					const response = await authApi.refresh();
+					storeAuthTokensFromResponse(response, true);
+					storeCachedUser(response.user, true);
+					setUser(response.user);
+				}
+			} catch (error) {
+				if (error instanceof ApiError && error.status === 0 && cachedUser) {
+					setUser(cachedUser);
+				} else {
+					clearAuthTokens();
+					setUser(null);
+				}
 			}
 			setIsLoading(false);
 		};
@@ -48,18 +69,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 	const login = async (credentials: LoginRequest) => {
 		const response: AuthResponse = await authApi.login(credentials);
-		storeAuthTokensFromResponse(response);
+		const persistent = credentials.remember_me !== false;
+		storeAuthTokensFromResponse(response, persistent);
+		storeCachedUser(response.user, persistent);
 		setUser(response.user);
 	};
 
 	const register = async (data: RegisterRequest) => {
 		const response: AuthResponse = await authApi.register(data);
 		storeAuthTokensFromResponse(response);
+		storeCachedUser(response.user, true);
 		setUser(response.user);
 	};
 
 	const setAuthFromResponse = (response: AuthResponse) => {
 		storeAuthTokensFromResponse(response);
+		storeCachedUser(response.user, true);
 		setUser(response.user);
 	};
 
@@ -75,15 +100,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const refreshUser = async () => {
 		try {
 			const userData = await authApi.getMe();
+			storeCachedUser(userData, isPersistentAuthSession());
 			setUser(userData);
 		} catch (error) {
-			await logout();
+			if (error instanceof ApiError && error.status === 401) {
+				await logout();
+			}
 		}
 	};
 
   const updateUsername = async (username: string) => {
     try {
       const updatedUser = await authApi.updateUsername(username);
+      storeCachedUser(updatedUser, isPersistentAuthSession());
       setUser(updatedUser);
     } catch (error) {
       throw error;

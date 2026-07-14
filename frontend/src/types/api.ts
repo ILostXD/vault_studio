@@ -23,6 +23,7 @@ export interface UserPreferences {
   color_shift_rotation?: number
   accent_color?: string
   theme?: string
+  system_dark_theme?: string
   created_at: string
   updated_at: string
 }
@@ -137,6 +138,7 @@ export interface RegisterRequest {
 export interface LoginRequest {
   username: string
   password: string
+  remember_me?: boolean
 }
 
 export interface UpdatePreferencesRequest {
@@ -147,6 +149,7 @@ export interface UpdatePreferencesRequest {
   color_shift_rotation?: number
   accent_color?: string
   theme?: string
+  system_dark_theme?: string
 }
 
 export interface UpdateInstanceNameRequest {

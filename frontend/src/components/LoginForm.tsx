@@ -4,6 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { Switch } from "./ui/switch";
 import { ApiError } from "../api/client";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -22,6 +23,7 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const errorWrapperRef = useRef<HTMLDivElement>(null);
   const [errorHeight, setErrorHeight] = useState(0);
 
@@ -72,7 +74,11 @@ export function LoginForm({
         return;
       }
 
-      await login({ username: trimmedUsername, password: trimmedPassword });
+      await login({
+        username: trimmedUsername,
+        password: trimmedPassword,
+        remember_me: rememberMe,
+      });
       onSubmitSuccess?.();
     } catch (err) {
       if (err instanceof ApiError) {
@@ -192,6 +198,23 @@ export function LoginForm({
             disabled={isLoading}
             className="themed-input-surface text-(--text-0) text-lg
             md:text-lg placeholder:text-(--text-0)/40 h-12 rounded-2xl px-5"
+          />
+        </div>
+
+        <div className="flex items-center justify-between px-1">
+          <Label
+            htmlFor="remember-me"
+            className="cursor-pointer text-sm font-light text-(--text-1)"
+            style={{ fontFamily: '"IBM Plex Mono", monospace' }}
+          >
+            remember me
+          </Label>
+          <Switch
+            id="remember-me"
+            checked={rememberMe}
+            onCheckedChange={setRememberMe}
+            disabled={isLoading}
+            aria-label="Remember me"
           />
         </div>
 

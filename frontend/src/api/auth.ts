@@ -1,6 +1,6 @@
 import { get, post, put, del } from './client'
 import type { User, LoginRequest, RegisterRequest, AuthResponse } from '../types/api'
-import { getAuthTokens } from './session'
+import { getAuthTokens, isPersistentAuthSession } from './session'
 
 export async function register(data: RegisterRequest): Promise<AuthResponse> {
   return post<AuthResponse>('/api/auth/register', data, { requiresAuth: false })
@@ -14,7 +14,10 @@ export async function refresh(): Promise<AuthResponse> {
 	const refreshToken = getAuthTokens()?.refreshToken
 	return post<AuthResponse>(
 		'/api/auth/refresh',
-		refreshToken ? { refresh_token: refreshToken } : {},
+		{
+			...(refreshToken ? { refresh_token: refreshToken } : {}),
+			remember_me: refreshToken ? isPersistentAuthSession() : true,
+		},
 		{ requiresAuth: false }
 	)
 }

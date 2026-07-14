@@ -13,6 +13,7 @@ import { useFolder, useAllFolders, useUpdateFolder } from "@/hooks/useFolders";
 import type { Folder } from "@/types/api";
 import { toast } from "@/routes/__root";
 import GlobalSearchModal from "@/components/GlobalSearchModal";
+import { BrandWordmark } from "@/components/BrandWordmark";
 
 export const Route = createFileRoute("/_main")({
   component: MainLayout,
@@ -197,7 +198,7 @@ function MainLayout() {
                 className="h-auto p-0 text-(--text-0)/50 hover:text-(--text-0) text-2xl font-medium shrink-0"
                 onClick={() => handleBreadcrumbClick(null)}
               >
-                {"{ vault.studio }"}
+                <BrandWordmark />
               </Button>
               {folderLoading ? (
                 <>
@@ -248,7 +249,7 @@ function MainLayout() {
         ) : (
           <h1 className="md:ml-4 ml-0.5 text-xl font-semibold">
             <Link to="/">
-              <div className="text-2xl font-medium">{"{ vault.studio }"}</div>
+              <BrandWordmark className="text-2xl font-medium" />
             </Link>
           </h1>
         )}

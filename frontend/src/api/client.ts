@@ -1,5 +1,13 @@
 import { resolveApiUrl } from './server'
-import { getAuthTokens, getAuthorizationHeader } from './session'
+import {
+	clearAuthTokens,
+	getAuthTokens,
+	getAuthorizationHeader,
+	isPersistentAuthSession,
+	storeAuthTokensFromResponse,
+	storeCachedUser,
+} from './session'
+import type { AuthResponse } from '../types/api'
 
 export class ApiError extends Error {
   constructor(
@@ -14,6 +22,49 @@ export class ApiError extends Error {
 
 export interface RequestOptions extends RequestInit {
   requiresAuth?: boolean
+	skipAuthRefresh?: boolean
+}
+
+let refreshPromise: Promise<void> | null = null
+
+async function refreshAuthSession() {
+	if (refreshPromise) return refreshPromise
+
+	refreshPromise = (async () => {
+		const tokens = getAuthTokens()
+		const persistent = isPersistentAuthSession()
+		let response: Response
+		try {
+			response = await fetch(resolveApiUrl('/api/auth/refresh'), {
+				method: 'POST',
+				credentials: 'include',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					...(tokens?.refreshToken
+						? { refresh_token: tokens.refreshToken }
+						: {}),
+					remember_me: persistent,
+				}),
+			})
+		} catch (error) {
+			throw new ApiError(
+				error instanceof Error ? error.message : 'Network error',
+				0,
+			)
+		}
+
+		if (!response.ok) {
+			throw new ApiError('Unable to refresh session', response.status)
+		}
+
+		const authResponse = (await response.json()) as AuthResponse
+		storeAuthTokensFromResponse(authResponse, persistent)
+		storeCachedUser(authResponse.user, persistent)
+	})().finally(() => {
+		refreshPromise = null
+	})
+
+	return refreshPromise
 }
 
 
@@ -35,7 +86,12 @@ async function apiClient<T>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const { requiresAuth = true, headers = {}, ...restOptions } = options
+  const {
+		requiresAuth = true,
+		skipAuthRefresh = false,
+		headers = {},
+		...restOptions
+	} = options
 
   const url = resolveApiUrl(endpoint)
 
@@ -63,6 +119,20 @@ async function apiClient<T>(
 		})
 
 		if (response.status === 401) {
+			if (requiresAuth && !skipAuthRefresh) {
+				try {
+					await refreshAuthSession()
+					return apiClient<T>(endpoint, {
+						...options,
+						skipAuthRefresh: true,
+					})
+				} catch (refreshError) {
+					if (refreshError instanceof ApiError && refreshError.status === 0) {
+						throw refreshError
+					}
+					clearAuthTokens()
+				}
+			}
 			if (!endpoint.startsWith('/api/auth/me') && !endpoint.startsWith('/api/auth/refresh')) {
 				const pathname = window.location.pathname
 				if (!pathname.includes('/login') && !pathname.includes('/share/')) {

@@ -400,22 +400,53 @@ function ProfilePage() {
                         App appearance and contrast
                       </p>
                     </div>
-                    <ToggleGroup
-                      className="w-full sm:w-auto sm:min-w-[260px] h-[36px]"
-                      options={[
-                        { label: "Light", value: "light" },
-                        { label: "Default", value: "default" },
-                        { label: "Black", value: "black" },
-                      ]}
-                      value={preferences?.theme === "oled" ? "black" : preferences?.theme || "default"}
-                      onValueChange={async (val) => {
-                        try {
-                          await updatePreferences({ theme: val });
-                        } catch (error) {
-                          console.error("Failed to update theme:", error);
-                        }
-                      }}
-                    />
+                    <div className="w-full space-y-2 sm:w-auto">
+                      <ToggleGroup
+                        className="h-[36px] w-full sm:min-w-[340px]"
+                        options={[
+                          { label: "Light", value: "light" },
+                          { label: "Default", value: "default" },
+                          { label: "Black", value: "black" },
+                          { label: "System", value: "system" },
+                        ]}
+                        value={preferences?.theme === "oled" ? "black" : preferences?.theme || "default"}
+                        onValueChange={async (val) => {
+                          try {
+                            await updatePreferences({ theme: val });
+                          } catch (error) {
+                            console.error("Failed to update theme:", error);
+                          }
+                        }}
+                      />
+                      {preferences?.theme === "system" && (
+                        <div className="flex items-center justify-between gap-3 pl-1">
+                          <span className="text-xs text-(--text-2)">
+                            Dark appearance
+                          </span>
+                          <ToggleGroup
+                            size="sm"
+                            className="h-8 min-w-[150px]"
+                            options={[
+                              { label: "Default", value: "default" },
+                              { label: "Black", value: "black" },
+                            ]}
+                            value={preferences?.system_dark_theme || "default"}
+                            onValueChange={async (val) => {
+                              try {
+                                await updatePreferences({
+                                  system_dark_theme: val,
+                                });
+                              } catch (error) {
+                                console.error(
+                                  "Failed to update system dark appearance:",
+                                  error,
+                                );
+                              }
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-4">
