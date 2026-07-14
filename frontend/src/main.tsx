@@ -6,6 +6,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { PreferencesProvider } from "./contexts/PreferencesContext";
 import { AudioPlayerProvider } from "./contexts/AudioPlayerContext";
 import { routeTree } from "./routeTree.gen";
+import { MotionConfig } from "motion/react";
 import "./styles.css";
 
 const TanStackQueryProviderContext = TanStackQueryProvider.getContext();
@@ -35,7 +36,9 @@ if (rootElement && !rootElement.innerHTML) {
         <AuthProvider>
           <PreferencesProvider>
             <AudioPlayerProvider>
-              <RouterProvider router={router} />
+              <MotionConfig reducedMotion="user">
+                <RouterProvider router={router} />
+              </MotionConfig>
             </AudioPlayerProvider>
           </PreferencesProvider>
         </AuthProvider>

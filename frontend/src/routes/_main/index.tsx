@@ -9,6 +9,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { useQuery } from "@tanstack/react-query";
 import * as sharingApi from "@/api/sharing";
+import { motion } from "motion/react";
 
 export const Route = createFileRoute("/_main/")({
   component: App,
@@ -111,17 +112,21 @@ function App() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl px-6 md:pt-35 pt-30 pb-12">
-        <div
-          className={`transition-opacity duration-300 ${
-            showContent ? "opacity-100" : "opacity-0"
-          }`}
+        <motion.div
+          initial={{ opacity: 0, y: 18, scale: 0.985 }}
+          animate={
+            showContent
+              ? { opacity: 1, y: 0, scale: 1 }
+              : { opacity: 0, y: 18, scale: 0.985 }
+          }
+          transition={{ type: "spring", stiffness: 320, damping: 30 }}
         >
           <DraggableProjectGrid
             initialProjects={allProjects}
             initialFolders={memoizedFolders}
             initialSharedTracks={sharedTracks}
           />
-        </div>
+        </motion.div>
 
         <div
           className="fixed top-0 left-0 right-0 h-[130px] z-10 pointer-events-none"

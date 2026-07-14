@@ -264,6 +264,9 @@ export function TrackCard({
       onKeyDown={handleKeyDown}
       role="button"
       tabIndex={0}
+      data-dragging={
+        isDragging || hoverAsFolder || isDropping ? "true" : undefined
+      }
       className={cn(
         "relative group w-full text-left focus:outline-none cursor-pointer transition-transform duration-300",
         dragScaleDown && isDragging ? "scale-[0.5]" : undefined,
@@ -272,7 +275,7 @@ export function TrackCard({
     >
       {/* Disc Container */}
       <div
-        className="relative aspect-square rounded-(--card-border-radius) border border-(--card-border) bg-neutral-800/40"
+        className="media-tile-visual relative aspect-square rounded-(--card-border-radius) border border-(--card-border) bg-neutral-800/40"
         style={{ touchAction: "auto" }}
         {...dragHandleProps}
       >

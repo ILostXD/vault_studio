@@ -427,10 +427,13 @@ export default function ProjectCard({
       onKeyDown={handleCardKeyDown}
       role="button"
       tabIndex={0}
+      data-dragging={
+        isDragging || hoverAsFolder || isDropping ? "true" : undefined
+      }
     >
       <div
         className={cn(
-          "project-cover relative aspect-square rounded-(--card-border-radius) border border-(--card-border) bg-neutral-800/40",
+          "project-cover media-tile-visual relative aspect-square rounded-(--card-border-radius) border border-(--card-border) bg-neutral-800/40",
         )}
         style={{ touchAction: "auto" }}
         {...dragHandleProps}

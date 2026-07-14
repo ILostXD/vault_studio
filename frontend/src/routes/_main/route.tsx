@@ -14,6 +14,7 @@ import type { Folder } from "@/types/api";
 import { toast } from "@/routes/__root";
 import GlobalSearchModal from "@/components/GlobalSearchModal";
 import { BrandWordmark } from "@/components/BrandWordmark";
+import { motion } from "motion/react";
 
 export const Route = createFileRoute("/_main")({
   component: MainLayout,
@@ -157,7 +158,17 @@ function MainLayout() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between text-(--text-0) md:p-10 p-6 gap-4">
+      <motion.header
+        initial={{ opacity: 0, y: -14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          type: "spring",
+          stiffness: 360,
+          damping: 32,
+          delay: 0.04,
+        }}
+        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between text-(--text-0) md:p-10 p-6 gap-4"
+      >
         {isFolderRoute ? (
           isDeeplyNested ? (
             <div className="flex items-center gap-2 md:ml-4 ml-0.5 min-w-0 flex-1">
@@ -273,7 +284,7 @@ function MainLayout() {
             </Button>
           </Link>
         </div>
-      </header>
+      </motion.header>
       <Outlet />
 
       <GlobalSearchModal

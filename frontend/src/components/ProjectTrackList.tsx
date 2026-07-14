@@ -178,8 +178,16 @@ export function ProjectTrackList({
             {(provided: DroppableProvided) => (
               <div {...provided.droppableProps} ref={provided.innerRef}>
                 {filteredTracks.map((track, index) => (
-                  <div
+                  <motion.div
                     key={track.public_id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 380,
+                      damping: 30,
+                      delay: Math.min(index * 0.035, 0.28),
+                    }}
                     data-track-drop-zone
                     onDragEnter={(e) =>
                       handleTrackDragEnter(e, track.public_id)
@@ -230,7 +238,7 @@ export function ProjectTrackList({
                       }
                       isDraggable={isDraggable}
                     />
-                  </div>
+                  </motion.div>
                 ))}
                 {provided.placeholder}
               </div>

@@ -372,6 +372,7 @@ export default function FolderCard({
       tabIndex={0}
       data-dropdown-open={isDropdownOpen}
       data-modal-open={showDeleteModal || showMoveModal}
+      data-dragging={isDragging || isDropping ? "true" : undefined}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -379,7 +380,7 @@ export default function FolderCard({
         }
       }}
     >
-      <div className="relative aspect-square rounded-(--card-border-radius) border border-(--card-border) bg-neutral-800/40 overflow-hidden">
+      <div className="media-tile-visual relative aspect-square rounded-(--card-border-radius) border border-(--card-border) bg-neutral-800/40 overflow-hidden">
         <div className="grid grid-cols-2 grid-rows-2 size-full gap-1 p-2">
           {[0, 1, 2, 3].map((index) => {
             const item = previewItems[index];

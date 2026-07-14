@@ -61,7 +61,7 @@ export default function BaseModal({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.1 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
                 className="fixed inset-0 z-1000 overlay-backdrop"
                 onClick={disableClose ? undefined : onClose}
                 {...(dataAttributes["data-modal-backdrop"] && {
@@ -73,7 +73,7 @@ export default function BaseModal({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.1 }}
+                transition={{ duration: 0.16 }}
                 className="fixed inset-0 z-1000 flex items-center justify-center p-4 pointer-events-none"
                 {...(dataAttributes["data-modal-container"] && {
                   "data-modal-container":
@@ -81,10 +81,15 @@ export default function BaseModal({
                 })}
               >
                 <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.1 }}
+                  initial={{
+                    opacity: 0,
+                    y: 18,
+                    scale: 0.965,
+                    filter: "blur(6px)",
+                  }}
+                  animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, y: 10, scale: 0.98, filter: "blur(3px)" }}
+                  transition={{ type: "spring", stiffness: 420, damping: 34 }}
                   className={`relative z-10 w-full ${maxWidthClasses[maxWidth]} border border-(--card-border) rounded-[34px] shadow-2xl overflow-hidden pointer-events-auto overlay-surface text-(--text-0)`}
                   onClick={(e) => e.stopPropagation()}
                   {...(dataAttributes["data-modal-content"] && {
