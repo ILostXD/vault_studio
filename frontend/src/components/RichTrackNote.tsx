@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { EditorContent, useEditor } from "@tiptap/react";
+import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import {
@@ -14,7 +14,7 @@ import {
   Redo2,
   Undo2,
 } from "lucide-react";
-import type { JSONContent } from "@tiptap/core";
+import type { Editor, JSONContent } from "@tiptap/core";
 import type { NoteContentFormat } from "@/types/api";
 import { parseNoteDocument } from "@/lib/richText";
 import { Button } from "@/components/ui/button";
@@ -47,7 +47,7 @@ export function RichTrackNoteEditor({
 }: EditorProps) {
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const changedRef = useRef(false);
-  const latestRef = useRef("");
+  const editorRef = useRef<Editor | null>(null);
   const onSaveRef = useRef(onSave);
 
   useEffect(() => {
@@ -66,25 +66,68 @@ export function RichTrackNoteEditor({
     },
     onUpdate: ({ editor: currentEditor }) => {
       changedRef.current = true;
-      latestRef.current = JSON.stringify(currentEditor.getJSON());
+      editorRef.current = currentEditor;
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = setTimeout(() => {
-        onSaveRef.current(latestRef.current, "tiptap_json");
+        onSaveRef.current(
+          JSON.stringify(currentEditor.getJSON()),
+          "tiptap_json",
+        );
       }, 1000);
+    },
+    onCreate: ({ editor: currentEditor }) => {
+      editorRef.current = currentEditor;
     },
   });
 
   useEffect(
     () => () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      if (changedRef.current && latestRef.current) {
-        onSaveRef.current(latestRef.current, "tiptap_json");
+      if (changedRef.current && editorRef.current) {
+        onSaveRef.current(
+          JSON.stringify(editorRef.current.getJSON()),
+          "tiptap_json",
+        );
       }
     },
     [],
   );
 
   if (!editor) return null;
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-(--card-border) bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to)">
+      <div className="flex items-center justify-between gap-2.5 border-b border-(--control-border-subtle) px-4 py-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-(--action-bg) text-xs font-semibold text-(--text-0)/70">
+            {authorName[0]?.toUpperCase()}
+          </div>
+          <span className="text-sm text-(--text-0)/60">@{authorName}</span>
+        </div>
+        <span className="select-none text-xs text-(--text-0)/25">Your note</span>
+      </div>
+      <RichTextToolbar editor={editor} />
+      <EditorContent editor={editor} />
+    </div>
+  );
+}
+
+function RichTextToolbar({ editor }: { editor: Editor }) {
+  const state = useEditorState({
+    editor,
+    selector: ({ editor: currentEditor }) => ({
+      bold: currentEditor.isActive("bold"),
+      italic: currentEditor.isActive("italic"),
+      heading2: currentEditor.isActive("heading", { level: 2 }),
+      heading3: currentEditor.isActive("heading", { level: 3 }),
+      bulletList: currentEditor.isActive("bulletList"),
+      orderedList: currentEditor.isActive("orderedList"),
+      blockquote: currentEditor.isActive("blockquote"),
+      link: currentEditor.isActive("link"),
+      canUndo: currentEditor.can().undo(),
+      canRedo: currentEditor.can().redo(),
+    }),
+  });
 
   const setLink = () => {
     const previousUrl = editor.getAttributes("link").href as string | undefined;
@@ -98,29 +141,19 @@ export function RichTrackNoteEditor({
   };
 
   const controls = [
-    { label: "Bold", icon: Bold, active: editor.isActive("bold"), action: () => editor.chain().focus().toggleBold().run() },
-    { label: "Italic", icon: Italic, active: editor.isActive("italic"), action: () => editor.chain().focus().toggleItalic().run() },
-    { label: "Heading 2", icon: Heading2, active: editor.isActive("heading", { level: 2 }), action: () => editor.chain().focus().toggleHeading({ level: 2 }).run() },
-    { label: "Heading 3", icon: Heading3, active: editor.isActive("heading", { level: 3 }), action: () => editor.chain().focus().toggleHeading({ level: 3 }).run() },
-    { label: "Bullet list", icon: List, active: editor.isActive("bulletList"), action: () => editor.chain().focus().toggleBulletList().run() },
-    { label: "Numbered list", icon: ListOrdered, active: editor.isActive("orderedList"), action: () => editor.chain().focus().toggleOrderedList().run() },
-    { label: "Blockquote", icon: Quote, active: editor.isActive("blockquote"), action: () => editor.chain().focus().toggleBlockquote().run() },
-    { label: "Link", icon: LinkIcon, active: editor.isActive("link"), action: setLink },
-    { label: "Undo", icon: Undo2, active: false, action: () => editor.chain().focus().undo().run(), disabled: !editor.can().undo() },
-    { label: "Redo", icon: Redo2, active: false, action: () => editor.chain().focus().redo().run(), disabled: !editor.can().redo() },
+    { label: "Bold", icon: Bold, active: state.bold, action: () => editor.chain().focus().toggleBold().run() },
+    { label: "Italic", icon: Italic, active: state.italic, action: () => editor.chain().focus().toggleItalic().run() },
+    { label: "Heading 2", icon: Heading2, active: state.heading2, action: () => editor.chain().focus().toggleHeading({ level: 2 }).run() },
+    { label: "Heading 3", icon: Heading3, active: state.heading3, action: () => editor.chain().focus().toggleHeading({ level: 3 }).run() },
+    { label: "Bullet list", icon: List, active: state.bulletList, action: () => editor.chain().focus().toggleBulletList().run() },
+    { label: "Numbered list", icon: ListOrdered, active: state.orderedList, action: () => editor.chain().focus().toggleOrderedList().run() },
+    { label: "Blockquote", icon: Quote, active: state.blockquote, action: () => editor.chain().focus().toggleBlockquote().run() },
+    { label: "Link", icon: LinkIcon, active: state.link, action: setLink },
+    { label: "Undo", icon: Undo2, active: false, action: () => editor.chain().focus().undo().run(), disabled: !state.canUndo },
+    { label: "Redo", icon: Redo2, active: false, action: () => editor.chain().focus().redo().run(), disabled: !state.canRedo },
   ];
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-(--card-border) bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to)">
-      <div className="flex items-center justify-between gap-2.5 border-b border-(--control-border-subtle) px-4 py-3">
-        <div className="flex items-center gap-2.5">
-          <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-(--action-bg) text-xs font-semibold text-(--text-0)/70">
-            {authorName[0]?.toUpperCase()}
-          </div>
-          <span className="text-sm text-(--text-0)/60">@{authorName}</span>
-        </div>
-        <span className="select-none text-xs text-(--text-0)/25">Your note</span>
-      </div>
       <div className="flex touch-pan-x gap-1 overflow-x-auto border-b border-(--control-border-subtle) p-2" role="toolbar" aria-label="Note formatting">
         {controls.map(({ label, icon: Icon, active, action, disabled }) => (
           <Tooltip key={label}>
@@ -143,8 +176,6 @@ export function RichTrackNoteEditor({
           </Tooltip>
         ))}
       </div>
-      <EditorContent editor={editor} />
-    </div>
   );
 }
 
