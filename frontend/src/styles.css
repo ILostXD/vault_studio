@@ -77,6 +77,7 @@ code,
 
   --surface-overlay-from: #151515;
   --surface-overlay-to: #1d1d1d;
+  --waveform-bg: #171717;
   --overlay-backdrop: rgba(0, 0, 0, 0.8);
   --control-bg: #242323;
   --control-bg-hover: #2b2a2a;
@@ -140,6 +141,7 @@ code,
 
   --surface-overlay-from: #151515;
   --surface-overlay-to: #1d1d1d;
+  --waveform-bg: #171717;
   --overlay-backdrop: rgba(0, 0, 0, 0.8);
   --control-bg: #242323;
   --control-bg-hover: #2b2a2a;
@@ -203,6 +205,7 @@ code,
 
   --surface-overlay-from: #050505;
   --surface-overlay-to: #0b0b0b;
+  --waveform-bg: #030303;
   --overlay-backdrop: rgba(0, 0, 0, 0.86);
   --control-bg: rgba(255, 255, 255, 0.06);
   --control-bg-hover: rgba(255, 255, 255, 0.1);
@@ -266,6 +269,7 @@ code,
 
   --surface-overlay-from: #ffffff;
   --surface-overlay-to: #f8fafc;
+  --waveform-bg: #ffffff;
   --overlay-backdrop: rgba(24, 24, 27, 0.38);
   --control-bg: rgba(244, 244, 245, 0.9);
   --control-bg-hover: rgba(228, 228, 231, 0.95);

@@ -255,7 +255,7 @@ func (h *VersionsHandler) ActivateVersion(w http.ResponseWriter, r *http.Request
 		return apperr.NewInternal("failed to activate version", err)
 	}
 
-	response := ActivateVersionResponse{}
+	response := TrackAnalysisResponse{}
 	sourceFile, err := h.db.GetTrackFile(ctx, sqlc.GetTrackFileParams{
 		VersionID: versionID,
 		Quality:   "source",
@@ -273,6 +273,53 @@ func (h *VersionsHandler) ActivateVersion(w http.ResponseWriter, r *http.Request
 	}
 
 	return httputil.OKResult(w, response)
+}
+
+func (h *VersionsHandler) AnalyzeActiveVersion(w http.ResponseWriter, r *http.Request) error {
+	userID, err := httputil.RequireUserID(r)
+	if err != nil {
+		return apperr.NewUnauthorized("user not found in context")
+	}
+
+	ctx := r.Context()
+	publicID := r.PathValue("track_id")
+
+	track, err := h.db.Queries.GetTrackByPublicIDNoFilter(ctx, publicID)
+	if err := httputil.HandleDBError(err, "track not found", "failed to verify track"); err != nil {
+		return err
+	}
+
+	access, err := tracks.CheckTrackAccess(ctx, h.db, track.ID, track.ProjectID, int64(userID))
+	if err != nil {
+		return apperr.NewInternal("failed to check track access", err)
+	}
+	if !access.HasAccess {
+		return apperr.NewForbidden("access denied")
+	}
+	if !access.CanEdit {
+		return apperr.NewForbidden("editing not allowed for this track")
+	}
+	if !track.ActiveVersionID.Valid {
+		return apperr.NewBadRequest("track has no active version")
+	}
+
+	sourceFile, err := h.db.GetTrackFile(ctx, sqlc.GetTrackFileParams{
+		VersionID: track.ActiveVersionID.Int64,
+		Quality:   "source",
+	})
+	if err := httputil.HandleDBError(err, "source file not found", "failed to load source file"); err != nil {
+		return err
+	}
+
+	analysis, err := service.AnalyzeTrack(ctx, h.db.Queries, track.ID, sourceFile.FilePath)
+	if err != nil {
+		return apperr.NewInternal("failed to analyze audio", err)
+	}
+
+	return httputil.OKResult(w, TrackAnalysisResponse{
+		BPM: &analysis.BPM,
+		Key: &analysis.Key,
+	})
 }
 
 func (h *VersionsHandler) DeleteVersion(w http.ResponseWriter, r *http.Request) error {

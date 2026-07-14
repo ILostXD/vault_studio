@@ -1,6 +1,6 @@
 <div align="center">
 
-# { vault }
+# { vault.studio }
 
 **Self-hosted streaming for your work-in-progress music.**
 

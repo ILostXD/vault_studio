@@ -251,11 +251,11 @@ func main() {
 	frontendHandler := serveFrontend()
 
 	// Create rate limiters for public endpoints
-	authRL := middleware.NewIPRateLimiter(5, 10)      // Auth endpoints: 5 req/min, burst 10
-	refreshRL := middleware.NewIPRateLimiter(20, 30)  // Token refresh: 20 req/min, burst 30
-	tokenRL := middleware.NewIPRateLimiter(10, 15)    // Token validation: 10 req/min, burst 15
-	publicRL := middleware.NewIPRateLimiter(30, 40)   // Public info: 30 req/min, burst 40
-	shareRL := middleware.NewIPRateLimiter(60, 80)    // Share access: 60 req/min, burst 80
+	authRL := middleware.NewIPRateLimiter(5, 10)     // Auth endpoints: 5 req/min, burst 10
+	refreshRL := middleware.NewIPRateLimiter(20, 30) // Token refresh: 20 req/min, burst 30
+	tokenRL := middleware.NewIPRateLimiter(10, 15)   // Token validation: 10 req/min, burst 15
+	publicRL := middleware.NewIPRateLimiter(30, 40)  // Public info: 30 req/min, burst 40
+	shareRL := middleware.NewIPRateLimiter(60, 80)   // Share access: 60 req/min, burst 80
 
 	// Public endpoints with rate limiting
 	mux.HandleFunc("GET /api/auth/check-users", publicRL.RateLimit(httputil.Wrap(authHandler.CheckUsersExists)))
@@ -359,6 +359,7 @@ func main() {
 	mux.Handle("POST /api/tracks/{id}/duplicate", authMW(httputil.Wrap(tracksHandler.DuplicateTrack)))
 
 	mux.Handle("GET /api/tracks/{track_id}/versions", authMW(httputil.Wrap(versionsHandler.ListVersions)))
+	mux.Handle("POST /api/tracks/{track_id}/analyze", authMW(httputil.Wrap(versionsHandler.AnalyzeActiveVersion)))
 	mux.Handle("POST /api/tracks/{track_id}/versions/upload", authMW(httputil.Wrap(versionsHandler.UploadVersion)))
 	mux.Handle("GET /api/tracks/{track_id}/versions/{id}/download", authMW(httputil.Wrap(versionsHandler.DownloadVersion)))
 	mux.Handle("GET /api/versions/{id}", authMW(httputil.Wrap(versionsHandler.GetVersion)))

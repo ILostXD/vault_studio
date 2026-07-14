@@ -249,7 +249,7 @@ export default function EditProfileModal({
                             day: "numeric",
                           },
                         )}`
-                      : "Vault Instance"
+                      : "{ vault.studio }"
                   }
                   colors={discColors.slice(0, numPoints)}
                   colorSpread={colorSpread}

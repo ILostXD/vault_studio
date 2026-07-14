@@ -118,7 +118,7 @@ function LoginPage() {
           }}
         >
           <div className="text-center mb-8">
-            <h1 className="text-[39px] font-light text-(--text-0)">{`{ vault }`}</h1>
+            <h1 className="text-[39px] font-light text-(--text-0)">{`{ vault.studio }`}</h1>
           </div>
 
           {showServerUrlField && (

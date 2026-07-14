@@ -117,7 +117,7 @@ function ProfilePage() {
   const handleSaveInstanceName = async () => {
     if (instanceName === instanceInfo?.name) return;
     if (!instanceName.trim()) {
-      setInstanceName(instanceInfo?.name || "Vault");
+      setInstanceName(instanceInfo?.name || "{ vault.studio }");
       return;
     }
 
@@ -127,7 +127,7 @@ function ProfilePage() {
     } catch (error) {
       toast.error("Failed to update instance name");
       console.error("Failed to update instance name:", error);
-      setInstanceName(instanceInfo?.name || "Vault");
+      setInstanceName(instanceInfo?.name || "{ vault.studio }");
     }
   };
 
@@ -201,7 +201,7 @@ function ProfilePage() {
                           month: "short",
                           day: "numeric",
                         })}`
-                        : "Vault Instance"
+                        : "{ vault.studio }"
                     }
                     colors={preferences.disc_colors}
                     colorSpread={preferences.disc_colors?.length ? preferences.color_spread : undefined}

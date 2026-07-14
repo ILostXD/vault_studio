@@ -340,7 +340,7 @@ export default function MusicPlayer({
           : nextTrack.projectName || "Unknown Artist";
       document.title = `${nextTrack.title} - ${artist}`;
     } else {
-      document.title = "{vault}";
+      document.title = "{ vault.studio }";
     }
   }, [currentTrack, queue]);
 
@@ -847,7 +847,10 @@ export default function MusicPlayer({
             showPlayer ? "opacity-100" : "opacity-0"
           }`}
         >
-          <div className="relative h-[50px] sm:h-[50px] border border-(--card-border) rounded-t-[22px] overflow-hidden bg-neutral-900 shadow-md">
+          <div
+            className="relative h-[50px] sm:h-[50px] border border-(--card-border) rounded-t-[22px] overflow-hidden shadow-md"
+            style={{ backgroundColor: "var(--waveform-bg)" }}
+          >
             <div className="absolute inset-0 px-3 py-1 select-none">
               <div
                 ref={waveformRef}

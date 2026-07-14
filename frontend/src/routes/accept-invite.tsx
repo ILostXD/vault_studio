@@ -210,7 +210,7 @@ function AcceptInvitePage() {
           }}
         >
           <div className="text-center mb-8">
-            <h1 className="text-[39px] font-light text-(--text-0)">{`{ vault }`}</h1>
+            <h1 className="text-[39px] font-light text-(--text-0)">{`{ vault.studio }`}</h1>
             <p
               className="text-(--text-2) text-sm font-light mt-3"
               style={{ fontFamily: '"IBM Plex Mono", monospace' }}

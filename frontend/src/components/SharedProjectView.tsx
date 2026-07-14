@@ -297,7 +297,7 @@ export default function SharedProjectView({
     <div className="min-h-screen bg-background">
       <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-linear-to-b from-background from-30% to-transparent text-(--text-0) md:p-10 p-6">
         <div className="flex items-center">
-          <div className="text-2xl font-medium">{"{ vault }"}</div>
+          <div className="text-2xl font-medium">{"{ vault.studio }"}</div>
         </div>
         <div className="flex items-center gap-2.5">
           {allowDownloads && (

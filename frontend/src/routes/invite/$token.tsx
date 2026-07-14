@@ -211,7 +211,7 @@ function InvitePage() {
                 href="/"
                 className="text-sm text-muted-foreground hover:text-(--text-0) transition-colors"
               >
-                Powered by Vault
+                Powered by {"{ vault.studio }"}
               </a>
             </div>
           </div>

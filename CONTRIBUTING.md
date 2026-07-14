@@ -1,4 +1,4 @@
-# Contributing to { vault }
+# Contributing to { vault.studio }
 
 Thanks for your interest :)
 

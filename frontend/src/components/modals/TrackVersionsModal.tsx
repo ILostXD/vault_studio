@@ -9,6 +9,7 @@ import {
   Download,
   Trash2,
   Loader2,
+  AudioLines,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +32,7 @@ import {
   uploadVersion,
   updateVersion,
   activateVersion,
+  analyzeTrack,
   deleteVersion,
   downloadVersion,
 } from "@/api/versions";
@@ -43,7 +45,6 @@ import { resolveApiUrl } from "@/api/server";
 import { useWebHaptics } from "web-haptics/react";
 
 const SAVE_DEBOUNCE_MS = 500;
-const TAP_TEMPO_DEBOUNCE_MS = 1200;
 const PREVIEW_WAVEFORM_HEIGHT = 39;
 const PREVIEW_WAVEFORM_BARS = 120;
 
@@ -94,6 +95,7 @@ export default function TrackVersionsModal({
   const [versions, setVersions] = useState<VersionWithMetadata[]>([]);
   const [isLoadingVersions, setIsLoadingVersions] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [activatingVersionId, setActivatingVersionId] = useState<number | null>(
     null,
   );
@@ -101,10 +103,6 @@ export default function TrackVersionsModal({
     track.active_version_id || null,
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const tapTimesRef = useRef<number[]>([]);
-  const tapFlashTimeoutRef = useRef<number | null>(null);
-  const [isTapFlashing, setIsTapFlashing] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
   const bpmSaveTimeoutRef = useRef<number | null>(null);
   const keySaveTimeoutRef = useRef<number | null>(null);
   const pendingBpmRef = useRef<number | undefined | null>(null);
@@ -196,46 +194,6 @@ export default function TrackVersionsModal({
       document.body.style.overflow = "unset";
     };
   }, [internalOpen]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const mediaQuery = window.matchMedia("(min-width: 768px)");
-    const handleMediaChange = (event: MediaQueryListEvent) => {
-      setIsDesktop(event.matches);
-    };
-
-    setIsDesktop(mediaQuery.matches);
-
-    if (typeof mediaQuery.addEventListener === "function") {
-      mediaQuery.addEventListener("change", handleMediaChange);
-    } else {
-      mediaQuery.addListener(handleMediaChange);
-    }
-
-    return () => {
-      if (typeof mediaQuery.removeEventListener === "function") {
-        mediaQuery.removeEventListener("change", handleMediaChange);
-      } else {
-        mediaQuery.removeListener(handleMediaChange);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!internalOpen) {
-      tapTimesRef.current = [];
-      setIsTapFlashing(false);
-    }
-  }, [internalOpen]);
-
-  useEffect(() => {
-    return () => {
-      if (tapFlashTimeoutRef.current) {
-        window.clearTimeout(tapFlashTimeoutRef.current);
-      }
-    };
-  }, []);
 
   useEffect(() => {
     return () => {
@@ -406,75 +364,30 @@ export default function TrackVersionsModal({
     }
   };
 
-  const handleTapTempo = useCallback(() => {
-    if (typeof window === "undefined") return;
+  const handleAnalyzeTrack = async () => {
+    if (!canEdit || isAnalyzing) return;
 
-    const now = performance.now();
-    tapTimesRef.current = tapTimesRef.current.filter(
-      (time) => now - time <= 6000,
-    );
-    tapTimesRef.current.push(now);
-
-    setIsTapFlashing(true);
-    if (tapFlashTimeoutRef.current) {
-      window.clearTimeout(tapFlashTimeoutRef.current);
-    }
-    tapFlashTimeoutRef.current = window.setTimeout(() => {
-      setIsTapFlashing(false);
-    }, 160);
-
-    if (tapTimesRef.current.length < 2) {
-      return;
-    }
-
-    const intervals = tapTimesRef.current
-      .slice(1)
-      .map((time, index) => time - tapTimesRef.current[index]);
-    const avgInterval =
-      intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
-
-    if (avgInterval <= 0) return;
-
-    const computedBpm = Math.round(60000 / avgInterval);
-    const boundedBpm = Math.max(40, Math.min(240, computedBpm));
-
-    if (boundedBpm === editedBpm) {
-      return;
-    }
-
-    handleSaveBpm(boundedBpm, { debounceMs: TAP_TEMPO_DEBOUNCE_MS });
-  }, [editedBpm, handleSaveBpm]);
-
-  useEffect(() => {
-    if (!internalOpen || !isDesktop) {
-      return;
-    }
-
-    const handleSpaceKey = (event: KeyboardEvent) => {
-      if (event.code !== "Space" && event.key !== " ") {
-        return;
+    setIsAnalyzing(true);
+    try {
+      const analysis = await analyzeTrack(trackId);
+      if (analysis.bpm !== undefined) {
+        setEditedBpm(analysis.bpm);
       }
-
-      const target = event.target as HTMLElement | null;
-      if (
-        target &&
-        (target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.isContentEditable)
-      ) {
-        return;
+      if (analysis.key !== undefined) {
+        setEditedKey(analysis.key);
       }
-
-      event.preventDefault();
-      handleTapTempo();
-    };
-
-    window.addEventListener("keydown", handleSpaceKey);
-
-    return () => {
-      window.removeEventListener("keydown", handleSpaceKey);
-    };
-  }, [internalOpen, isDesktop, handleTapTempo]);
+      onTrackUpdate?.({ bpm: analysis.bpm, key: analysis.key });
+      onUpdate?.();
+      hapticFeedback.trigger("success");
+      toast.success("BPM and key detected");
+    } catch (error) {
+      hapticFeedback.trigger("error");
+      toast.error("Failed to detect BPM and key");
+      console.error("Failed to analyze track:", error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const handleRenameVersion = (versionId: number, currentName: string) => {
     setEditingVersionId(versionId);
@@ -1058,41 +971,23 @@ export default function TrackVersionsModal({
                         </div>
 
                         <div className="flex items-center">
-                          <button
-                            className={`h-8 rounded-lg border border-(--border-0) bg-[#1f1f1f] px-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-(--text-0) transition-all duration-150 hover:bg-[#262626] active:bg-[#2b2b2b] ${
-                              isTapFlashing
-                                ? "ring-1 ring-white/40 shadow-[0_0_10px_rgba(255,255,255,0.2)]"
-                                : ""
-                            } focus:outline-none`}
-                            onClick={handleTapTempo}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8 rounded-lg px-3"
+                            onClick={handleAnalyzeTrack}
+                            disabled={!canEdit || isAnalyzing || !activeVersionId}
                           >
-                            Tap
-                          </button>
+                            {isAnalyzing ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <AudioLines className="size-3.5" />
+                            )}
+                            <span>{isAnalyzing ? "Analyzing..." : "Detect"}</span>
+                          </Button>
                         </div>
                       </div>
-
-                      {internalOpen && (
-                        <>
-                          <p
-                            className="hidden md:block text-xs text-[#8f8f8f] text-center"
-                            style={{
-                              fontFamily: '"IBM Plex Mono", monospace',
-                              fontWeight: 300,
-                            }}
-                          >
-                            Tap the button or press spacebar to detect the BPM.
-                          </p>
-                          <p
-                            className="md:hidden text-xs text-[#8f8f8f] text-center"
-                            style={{
-                              fontFamily: '"IBM Plex Mono", monospace',
-                              fontWeight: 300,
-                            }}
-                          >
-                            Tap the button to set the BPM from your rhythm.
-                          </p>
-                        </>
-                      )}
 
                       {metadataString && (
                         <p

@@ -63,7 +63,7 @@ public class MediaPlaybackService extends Service {
     private NotificationManager notificationManager;
     private String title = "Unknown Track";
     private String artist = "Unknown Artist";
-    private String album = "{vault}";
+    private String album = "{ vault.studio }";
     private String artworkUrl = "";
     private Bitmap artwork;
     private String playbackState = STATE_NONE;
@@ -164,11 +164,11 @@ public class MediaPlaybackService extends Service {
         MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder()
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, safe(title, "Unknown Track"))
             .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, safe(artist, "Unknown Artist"))
-            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, safe(album, "{vault}"))
+            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, safe(album, "{ vault.studio }"))
             .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, safe(artist, "Unknown Artist"))
             .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, safe(title, "Unknown Track"))
             .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, safe(artist, "Unknown Artist"))
-            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, safe(album, "{vault}"))
+            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, safe(album, "{ vault.studio }"))
             .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, durationMs);
         if (artwork != null) {
             builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, artwork);
@@ -216,7 +216,7 @@ public class MediaPlaybackService extends Service {
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(safe(title, "Unknown Track"))
             .setContentText(safe(artist, "Unknown Artist"))
-            .setSubText(safe(album, "{vault}"))
+            .setSubText(safe(album, "{ vault.studio }"))
             .setContentIntent(openApp)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOnlyAlertOnce(true)
@@ -311,7 +311,7 @@ public class MediaPlaybackService extends Service {
             "Media playback",
             NotificationManager.IMPORTANCE_LOW
         );
-        channel.setDescription("Playback controls for {vault}");
+        channel.setDescription("Playback controls for { vault.studio }");
         channel.setSound(null, null);
         notificationManager.createNotificationChannel(channel);
     }

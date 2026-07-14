@@ -1,6 +1,6 @@
 {
   "appId": "com.vaultstudio.app",
-  "appName": "{vault}",
+  "appName": "{ vault.studio }",
   "webDir": "dist",
   "server": {
     "hostname": "192.168.1.253",

@@ -55,7 +55,7 @@ public class NativeMediaSessionPlugin extends Plugin {
         Intent intent = serviceIntent(MediaPlaybackService.ACTION_SET_METADATA);
         intent.putExtra(MediaPlaybackService.EXTRA_TITLE, call.getString("title", "Unknown Track"));
         intent.putExtra(MediaPlaybackService.EXTRA_ARTIST, call.getString("artist", "Unknown Artist"));
-        intent.putExtra(MediaPlaybackService.EXTRA_ALBUM, call.getString("album", "{vault}"));
+        intent.putExtra(MediaPlaybackService.EXTRA_ALBUM, call.getString("album", "{ vault.studio }"));
         intent.putExtra(MediaPlaybackService.EXTRA_ARTWORK_URL, call.getString("artworkUrl", ""));
         getContext().startService(intent);
         call.resolve();

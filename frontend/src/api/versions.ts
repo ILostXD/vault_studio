@@ -49,12 +49,30 @@ export async function updateVersion(
   return put<VersionWithMetadata>(`/api/versions/${versionId}`, data)
 }
 
-export interface ActivateVersionResponse {
+export interface TrackAnalysisResponse {
   bpm?: number
   key?: string
 }
 
-export async function activateVersion(versionId: number): Promise<ActivateVersionResponse> {
+export async function analyzeTrack(trackId: string): Promise<TrackAnalysisResponse> {
+	const response = await fetch(resolveApiUrl(`/api/tracks/${trackId}/analyze`), {
+		method: 'POST',
+		credentials: 'include',
+		headers: {
+			...getAuthHeaders(),
+			...(getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {}),
+		},
+	})
+
+	if (!response.ok) {
+		const error = await response.json().catch(() => ({ error: 'Failed to analyze audio' }))
+		throw new Error(error.error || 'Failed to analyze audio')
+	}
+
+	return response.json()
+}
+
+export async function activateVersion(versionId: number): Promise<TrackAnalysisResponse> {
 	const response = await fetch(resolveApiUrl(`/api/versions/${versionId}/activate`), {
 		method: 'POST',
 		credentials: 'include',

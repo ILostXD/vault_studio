@@ -24,7 +24,7 @@ export async function exportInstance(): Promise<ExportResult> {
     }
 
     const contentDisposition = response.headers.get('content-disposition')
-    let filename = 'vault-backup.zip'
+    let filename = 'vault-studio-backup.zip'
     if (contentDisposition) {
       const match = contentDisposition.match(/filename="(.+?)"/)
       if (match) {

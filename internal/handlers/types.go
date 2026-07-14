@@ -136,7 +136,7 @@ type UpdateVersionRequest struct {
 	Notes       *string `json:"notes,omitempty"`
 }
 
-type ActivateVersionResponse struct {
+type TrackAnalysisResponse struct {
 	BPM *int    `json:"bpm,omitempty"`
 	Key *string `json:"key,omitempty"`
 }

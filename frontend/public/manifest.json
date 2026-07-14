@@ -1,6 +1,6 @@
 {
-  "name": "{vault}",
-  "short_name": "{vault}",
+  "name": "{ vault.studio }",
+  "short_name": "{ vault.studio }",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",

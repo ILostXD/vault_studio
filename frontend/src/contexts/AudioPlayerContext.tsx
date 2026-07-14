@@ -844,7 +844,7 @@ export function AudioPlayerProvider({
       void NativeMediaSession.setMetadata({
         title: currentTrack.title || "Unknown Track",
         artist,
-        album: currentTrack.projectName ?? "{vault}",
+        album: currentTrack.projectName ?? "{ vault.studio }",
         ...(artworkUrl ? { artworkUrl } : {}),
       }).catch((error) => {
         console.error("[Native Media Session] Failed to set metadata:", error);
@@ -873,7 +873,7 @@ export function AudioPlayerProvider({
         currentTrack.artist.trim().length > 0
           ? currentTrack.artist
           : currentTrack.projectName) ?? "Unknown Artist",
-      album: currentTrack.projectName ?? "Vault",
+      album: currentTrack.projectName ?? "{ vault.studio }",
       ...(artwork && { artwork }),
     };
 
