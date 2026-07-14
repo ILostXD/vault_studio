@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -11,6 +12,31 @@ import (
 	"bungleware/vault/internal/handlers/tracks"
 	"bungleware/vault/internal/httputil"
 )
+
+const maxNoteContentBytes = 100 * 1024
+
+func validateNoteContent(content, format string, allowRichText bool) (string, error) {
+	if format == "" {
+		format = "plain"
+	}
+	if len(content) > maxNoteContentBytes {
+		return "", errors.New("note content exceeds 100 KB")
+	}
+	if format == "plain" {
+		return format, nil
+	}
+	if format != "tiptap_json" || !allowRichText {
+		return "", errors.New("unsupported note content format")
+	}
+
+	var document struct {
+		Type string `json:"type"`
+	}
+	if err := json.Unmarshal([]byte(content), &document); err != nil || document.Type != "doc" {
+		return "", errors.New("invalid TipTap document")
+	}
+	return format, nil
+}
 
 type NotesHandler struct {
 	db *db.DB
@@ -57,13 +83,14 @@ func (h *NotesHandler) GetTrackNotes(w http.ResponseWriter, r *http.Request) err
 	response := make([]NoteResponse, len(notes))
 	for i, note := range notes {
 		response[i] = NoteResponse{
-			ID:         note.ID,
-			UserID:     note.UserID,
-			Content:    note.Content,
-			AuthorName: note.AuthorName,
-			CreatedAt:  httputil.FormatNullTimeString(note.CreatedAt),
-			UpdatedAt:  httputil.FormatNullTimeString(note.UpdatedAt),
-			IsOwner:    note.UserID == userID64,
+			ID:            note.ID,
+			UserID:        note.UserID,
+			Content:       note.Content,
+			ContentFormat: note.ContentFormat,
+			AuthorName:    note.AuthorName,
+			CreatedAt:     httputil.FormatNullTimeString(note.CreatedAt),
+			UpdatedAt:     httputil.FormatNullTimeString(note.UpdatedAt),
+			IsOwner:       note.UserID == userID64,
 		}
 	}
 
@@ -102,13 +129,14 @@ func (h *NotesHandler) GetProjectNotes(w http.ResponseWriter, r *http.Request) e
 	response := make([]NoteResponse, len(notes))
 	for i, note := range notes {
 		response[i] = NoteResponse{
-			ID:         note.ID,
-			UserID:     note.UserID,
-			Content:    note.Content,
-			AuthorName: note.AuthorName,
-			CreatedAt:  httputil.FormatNullTimeString(note.CreatedAt),
-			UpdatedAt:  httputil.FormatNullTimeString(note.UpdatedAt),
-			IsOwner:    note.UserID == userID64,
+			ID:            note.ID,
+			UserID:        note.UserID,
+			Content:       note.Content,
+			ContentFormat: note.ContentFormat,
+			AuthorName:    note.AuthorName,
+			CreatedAt:     httputil.FormatNullTimeString(note.CreatedAt),
+			UpdatedAt:     httputil.FormatNullTimeString(note.UpdatedAt),
+			IsOwner:       note.UserID == userID64,
 		}
 	}
 
@@ -132,6 +160,10 @@ func (h *NotesHandler) UpsertTrackNote(w http.ResponseWriter, r *http.Request) e
 	if err != nil {
 		return apperr.NewBadRequest("invalid request body")
 	}
+	contentFormat, err := validateNoteContent(req.Content, req.ContentFormat, true)
+	if err != nil {
+		return apperr.NewBadRequest(err.Error())
+	}
 
 	ctx := r.Context()
 
@@ -149,23 +181,25 @@ func (h *NotesHandler) UpsertTrackNote(w http.ResponseWriter, r *http.Request) e
 	}
 
 	note, err := h.db.UpsertTrackNote(r.Context(), sqlc.UpsertTrackNoteParams{
-		UserID:     userID64,
-		TrackID:    sql.NullInt64{Int64: track.ID, Valid: true},
-		Content:    req.Content,
-		AuthorName: req.AuthorName,
+		UserID:        userID64,
+		TrackID:       sql.NullInt64{Int64: track.ID, Valid: true},
+		Content:       req.Content,
+		ContentFormat: contentFormat,
+		AuthorName:    req.AuthorName,
 	})
 	if err != nil {
 		return apperr.NewInternal(err.Error(), err)
 	}
 
 	response := NoteResponse{
-		ID:         note.ID,
-		UserID:     note.UserID,
-		Content:    note.Content,
-		AuthorName: note.AuthorName,
-		CreatedAt:  httputil.FormatNullTimeString(note.CreatedAt),
-		UpdatedAt:  httputil.FormatNullTimeString(note.UpdatedAt),
-		IsOwner:    true,
+		ID:            note.ID,
+		UserID:        note.UserID,
+		Content:       note.Content,
+		ContentFormat: note.ContentFormat,
+		AuthorName:    note.AuthorName,
+		CreatedAt:     httputil.FormatNullTimeString(note.CreatedAt),
+		UpdatedAt:     httputil.FormatNullTimeString(note.UpdatedAt),
+		IsOwner:       true,
 	}
 
 	httputil.OK(w, response)
@@ -187,6 +221,9 @@ func (h *NotesHandler) UpsertProjectNote(w http.ResponseWriter, r *http.Request)
 	req, err := httputil.DecodeJSON[UpsertNoteRequest](r)
 	if err != nil {
 		return apperr.NewBadRequest("invalid request body")
+	}
+	if _, err := validateNoteContent(req.Content, req.ContentFormat, false); err != nil {
+		return apperr.NewBadRequest(err.Error())
 	}
 
 	project, err := h.db.GetProjectByPublicID(r.Context(), sqlc.GetProjectByPublicIDParams{
@@ -211,13 +248,14 @@ func (h *NotesHandler) UpsertProjectNote(w http.ResponseWriter, r *http.Request)
 	}
 
 	response := NoteResponse{
-		ID:         note.ID,
-		UserID:     note.UserID,
-		Content:    note.Content,
-		AuthorName: note.AuthorName,
-		CreatedAt:  httputil.FormatNullTimeString(note.CreatedAt),
-		UpdatedAt:  httputil.FormatNullTimeString(note.UpdatedAt),
-		IsOwner:    true,
+		ID:            note.ID,
+		UserID:        note.UserID,
+		Content:       note.Content,
+		ContentFormat: note.ContentFormat,
+		AuthorName:    note.AuthorName,
+		CreatedAt:     httputil.FormatNullTimeString(note.CreatedAt),
+		UpdatedAt:     httputil.FormatNullTimeString(note.UpdatedAt),
+		IsOwner:       true,
 	}
 
 	httputil.OK(w, response)

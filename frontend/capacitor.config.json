@@ -3,8 +3,11 @@
   "appName": "{ vault.studio }",
   "webDir": "dist",
   "server": {
-    "hostname": "192.168.1.253",
-    "androidScheme": "http"
+    "hostname": "localhost",
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true
   },
   "plugins": {
     "SystemBars": {

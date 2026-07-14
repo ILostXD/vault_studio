@@ -67,14 +67,15 @@ type InviteToken struct {
 }
 
 type Note struct {
-	ID         int64         `json:"id"`
-	UserID     int64         `json:"user_id"`
-	TrackID    sql.NullInt64 `json:"track_id"`
-	ProjectID  sql.NullInt64 `json:"project_id"`
-	Content    string        `json:"content"`
-	AuthorName string        `json:"author_name"`
-	CreatedAt  sql.NullTime  `json:"created_at"`
-	UpdatedAt  sql.NullTime  `json:"updated_at"`
+	ID            int64         `json:"id"`
+	UserID        int64         `json:"user_id"`
+	TrackID       sql.NullInt64 `json:"track_id"`
+	ProjectID     sql.NullInt64 `json:"project_id"`
+	Content       string        `json:"content"`
+	AuthorName    string        `json:"author_name"`
+	CreatedAt     sql.NullTime  `json:"created_at"`
+	UpdatedAt     sql.NullTime  `json:"updated_at"`
+	ContentFormat string        `json:"content_format"`
 }
 
 type Project struct {

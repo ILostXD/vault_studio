@@ -17,8 +17,8 @@ SELECT * FROM notes
 WHERE user_id = ? AND project_id = ?;
 
 -- name: CreateTrackNote :one
-INSERT INTO notes (user_id, track_id, content, author_name)
-VALUES (?, ?, ?, ?)
+INSERT INTO notes (user_id, track_id, content, content_format, author_name)
+VALUES (?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: CreateProjectNote :one
@@ -29,6 +29,7 @@ RETURNING *;
 -- name: UpdateNote :one
 UPDATE notes
 SET content = ?,
+    content_format = ?,
     author_name = ?,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = ? AND user_id = ?
@@ -39,10 +40,11 @@ DELETE FROM notes
 WHERE id = ? AND user_id = ?;
 
 -- name: UpsertTrackNote :one
-INSERT INTO notes (user_id, track_id, content, author_name)
-VALUES (?, ?, ?, ?)
+INSERT INTO notes (user_id, track_id, content, content_format, author_name)
+VALUES (?, ?, ?, ?, ?)
 ON CONFLICT (user_id, track_id) DO UPDATE SET
     content = excluded.content,
+    content_format = excluded.content_format,
     author_name = excluded.author_name,
     updated_at = CURRENT_TIMESTAMP
 RETURNING *;

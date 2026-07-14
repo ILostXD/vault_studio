@@ -91,7 +91,11 @@ func loadConfig() Config {
 			CookieSecure:        cookieSecure,
 			CookieSameSite:      cookieSameSite,
 		},
-		CORSAllowedOrigins: parseCommaEnv("CORS_ALLOWED_ORIGINS"),
+		CORSAllowedOrigins: append(
+			parseCommaEnv("CORS_ALLOWED_ORIGINS"),
+			"https://localhost",
+			"capacitor://localhost",
+		),
 	}
 }
 

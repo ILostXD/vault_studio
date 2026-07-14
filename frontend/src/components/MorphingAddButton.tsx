@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Plus, FolderPlus, FilePlus } from "lucide-react";
+import { Plus, FolderPlus, FilePlus, Mic } from "lucide-react";
 import { useWebHaptics } from "web-haptics/react";
 
 interface MorphingAddButtonProps {
   onAddProject: () => void;
   onAddFolder: () => void;
+  onRecordIdea?: () => void;
   isCreatingProject?: boolean;
   isCreatingFolder?: boolean;
   className?: string;
@@ -15,6 +16,7 @@ interface MorphingAddButtonProps {
 export default function MorphingAddButton({
   onAddProject,
   onAddFolder,
+  onRecordIdea,
   isCreatingProject = false,
   isCreatingFolder = false,
   className = "",
@@ -37,6 +39,12 @@ export default function MorphingAddButton({
   const handleAddFolder = () => {
     haptic.trigger("light");
     onAddFolder();
+    setIsExpanded(false);
+  };
+
+  const handleRecordIdea = () => {
+    haptic.trigger("light");
+    onRecordIdea?.();
     setIsExpanded(false);
   };
 
@@ -132,6 +140,19 @@ export default function MorphingAddButton({
                 transition={{ duration: 0.08 }}
                 className="relative flex flex-col gap-2"
               >
+                {onRecordIdea && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.9, filter: "blur(8px)" }}
+                    animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, filter: "blur(4px)" }}
+                    transition={{ type: "spring", stiffness: 500, damping: 35, delay: 0.03 }}
+                    onClick={handleRecordIdea}
+                    className="h-10 text-base font-semibold rounded-2xl px-6 inline-flex items-center justify-center gap-2 whitespace-nowrap themed-control transition-colors cursor-pointer active:scale-95"
+                  >
+                    <Mic className="size-5" />
+                    Record idea
+                  </motion.button>
+                )}
                 <motion.button
                   initial={{
                     opacity: 0,

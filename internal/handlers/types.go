@@ -198,18 +198,20 @@ type TrackResponse = shared.TrackResponse
 type TrackListResponse = shared.TrackListResponse
 
 type NoteResponse struct {
-	ID         int64  `json:"id"`
-	UserID     int64  `json:"user_id"`
-	Content    string `json:"content"`
-	AuthorName string `json:"author_name"`
-	CreatedAt  string `json:"created_at"`
-	UpdatedAt  string `json:"updated_at"`
-	IsOwner    bool   `json:"is_owner"`
+	ID            int64  `json:"id"`
+	UserID        int64  `json:"user_id"`
+	Content       string `json:"content"`
+	ContentFormat string `json:"content_format"`
+	AuthorName    string `json:"author_name"`
+	CreatedAt     string `json:"created_at"`
+	UpdatedAt     string `json:"updated_at"`
+	IsOwner       bool   `json:"is_owner"`
 }
 
 type UpsertNoteRequest struct {
-	Content    string `json:"content"`
-	AuthorName string `json:"author_name"`
+	Content       string `json:"content"`
+	ContentFormat string `json:"content_format,omitempty"`
+	AuthorName    string `json:"author_name"`
 }
 
 type StorageStatsResponse struct {

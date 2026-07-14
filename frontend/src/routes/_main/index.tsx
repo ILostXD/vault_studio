@@ -10,6 +10,7 @@ import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { useQuery } from "@tanstack/react-query";
 import * as sharingApi from "@/api/sharing";
 import { motion } from "motion/react";
+import VoiceMemoRecorder from "@/components/VoiceMemoRecorder";
 
 export const Route = createFileRoute("/_main/")({
   component: App,
@@ -44,6 +45,7 @@ function App() {
   const navigate = useNavigate();
   const { currentTrack, queue } = useAudioPlayer();
   const [showContent, setShowContent] = useState(false);
+  const [recorderOpen, setRecorderOpen] = useState(false);
 
   const allProjects = useMemo(() => {
     const allProjects = projects || [];
@@ -147,6 +149,7 @@ function App() {
         <MorphingAddButton
           onAddProject={handleCreateProject}
           onAddFolder={handleCreateFolder}
+          onRecordIdea={() => setRecorderOpen(true)}
           isCreatingProject={createProject.isPending}
           isCreatingFolder={createFolder.isPending}
           className={`transition-all duration-100 ${
@@ -157,6 +160,10 @@ function App() {
               ? "bottom-[130px] sm:bottom-[145px]"
               : "bottom-8"
           }
+        />
+        <VoiceMemoRecorder
+          isOpen={recorderOpen}
+          onClose={() => setRecorderOpen(false)}
         />
       </div>
     </div>

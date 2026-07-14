@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as notesApi from '../api/notes'
+import type { NoteContentFormat } from '../types/api'
 
 export const noteKeys = {
   all: ['notes'] as const,
@@ -27,8 +28,8 @@ export function useUpsertTrackNote() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ trackId, content, authorName }: { trackId: string; content: string; authorName: string }) =>
-      notesApi.upsertTrackNote(trackId, { content, author_name: authorName }),
+    mutationFn: ({ trackId, content, authorName, contentFormat }: { trackId: string; content: string; authorName: string; contentFormat: NoteContentFormat }) =>
+      notesApi.upsertTrackNote(trackId, { content, author_name: authorName, content_format: contentFormat }),
     onMutate: async (variables) => {
       await queryClient.cancelQueries({ queryKey: noteKeys.track(variables.trackId) })
       const previousNotes = queryClient.getQueryData(noteKeys.track(variables.trackId))
@@ -40,6 +41,7 @@ export function useUpsertTrackNote() {
           updated[userNoteIndex] = {
             ...updated[userNoteIndex],
             content: variables.content,
+            content_format: variables.contentFormat,
           }
           return updated
         } else {
@@ -49,6 +51,7 @@ export function useUpsertTrackNote() {
               content: variables.content,
               author_name: variables.authorName,
               is_owner: true,
+              content_format: variables.contentFormat,
             },
           ]
         }

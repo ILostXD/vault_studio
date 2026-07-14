@@ -11,6 +11,11 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/routes/__root";
 import { Button } from "@/components/ui/button";
+import {
+  RichTrackNoteContent,
+  RichTrackNoteEditor,
+} from "@/components/RichTrackNote";
+import type { NoteContentFormat } from "@/types/api";
 
 interface TrackNotesPanelProps {
   mode: "track";
@@ -28,7 +33,7 @@ interface ProjectNotesPanelProps {
 
 type NotesPanelProps = TrackNotesPanelProps | ProjectNotesPanelProps;
 
-function NoteItem({ note }: { note: Note }) {
+function NoteItem({ note, richText }: { note: Note; richText: boolean }) {
   return (
     <div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-2xl overflow-hidden">
       <div className="flex items-center gap-2.5 px-4 py-3 border-b border-white/5">
@@ -38,14 +43,20 @@ function NoteItem({ note }: { note: Note }) {
         <span className="text-sm text-(--text-0)/60">@{note.author_name}</span>
       </div>
       <div className="px-4 py-4">
-        <p
-          className="text-(--text-0)/90 text-sm whitespace-pre-wrap leading-relaxed"
-          style={{ fontFamily: '"IBM Plex Mono", monospace' }}
-        >
-          {note.content || (
+        {note.content ? (
+          richText && note.content_format === "tiptap_json" ? (
+            <RichTrackNoteContent content={note.content} />
+          ) : (
+            <p
+              className="text-(--text-0)/90 text-sm whitespace-pre-wrap leading-relaxed"
+              style={{ fontFamily: '"IBM Plex Mono", monospace' }}
+            >
+              {note.content}
+            </p>
+          )
+        ) : (
             <span className="text-(--text-0)/30 italic">No notes yet...</span>
-          )}
-        </p>
+        )}
       </div>
     </div>
   );
@@ -205,7 +216,7 @@ export default function NotesPanel(props: NotesPanelProps) {
   const otherNotes = notes.filter((n) => !n.is_owner);
 
   const saveNote = useCallback(
-    async (content: string) => {
+    async (content: string, contentFormat: NoteContentFormat = "plain") => {
       if (!currentId || !user?.username) return;
 
       try {
@@ -214,6 +225,7 @@ export default function NotesPanel(props: NotesPanelProps) {
             trackId: currentId,
             content,
             authorName: user.username,
+            contentFormat,
           });
         } else {
           await upsertProjectNote.mutateAsync({
@@ -284,17 +296,29 @@ export default function NotesPanel(props: NotesPanelProps) {
 
       <div className="flex-1 overflow-y-auto space-y-6">
         {!isLoading && user?.username && currentId && (
-          <EditableNote
-            key={currentId}
-            initialContent={myNote?.content ?? ""}
-            authorName={user.username}
-            onSave={saveNote}
-            entityId={currentId}
-          />
+          mode === "track" ? (
+            <RichTrackNoteEditor
+              key={currentId}
+              initialContent={myNote?.content ?? ""}
+              contentFormat={myNote?.content_format ?? "plain"}
+              authorName={user.username}
+              onSave={saveNote}
+            />
+          ) : (
+            <EditableNote
+              key={currentId}
+              initialContent={myNote?.content ?? ""}
+              authorName={user.username}
+              onSave={saveNote}
+              entityId={currentId}
+            />
+          )
         )}
 
         {!isLoading &&
-          otherNotes.map((note) => <NoteItem key={note.id} note={note} />)}
+          otherNotes.map((note) => (
+            <NoteItem key={note.id} note={note} richText={mode === "track"} />
+          ))}
 
         {!isLoading && notes.length === 0 && !user && (
           <div className="text-(--text-1) text-base text-center py-4">

@@ -7,6 +7,7 @@ import { PreferencesProvider } from "./contexts/PreferencesContext";
 import { AudioPlayerProvider } from "./contexts/AudioPlayerContext";
 import { routeTree } from "./routeTree.gen";
 import { MotionConfig } from "motion/react";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./styles.css";
 
 const TanStackQueryProviderContext = TanStackQueryProvider.getContext();
@@ -37,7 +38,9 @@ if (rootElement && !rootElement.innerHTML) {
           <PreferencesProvider>
             <AudioPlayerProvider>
               <MotionConfig reducedMotion="user">
-                <RouterProvider router={router} />
+                <TooltipProvider>
+                  <RouterProvider router={router} />
+                </TooltipProvider>
               </MotionConfig>
             </AudioPlayerProvider>
           </PreferencesProvider>

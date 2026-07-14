@@ -504,6 +504,68 @@ code,
   animation: scroll-text var(--scroll-duration, 12s) linear infinite;
 }
 
+.rich-note-content {
+  color: color-mix(in srgb, var(--text-0) 90%, transparent);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.875rem;
+  line-height: 1.65;
+}
+
+.rich-note-content > * + * {
+  margin-top: 0.65rem;
+}
+
+.rich-note-content h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.rich-note-content h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.rich-note-content strong {
+  font-weight: 700;
+}
+
+.rich-note-content em {
+  font-style: italic;
+}
+
+.rich-note-content ul,
+.rich-note-content ol {
+  padding-left: 1.5rem;
+}
+
+.rich-note-content ul {
+  list-style: disc;
+}
+
+.rich-note-content ol {
+  list-style: decimal;
+}
+
+.rich-note-content blockquote {
+  border-left: 3px solid var(--control-border);
+  padding-left: 0.9rem;
+  color: var(--text-1);
+}
+
+.rich-note-content a {
+  color: var(--accent-color);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.rich-note-content p.is-editor-empty:first-child::before {
+  color: color-mix(in srgb, var(--text-0) 25%, transparent);
+  content: "Write your note...";
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
 .media-tile-visual {
   transition:
     transform 320ms cubic-bezier(0.32, 0.72, 0, 1),

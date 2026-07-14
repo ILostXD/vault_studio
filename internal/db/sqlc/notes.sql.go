@@ -13,7 +13,7 @@ import (
 const createProjectNote = `-- name: CreateProjectNote :one
 INSERT INTO notes (user_id, project_id, content, author_name)
 VALUES (?, ?, ?, ?)
-RETURNING id, user_id, track_id, project_id, content, author_name, created_at, updated_at
+RETURNING id, user_id, track_id, project_id, content, author_name, created_at, updated_at, content_format
 `
 
 type CreateProjectNoteParams struct {
@@ -40,21 +40,23 @@ func (q *Queries) CreateProjectNote(ctx context.Context, arg CreateProjectNotePa
 		&i.AuthorName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ContentFormat,
 	)
 	return i, err
 }
 
 const createTrackNote = `-- name: CreateTrackNote :one
-INSERT INTO notes (user_id, track_id, content, author_name)
-VALUES (?, ?, ?, ?)
-RETURNING id, user_id, track_id, project_id, content, author_name, created_at, updated_at
+INSERT INTO notes (user_id, track_id, content, content_format, author_name)
+VALUES (?, ?, ?, ?, ?)
+RETURNING id, user_id, track_id, project_id, content, author_name, created_at, updated_at, content_format
 `
 
 type CreateTrackNoteParams struct {
-	UserID     int64         `json:"user_id"`
-	TrackID    sql.NullInt64 `json:"track_id"`
-	Content    string        `json:"content"`
-	AuthorName string        `json:"author_name"`
+	UserID        int64         `json:"user_id"`
+	TrackID       sql.NullInt64 `json:"track_id"`
+	Content       string        `json:"content"`
+	ContentFormat string        `json:"content_format"`
+	AuthorName    string        `json:"author_name"`
 }
 
 func (q *Queries) CreateTrackNote(ctx context.Context, arg CreateTrackNoteParams) (Note, error) {
@@ -62,6 +64,7 @@ func (q *Queries) CreateTrackNote(ctx context.Context, arg CreateTrackNoteParams
 		arg.UserID,
 		arg.TrackID,
 		arg.Content,
+		arg.ContentFormat,
 		arg.AuthorName,
 	)
 	var i Note
@@ -74,6 +77,7 @@ func (q *Queries) CreateTrackNote(ctx context.Context, arg CreateTrackNoteParams
 		&i.AuthorName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ContentFormat,
 	)
 	return i, err
 }
@@ -94,7 +98,7 @@ func (q *Queries) DeleteNote(ctx context.Context, arg DeleteNoteParams) error {
 }
 
 const getNotesByProject = `-- name: GetNotesByProject :many
-SELECT id, user_id, track_id, project_id, content, author_name, created_at, updated_at FROM notes
+SELECT id, user_id, track_id, project_id, content, author_name, created_at, updated_at, content_format FROM notes
 WHERE project_id = ?
 ORDER BY updated_at DESC
 `
@@ -117,6 +121,7 @@ func (q *Queries) GetNotesByProject(ctx context.Context, projectID sql.NullInt64
 			&i.AuthorName,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.ContentFormat,
 		); err != nil {
 			return nil, err
 		}
@@ -132,7 +137,7 @@ func (q *Queries) GetNotesByProject(ctx context.Context, projectID sql.NullInt64
 }
 
 const getNotesByTrack = `-- name: GetNotesByTrack :many
-SELECT id, user_id, track_id, project_id, content, author_name, created_at, updated_at FROM notes
+SELECT id, user_id, track_id, project_id, content, author_name, created_at, updated_at, content_format FROM notes
 WHERE track_id = ?
 ORDER BY updated_at DESC
 `
@@ -155,6 +160,7 @@ func (q *Queries) GetNotesByTrack(ctx context.Context, trackID sql.NullInt64) ([
 			&i.AuthorName,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.ContentFormat,
 		); err != nil {
 			return nil, err
 		}
@@ -170,7 +176,7 @@ func (q *Queries) GetNotesByTrack(ctx context.Context, trackID sql.NullInt64) ([
 }
 
 const getUserNoteForProject = `-- name: GetUserNoteForProject :one
-SELECT id, user_id, track_id, project_id, content, author_name, created_at, updated_at FROM notes
+SELECT id, user_id, track_id, project_id, content, author_name, created_at, updated_at, content_format FROM notes
 WHERE user_id = ? AND project_id = ?
 `
 
@@ -191,12 +197,13 @@ func (q *Queries) GetUserNoteForProject(ctx context.Context, arg GetUserNoteForP
 		&i.AuthorName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ContentFormat,
 	)
 	return i, err
 }
 
 const getUserNoteForTrack = `-- name: GetUserNoteForTrack :one
-SELECT id, user_id, track_id, project_id, content, author_name, created_at, updated_at FROM notes
+SELECT id, user_id, track_id, project_id, content, author_name, created_at, updated_at, content_format FROM notes
 WHERE user_id = ? AND track_id = ?
 `
 
@@ -217,6 +224,7 @@ func (q *Queries) GetUserNoteForTrack(ctx context.Context, arg GetUserNoteForTra
 		&i.AuthorName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ContentFormat,
 	)
 	return i, err
 }
@@ -224,22 +232,25 @@ func (q *Queries) GetUserNoteForTrack(ctx context.Context, arg GetUserNoteForTra
 const updateNote = `-- name: UpdateNote :one
 UPDATE notes
 SET content = ?,
+    content_format = ?,
     author_name = ?,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = ? AND user_id = ?
-RETURNING id, user_id, track_id, project_id, content, author_name, created_at, updated_at
+RETURNING id, user_id, track_id, project_id, content, author_name, created_at, updated_at, content_format
 `
 
 type UpdateNoteParams struct {
-	Content    string `json:"content"`
-	AuthorName string `json:"author_name"`
-	ID         int64  `json:"id"`
-	UserID     int64  `json:"user_id"`
+	Content       string `json:"content"`
+	ContentFormat string `json:"content_format"`
+	AuthorName    string `json:"author_name"`
+	ID            int64  `json:"id"`
+	UserID        int64  `json:"user_id"`
 }
 
 func (q *Queries) UpdateNote(ctx context.Context, arg UpdateNoteParams) (Note, error) {
 	row := q.db.QueryRowContext(ctx, updateNote,
 		arg.Content,
+		arg.ContentFormat,
 		arg.AuthorName,
 		arg.ID,
 		arg.UserID,
@@ -254,6 +265,7 @@ func (q *Queries) UpdateNote(ctx context.Context, arg UpdateNoteParams) (Note, e
 		&i.AuthorName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ContentFormat,
 	)
 	return i, err
 }
@@ -265,7 +277,7 @@ ON CONFLICT (user_id, project_id) DO UPDATE SET
     content = excluded.content,
     author_name = excluded.author_name,
     updated_at = CURRENT_TIMESTAMP
-RETURNING id, user_id, track_id, project_id, content, author_name, created_at, updated_at
+RETURNING id, user_id, track_id, project_id, content, author_name, created_at, updated_at, content_format
 `
 
 type UpsertProjectNoteParams struct {
@@ -292,25 +304,28 @@ func (q *Queries) UpsertProjectNote(ctx context.Context, arg UpsertProjectNotePa
 		&i.AuthorName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ContentFormat,
 	)
 	return i, err
 }
 
 const upsertTrackNote = `-- name: UpsertTrackNote :one
-INSERT INTO notes (user_id, track_id, content, author_name)
-VALUES (?, ?, ?, ?)
+INSERT INTO notes (user_id, track_id, content, content_format, author_name)
+VALUES (?, ?, ?, ?, ?)
 ON CONFLICT (user_id, track_id) DO UPDATE SET
     content = excluded.content,
+    content_format = excluded.content_format,
     author_name = excluded.author_name,
     updated_at = CURRENT_TIMESTAMP
-RETURNING id, user_id, track_id, project_id, content, author_name, created_at, updated_at
+RETURNING id, user_id, track_id, project_id, content, author_name, created_at, updated_at, content_format
 `
 
 type UpsertTrackNoteParams struct {
-	UserID     int64         `json:"user_id"`
-	TrackID    sql.NullInt64 `json:"track_id"`
-	Content    string        `json:"content"`
-	AuthorName string        `json:"author_name"`
+	UserID        int64         `json:"user_id"`
+	TrackID       sql.NullInt64 `json:"track_id"`
+	Content       string        `json:"content"`
+	ContentFormat string        `json:"content_format"`
+	AuthorName    string        `json:"author_name"`
 }
 
 func (q *Queries) UpsertTrackNote(ctx context.Context, arg UpsertTrackNoteParams) (Note, error) {
@@ -318,6 +333,7 @@ func (q *Queries) UpsertTrackNote(ctx context.Context, arg UpsertTrackNoteParams
 		arg.UserID,
 		arg.TrackID,
 		arg.Content,
+		arg.ContentFormat,
 		arg.AuthorName,
 	)
 	var i Note
@@ -330,6 +346,7 @@ func (q *Queries) UpsertTrackNote(ctx context.Context, arg UpsertTrackNoteParams
 		&i.AuthorName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ContentFormat,
 	)
 	return i, err
 }

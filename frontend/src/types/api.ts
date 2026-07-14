@@ -232,11 +232,15 @@ export interface Note {
   created_at: string
   updated_at: string
   is_owner: boolean
+  content_format: NoteContentFormat
 }
+
+export type NoteContentFormat = 'plain' | 'tiptap_json'
 
 export interface UpsertNoteRequest {
   content: string
   author_name: string
+  content_format?: NoteContentFormat
 }
 
 export interface StorageStats {
