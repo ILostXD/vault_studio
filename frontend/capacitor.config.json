@@ -4,10 +4,7 @@
   "webDir": "dist",
   "server": {
     "hostname": "localhost",
-    "androidScheme": "https"
-  },
-  "android": {
-    "allowMixedContent": true
+    "androidScheme": "http"
   },
   "plugins": {
     "SystemBars": {
