@@ -74,7 +74,7 @@ export default function BaseModal({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.16 }}
-                className="fixed inset-0 z-1000 flex items-center justify-center p-4 pointer-events-none"
+                className="fixed inset-0 z-1000 flex overflow-y-auto p-4 pointer-events-none"
                 {...(dataAttributes["data-modal-container"] && {
                   "data-modal-container":
                     dataAttributes["data-modal-container"],
@@ -90,7 +90,7 @@ export default function BaseModal({
                   animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
                   exit={{ opacity: 0, y: 10, scale: 0.98, filter: "blur(3px)" }}
                   transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                  className={`relative z-10 w-full ${maxWidthClasses[maxWidth]} border border-(--card-border) rounded-[34px] shadow-2xl overflow-hidden pointer-events-auto overlay-surface text-(--text-0)`}
+                  className={`relative z-10 my-auto w-full ${maxWidthClasses[maxWidth]} max-h-[calc(100dvh-2rem)] border border-(--card-border) rounded-[34px] shadow-2xl overflow-y-auto pointer-events-auto overlay-surface text-(--text-0)`}
                   onClick={(e) => e.stopPropagation()}
                   {...(dataAttributes["data-modal-content"] && {
                     "data-modal-content": dataAttributes["data-modal-content"],

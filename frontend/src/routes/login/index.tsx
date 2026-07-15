@@ -99,8 +99,8 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-(--bg-0) p-4">
-      <div className="w-full max-w-[500px]">
+    <div className="flex min-h-dvh overflow-y-auto bg-(--bg-0) p-4 focus-within:pb-[45dvh] lg:focus-within:pb-4">
+      <div className="my-auto w-full max-w-[500px] mx-auto">
         <motion.div
           layout
           initial={{ opacity: 0, y: 5, filter: "blur(8px)" }}

@@ -60,7 +60,7 @@ export function RichTrackNoteEditor({
     editorProps: {
       attributes: {
         class:
-          "rich-note-content min-h-40 max-h-80 overflow-y-auto px-4 py-4 focus:outline-none",
+          "rich-note-content min-h-40 px-4 py-4 focus:outline-none md:max-h-80 md:overflow-y-auto",
         "aria-label": "Track note",
       },
     },
@@ -163,7 +163,7 @@ function RichTextToolbar({ editor }: { editor: Editor }) {
                 size="icon-lg"
                 variant="ghost"
                 className={active ? "themed-control-active shrink-0" : "shrink-0 hover:bg-(--control-bg-hover)"}
-                onMouseDown={(event) => event.preventDefault()}
+                onPointerDown={(event) => event.preventDefault()}
                 onClick={action}
                 disabled={disabled}
                 aria-label={label}

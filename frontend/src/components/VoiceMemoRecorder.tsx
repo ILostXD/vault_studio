@@ -172,6 +172,11 @@ export default function VoiceMemoRecorder({
   const startRecording = async () => {
     resetPreview();
     setError("");
+    if (!window.isSecureContext) {
+      setError("Microphone recording on iPad requires an HTTPS address.");
+      setStatus("error");
+      return;
+    }
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
       setError("Audio recording is not supported in this browser.");
       setStatus("error");
@@ -179,11 +184,6 @@ export default function VoiceMemoRecorder({
     }
 
     const format = FORMATS.find(({ mimeType }) => MediaRecorder.isTypeSupported(mimeType));
-    if (!format) {
-      setError("This browser does not provide a supported compressed recording format.");
-      setStatus("error");
-      return;
-    }
 
     try {
       setStatus("requesting");
@@ -193,11 +193,21 @@ export default function VoiceMemoRecorder({
         return;
       }
 
-      const recorder = new MediaRecorder(stream, { mimeType: format.mimeType });
+      const recorder = new MediaRecorder(
+        stream,
+        format ? { mimeType: format.mimeType } : undefined,
+      );
       streamRef.current = stream;
       recorderRef.current = recorder;
       chunksRef.current = [];
-      setExtension(format.extension);
+      const mimeType = recorder.mimeType || format?.mimeType || "audio/mp4";
+      setExtension(
+        mimeType.includes("webm")
+          ? "webm"
+          : mimeType.includes("ogg")
+            ? "ogg"
+            : "m4a",
+      );
       accumulatedRef.current = 0;
       activeStartedAtRef.current = performance.now();
       setElapsed(0);
@@ -218,7 +228,7 @@ export default function VoiceMemoRecorder({
         }
         releaseInput();
         if (closingRef.current) return;
-        const blob = new Blob(chunksRef.current, { type: format.mimeType });
+        const blob = new Blob(chunksRef.current, { type: mimeType });
         if (!blob.size) {
           setError("No audio was captured. Please try again.");
           setStatus("error");
