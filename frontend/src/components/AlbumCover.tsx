@@ -172,7 +172,7 @@ export default function AlbumCover({
         role={showUploadOverlay && onUploadClick ? "button" : undefined}
         tabIndex={showUploadOverlay && onUploadClick ? 0 : undefined}
         className={cn(
-          "relative z-10 aspect-square w-full rounded-2xl overflow-hidden outline outline-white/13 group bg-neutral-800",
+          "relative z-10 aspect-square w-full rounded-2xl overflow-hidden group bg-neutral-800",
           showUploadOverlay && onUploadClick && "cursor-pointer",
         )}
         onClick={showUploadOverlay && onUploadClick ? onUploadClick : undefined}

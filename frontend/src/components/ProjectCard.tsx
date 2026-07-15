@@ -433,7 +433,7 @@ export default function ProjectCard({
     >
       <div
         className={cn(
-          "project-cover media-tile-visual relative aspect-square rounded-(--card-border-radius) border border-(--card-border) bg-neutral-800/40",
+          "project-cover media-tile-visual relative aspect-square rounded-(--card-border-radius) bg-neutral-800/40",
         )}
         style={{ touchAction: "auto" }}
         {...dragHandleProps}
