@@ -1,10 +1,10 @@
 # Build from source
 
-Requires Go 1.23+ and Bun.
+Requires Go 1.25+ and Bun.
 
 ```bash
-git clone https://github.com/bungleware/vault
-cd vault
+git clone https://github.com/ILostXD/vault_studio.git
+cd vault_studio
 cp .env.example .env
 make build
 ./server
@@ -12,7 +12,7 @@ make build
 
 # Development
 
-Requires Go 1.23+, Bun, and [wgo](https://github.com/bokwoon95/wgo) for live reload.
+Requires Go 1.25+, Bun, and [wgo](https://github.com/bokwoon95/wgo) for live reload.
 
 ```bash
 # Install wgo
@@ -38,7 +38,7 @@ React app under `frontend/`. Uses Bun as the package manager. Built with Vite, T
 # Source Tree
 
 ```
-vault/
+vault_studio/
 ├── cmd/server/         # Application entry point
 ├── frontend/           # React frontend
 │   └── src/
@@ -63,6 +63,5 @@ vault/
 │   ├── storage/        # File storage abstraction
 │   └── transcoding/    # Audio transcoding
 ├── migrations/         # SQLite migration files
-├── scripts/            # Utility scripts
 └── data/               # Runtime data (SQLite database and uploaded files)
 ```
