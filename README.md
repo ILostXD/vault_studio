@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="frontend/public/web-app-manifest-192x192.png" width="112" alt="{ vault.studio } logo" />
+<img src="docs/vault_studio_docicon.png" width="128" alt="{ vault.studio } logo" />
 
 # { vault.studio }
 
