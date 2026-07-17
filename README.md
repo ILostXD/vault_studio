@@ -31,7 +31,7 @@ Self-hosted streaming, organization, and creative tools for work-in-progress mus
 
 The project is also inspired by [untitled](https://untitled.stream/), while remaining open source and self-hosted.
 
-## What Vault Studio Adds
+## What {vault.studio} Adds
 
 - Native Android app with a selectable self-hosted backend URL, including raw HTTP support for local networks
 - Android media controls and track metadata for the notification player and connected devices
@@ -41,7 +41,7 @@ The project is also inspired by [untitled](https://untitled.stream/), while rema
 - Light, Default, Black, and System themes with a configurable accent color
 - Mobile-focused layouts, edge-to-edge Android presentation, and gesture-aware navigation
 
-## Core Vault Features
+## Core {vault} Features
 
 These features come from the upstream project and remain central to this fork:
 
