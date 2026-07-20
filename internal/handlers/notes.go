@@ -15,7 +15,7 @@ import (
 
 const maxNoteContentBytes = 100 * 1024
 
-func validateNoteContent(content, format string, allowRichText bool) (string, error) {
+func validateNoteContent(content, format string) (string, error) {
 	if format == "" {
 		format = "plain"
 	}
@@ -25,7 +25,7 @@ func validateNoteContent(content, format string, allowRichText bool) (string, er
 	if format == "plain" {
 		return format, nil
 	}
-	if format != "tiptap_json" || !allowRichText {
+	if format != "tiptap_json" {
 		return "", errors.New("unsupported note content format")
 	}
 
@@ -160,7 +160,7 @@ func (h *NotesHandler) UpsertTrackNote(w http.ResponseWriter, r *http.Request) e
 	if err != nil {
 		return apperr.NewBadRequest("invalid request body")
 	}
-	contentFormat, err := validateNoteContent(req.Content, req.ContentFormat, true)
+	contentFormat, err := validateNoteContent(req.Content, req.ContentFormat)
 	if err != nil {
 		return apperr.NewBadRequest(err.Error())
 	}
@@ -222,7 +222,8 @@ func (h *NotesHandler) UpsertProjectNote(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		return apperr.NewBadRequest("invalid request body")
 	}
-	if _, err := validateNoteContent(req.Content, req.ContentFormat, false); err != nil {
+	contentFormat, err := validateNoteContent(req.Content, req.ContentFormat)
+	if err != nil {
 		return apperr.NewBadRequest(err.Error())
 	}
 
@@ -238,10 +239,11 @@ func (h *NotesHandler) UpsertProjectNote(w http.ResponseWriter, r *http.Request)
 	}
 
 	note, err := h.db.UpsertProjectNote(r.Context(), sqlc.UpsertProjectNoteParams{
-		UserID:     userID64,
-		ProjectID:  sql.NullInt64{Int64: project.ID, Valid: true},
-		Content:    req.Content,
-		AuthorName: req.AuthorName,
+		UserID:        userID64,
+		ProjectID:     sql.NullInt64{Int64: project.ID, Valid: true},
+		Content:       req.Content,
+		ContentFormat: contentFormat,
+		AuthorName:    req.AuthorName,
 	})
 	if err != nil {
 		return apperr.NewInternal(err.Error(), err)

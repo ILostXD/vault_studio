@@ -1,21 +1,20 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { motion } from "motion/react";
 import { X } from "lucide-react";
-import type { Track, Project, Note } from "@/types/api";
-import {
-  useTrackNotes,
-  useProjectNotes,
-  useUpsertTrackNote,
-  useUpsertProjectNote,
-} from "@/hooks/useNotes";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/routes/__root";
-import { Button } from "@/components/ui/button";
+import { motion } from "motion/react";
+import { useCallback, useEffect } from "react";
 import {
   RichTrackNoteContent,
   RichTrackNoteEditor,
 } from "@/components/RichTrackNote";
-import type { NoteContentFormat } from "@/types/api";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  useProjectNotes,
+  useTrackNotes,
+  useUpsertProjectNote,
+  useUpsertTrackNote,
+} from "@/hooks/useNotes";
+import { toast } from "@/routes/__root";
+import type { Note, NoteContentFormat, Project, Track } from "@/types/api";
 
 interface TrackNotesPanelProps {
   mode: "track";
@@ -33,7 +32,7 @@ interface ProjectNotesPanelProps {
 
 type NotesPanelProps = TrackNotesPanelProps | ProjectNotesPanelProps;
 
-function NoteItem({ note, richText }: { note: Note; richText: boolean }) {
+function NoteItem({ note }: { note: Note }) {
   return (
     <div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-2xl overflow-hidden">
       <div className="flex items-center gap-2.5 px-4 py-3 border-b border-white/5">
@@ -44,7 +43,7 @@ function NoteItem({ note, richText }: { note: Note; richText: boolean }) {
       </div>
       <div className="px-4 py-4">
         {note.content ? (
-          richText && note.content_format === "tiptap_json" ? (
+          note.content_format === "tiptap_json" ? (
             <RichTrackNoteContent content={note.content} />
           ) : (
             <p
@@ -57,134 +56,6 @@ function NoteItem({ note, richText }: { note: Note; richText: boolean }) {
         ) : (
             <span className="text-(--text-0)/30 italic">No notes yet...</span>
         )}
-      </div>
-    </div>
-  );
-}
-
-function EditableNote({
-  initialContent,
-  authorName,
-  onSave,
-  entityId,
-}: {
-  initialContent: string;
-  authorName: string;
-  onSave: (content: string) => void;
-  entityId: string;
-}) {
-  const [content, setContent] = useState(initialContent);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastEntityIdRef = useRef<string>(entityId);
-  const hasUserEditedRef = useRef<boolean>(false);
-  const lastSavedContentRef = useRef<string>(initialContent);
-  const isInitialMountRef = useRef<boolean>(true);
-  const lastInitialContentRef = useRef<string>(initialContent);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    const el = textareaRef.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${el.scrollHeight}px`;
-  }, [content]);
-
-  useEffect(() => {
-    if (lastEntityIdRef.current !== entityId) {
-      lastEntityIdRef.current = entityId;
-      hasUserEditedRef.current = false;
-      lastSavedContentRef.current = initialContent;
-      lastInitialContentRef.current = initialContent;
-      isInitialMountRef.current = true;
-      setContent(initialContent);
-    }
-  }, [entityId, initialContent]);
-
-  useEffect(() => {
-    if (lastEntityIdRef.current === entityId) {
-      if (isInitialMountRef.current) {
-        if (initialContent && initialContent !== content) {
-          setContent(initialContent);
-          lastSavedContentRef.current = initialContent;
-          lastInitialContentRef.current = initialContent;
-          isInitialMountRef.current = false;
-          return;
-        } else if (initialContent === content) {
-          isInitialMountRef.current = false;
-          lastInitialContentRef.current = initialContent;
-          return;
-        }
-        lastInitialContentRef.current = initialContent;
-        return;
-      }
-
-      if (!hasUserEditedRef.current && initialContent !== content) {
-        if (initialContent !== lastInitialContentRef.current) {
-          setContent(initialContent);
-          lastSavedContentRef.current = initialContent;
-          lastInitialContentRef.current = initialContent;
-        }
-      } else if (initialContent === content && hasUserEditedRef.current) {
-        hasUserEditedRef.current = false;
-        lastSavedContentRef.current = initialContent;
-        lastInitialContentRef.current = initialContent;
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialContent, entityId]);
-
-  const onSaveRef = useRef(onSave);
-  useEffect(() => {
-    onSaveRef.current = onSave;
-  }, [onSave]);
-
-  useEffect(() => {
-    if (content === initialContent) {
-      return;
-    }
-
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-
-    saveTimeoutRef.current = setTimeout(() => {
-      onSaveRef.current(content);
-      lastSavedContentRef.current = content;
-    }, 1000);
-
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-      if (content !== initialContent) {
-        onSaveRef.current(content);
-      }
-    };
-  }, [content, initialContent]);
-
-  return (
-    <div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-2xl overflow-hidden">
-      <div className="flex items-center justify-between gap-2.5 px-4 py-3 border-b border-white/5">
-        <div className="flex items-center gap-2.5">
-          <div className="size-6 rounded-full bg-white/10 flex items-center justify-center text-xs font-semibold text-(--text-0)/70 shrink-0">
-            {authorName[0]?.toUpperCase()}
-          </div>
-          <span className="text-sm text-(--text-0)/60">@{authorName}</span>
-        </div>
-        <span className="text-xs text-(--text-0)/25 select-none">Your note</span>
-      </div>
-      <div className="px-4 py-4">
-        <textarea
-          ref={textareaRef}
-          value={content}
-          onChange={(e) => {
-            hasUserEditedRef.current = true;
-            setContent(e.target.value);
-          }}
-          placeholder="Write your note..."
-          className="w-full bg-transparent border-none resize-none text-(--text-0)/90 placeholder:text-(--text-0)/25 focus:outline-none focus:ring-0 text-sm leading-relaxed min-h-30 max-h-80 overflow-y-auto"
-          style={{ fontFamily: '"IBM Plex Mono", monospace' }}
-        />
       </div>
     </div>
   );
@@ -232,6 +103,7 @@ export default function NotesPanel(props: NotesPanelProps) {
             projectId: currentId,
             content,
             authorName: user.username,
+            contentFormat,
           });
         }
       } catch (error) {
@@ -296,28 +168,18 @@ export default function NotesPanel(props: NotesPanelProps) {
 
       <div className="flex-1 overflow-y-auto space-y-6">
         {!isLoading && user?.username && currentId && (
-          mode === "track" ? (
-            <RichTrackNoteEditor
-              key={currentId}
-              initialContent={myNote?.content ?? ""}
-              contentFormat={myNote?.content_format ?? "plain"}
-              authorName={user.username}
-              onSave={saveNote}
-            />
-          ) : (
-            <EditableNote
-              key={currentId}
-              initialContent={myNote?.content ?? ""}
-              authorName={user.username}
-              onSave={saveNote}
-              entityId={currentId}
-            />
-          )
+          <RichTrackNoteEditor
+            key={currentId}
+            initialContent={myNote?.content ?? ""}
+            contentFormat={myNote?.content_format ?? "plain"}
+            authorName={user.username}
+            onSave={saveNote}
+          />
         )}
 
         {!isLoading &&
           otherNotes.map((note) => (
-            <NoteItem key={note.id} note={note} richText={mode === "track"} />
+            <NoteItem key={note.id} note={note} />
           ))}
 
         {!isLoading && notes.length === 0 && !user && (

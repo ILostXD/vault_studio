@@ -11,16 +11,17 @@ import (
 )
 
 const createProjectNote = `-- name: CreateProjectNote :one
-INSERT INTO notes (user_id, project_id, content, author_name)
-VALUES (?, ?, ?, ?)
+INSERT INTO notes (user_id, project_id, content, content_format, author_name)
+VALUES (?, ?, ?, ?, ?)
 RETURNING id, user_id, track_id, project_id, content, author_name, created_at, updated_at, content_format
 `
 
 type CreateProjectNoteParams struct {
-	UserID     int64         `json:"user_id"`
-	ProjectID  sql.NullInt64 `json:"project_id"`
-	Content    string        `json:"content"`
-	AuthorName string        `json:"author_name"`
+	UserID        int64         `json:"user_id"`
+	ProjectID     sql.NullInt64 `json:"project_id"`
+	Content       string        `json:"content"`
+	ContentFormat string        `json:"content_format"`
+	AuthorName    string        `json:"author_name"`
 }
 
 func (q *Queries) CreateProjectNote(ctx context.Context, arg CreateProjectNoteParams) (Note, error) {
@@ -28,6 +29,7 @@ func (q *Queries) CreateProjectNote(ctx context.Context, arg CreateProjectNotePa
 		arg.UserID,
 		arg.ProjectID,
 		arg.Content,
+		arg.ContentFormat,
 		arg.AuthorName,
 	)
 	var i Note
@@ -271,20 +273,22 @@ func (q *Queries) UpdateNote(ctx context.Context, arg UpdateNoteParams) (Note, e
 }
 
 const upsertProjectNote = `-- name: UpsertProjectNote :one
-INSERT INTO notes (user_id, project_id, content, author_name)
-VALUES (?, ?, ?, ?)
+INSERT INTO notes (user_id, project_id, content, content_format, author_name)
+VALUES (?, ?, ?, ?, ?)
 ON CONFLICT (user_id, project_id) DO UPDATE SET
     content = excluded.content,
+    content_format = excluded.content_format,
     author_name = excluded.author_name,
     updated_at = CURRENT_TIMESTAMP
 RETURNING id, user_id, track_id, project_id, content, author_name, created_at, updated_at, content_format
 `
 
 type UpsertProjectNoteParams struct {
-	UserID     int64         `json:"user_id"`
-	ProjectID  sql.NullInt64 `json:"project_id"`
-	Content    string        `json:"content"`
-	AuthorName string        `json:"author_name"`
+	UserID        int64         `json:"user_id"`
+	ProjectID     sql.NullInt64 `json:"project_id"`
+	Content       string        `json:"content"`
+	ContentFormat string        `json:"content_format"`
+	AuthorName    string        `json:"author_name"`
 }
 
 func (q *Queries) UpsertProjectNote(ctx context.Context, arg UpsertProjectNoteParams) (Note, error) {
@@ -292,6 +296,7 @@ func (q *Queries) UpsertProjectNote(ctx context.Context, arg UpsertProjectNotePa
 		arg.UserID,
 		arg.ProjectID,
 		arg.Content,
+		arg.ContentFormat,
 		arg.AuthorName,
 	)
 	var i Note

@@ -74,7 +74,7 @@ export default function BaseModal({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.16 }}
-                className="fixed inset-0 z-1000 flex overflow-y-auto p-4 pointer-events-none"
+                className="fixed inset-0 z-1000 flex justify-center overflow-y-auto p-4 pointer-events-none"
                 {...(dataAttributes["data-modal-container"] && {
                   "data-modal-container":
                     dataAttributes["data-modal-container"],

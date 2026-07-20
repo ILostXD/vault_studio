@@ -61,7 +61,7 @@ export function RichTrackNoteEditor({
       attributes: {
         class:
           "rich-note-content min-h-40 px-4 py-4 focus:outline-none md:max-h-80 md:overflow-y-auto",
-        "aria-label": "Track note",
+        "aria-label": "Note",
       },
     },
     onUpdate: ({ editor: currentEditor }) => {

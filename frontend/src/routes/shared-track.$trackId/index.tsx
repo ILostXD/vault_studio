@@ -517,7 +517,7 @@ function SharedTrackPage() {
 
   return (
     <>
-      <div className="mx-auto max-w-7xl px-6 md:pt-30 pt-30 pb-40 relative">
+      <div className="mx-auto max-w-7xl px-6 pt-24 md:pt-30 pb-40 relative">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 relative">
           <motion.div
             initial={false}
@@ -527,7 +527,7 @@ function SharedTrackPage() {
                 isNotesOpen && !isSmallScreen ? 0 : showCoverPanel ? 1 : 0,
             }}
             transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
-            className="flex items-start justify-center overflow-visible pl-5 pr-22 md:sticky md:self-start pt-2 top-30"
+            className="flex items-start justify-center overflow-visible px-2 md:pl-5 md:pr-22 md:sticky md:self-start pt-2 top-30"
           >
             <div className="relative w-full md:max-w-[24rem]">
               <AlbumCover
@@ -550,7 +550,7 @@ function SharedTrackPage() {
               opacity: showCoverPanel ? 1 : 0,
             }}
             transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
-            className="flex flex-col text-(--text-0) pt-10 md:pt-0 md:pr-5 md:max-w-lg md:-ml-10"
+            className="flex flex-col text-(--text-0) pt-6 md:pt-0 md:pr-5 md:max-w-lg md:-ml-10"
           >
             <div className="mb-4 -space-y-1">
               <div className="flex items-center justify-between relative z-20">

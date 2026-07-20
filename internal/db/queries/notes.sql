@@ -22,8 +22,8 @@ VALUES (?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: CreateProjectNote :one
-INSERT INTO notes (user_id, project_id, content, author_name)
-VALUES (?, ?, ?, ?)
+INSERT INTO notes (user_id, project_id, content, content_format, author_name)
+VALUES (?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: UpdateNote :one
@@ -50,10 +50,11 @@ ON CONFLICT (user_id, track_id) DO UPDATE SET
 RETURNING *;
 
 -- name: UpsertProjectNote :one
-INSERT INTO notes (user_id, project_id, content, author_name)
-VALUES (?, ?, ?, ?)
+INSERT INTO notes (user_id, project_id, content, content_format, author_name)
+VALUES (?, ?, ?, ?, ?)
 ON CONFLICT (user_id, project_id) DO UPDATE SET
     content = excluded.content,
+    content_format = excluded.content_format,
     author_name = excluded.author_name,
     updated_at = CURRENT_TIMESTAMP
 RETURNING *;

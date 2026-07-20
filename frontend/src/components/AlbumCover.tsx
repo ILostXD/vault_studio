@@ -41,7 +41,7 @@ export default function AlbumCover({
   });
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 640px)"); // sm breakpoint
+    const mediaQuery = window.matchMedia("(max-width: 767px)"); // below md layout
 
     const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
       setIsMobileScreen(e.matches);
@@ -146,7 +146,7 @@ export default function AlbumCover({
       )}
       style={{
         transform:
-          isPlaying && !isMobileScreen ? "translateX(0)" : "translateX(2rem)",
+          isMobileScreen || isPlaying ? "translateX(0)" : "translateX(2rem)",
       }}
     >
       {!isMobileScreen && (

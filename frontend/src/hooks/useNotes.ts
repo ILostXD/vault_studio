@@ -75,8 +75,8 @@ export function useUpsertProjectNote() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ projectId, content, authorName }: { projectId: string; content: string; authorName: string }) =>
-      notesApi.upsertProjectNote(projectId, { content, author_name: authorName }),
+    mutationFn: ({ projectId, content, authorName, contentFormat }: { projectId: string; content: string; authorName: string; contentFormat: NoteContentFormat }) =>
+      notesApi.upsertProjectNote(projectId, { content, author_name: authorName, content_format: contentFormat }),
     onMutate: async (variables) => {
       await queryClient.cancelQueries({ queryKey: noteKeys.project(variables.projectId) })
       const previousNotes = queryClient.getQueryData(noteKeys.project(variables.projectId))
@@ -88,6 +88,7 @@ export function useUpsertProjectNote() {
           updated[userNoteIndex] = {
             ...updated[userNoteIndex],
             content: variables.content,
+            content_format: variables.contentFormat,
           }
           return updated
         } else {
@@ -97,6 +98,7 @@ export function useUpsertProjectNote() {
               content: variables.content,
               author_name: variables.authorName,
               is_owner: true,
+              content_format: variables.contentFormat,
             },
           ]
         }
