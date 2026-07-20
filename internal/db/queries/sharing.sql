@@ -3,9 +3,9 @@
 -- name: CreateShareToken :one
 INSERT INTO share_tokens (
     token, user_id, track_id, version_id, expires_at, max_access_count,
-    allow_editing, allow_downloads, password_hash, visibility_type
+    allow_editing, allow_downloads, password_hash, visibility_type, feedback_question
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: UpdateShareToken :one
@@ -16,6 +16,7 @@ SET expires_at = ?,
     allow_downloads = ?,
     password_hash = ?,
     visibility_type = ?,
+    feedback_question = ?,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = ? AND user_id = ?
 RETURNING *;
@@ -71,9 +72,9 @@ WHERE track_id = ? AND user_id = ?;
 -- name: CreateProjectShareToken :one
 INSERT INTO project_share_tokens (
     token, user_id, project_id, expires_at, max_access_count,
-    allow_editing, allow_downloads, password_hash, visibility_type
+    allow_editing, allow_downloads, password_hash, visibility_type, feedback_question
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: UpdateProjectShareToken :one
@@ -84,6 +85,7 @@ SET expires_at = ?,
     allow_downloads = ?,
     password_hash = ?,
     visibility_type = ?,
+    feedback_question = ?,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = ? AND user_id = ?
 RETURNING *;

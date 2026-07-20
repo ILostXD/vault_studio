@@ -68,22 +68,23 @@ const createProjectShareToken = `-- name: CreateProjectShareToken :one
 
 INSERT INTO project_share_tokens (
     token, user_id, project_id, expires_at, max_access_count,
-    allow_editing, allow_downloads, password_hash, visibility_type
+    allow_editing, allow_downloads, password_hash, visibility_type, feedback_question
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-RETURNING id, token, user_id, project_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+RETURNING id, token, user_id, project_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at, feedback_question
 `
 
 type CreateProjectShareTokenParams struct {
-	Token          string         `json:"token"`
-	UserID         int64          `json:"user_id"`
-	ProjectID      int64          `json:"project_id"`
-	ExpiresAt      sql.NullTime   `json:"expires_at"`
-	MaxAccessCount sql.NullInt64  `json:"max_access_count"`
-	AllowEditing   bool           `json:"allow_editing"`
-	AllowDownloads bool           `json:"allow_downloads"`
-	PasswordHash   sql.NullString `json:"password_hash"`
-	VisibilityType string         `json:"visibility_type"`
+	Token            string         `json:"token"`
+	UserID           int64          `json:"user_id"`
+	ProjectID        int64          `json:"project_id"`
+	ExpiresAt        sql.NullTime   `json:"expires_at"`
+	MaxAccessCount   sql.NullInt64  `json:"max_access_count"`
+	AllowEditing     bool           `json:"allow_editing"`
+	AllowDownloads   bool           `json:"allow_downloads"`
+	PasswordHash     sql.NullString `json:"password_hash"`
+	VisibilityType   string         `json:"visibility_type"`
+	FeedbackQuestion sql.NullString `json:"feedback_question"`
 }
 
 // PROJECT SHARE TOKENS
@@ -98,6 +99,7 @@ func (q *Queries) CreateProjectShareToken(ctx context.Context, arg CreateProject
 		arg.AllowDownloads,
 		arg.PasswordHash,
 		arg.VisibilityType,
+		arg.FeedbackQuestion,
 	)
 	var i ProjectShareToken
 	err := row.Scan(
@@ -114,6 +116,7 @@ func (q *Queries) CreateProjectShareToken(ctx context.Context, arg CreateProject
 		&i.VisibilityType,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.FeedbackQuestion,
 	)
 	return i, err
 }
@@ -170,23 +173,24 @@ const createShareToken = `-- name: CreateShareToken :one
 
 INSERT INTO share_tokens (
     token, user_id, track_id, version_id, expires_at, max_access_count,
-    allow_editing, allow_downloads, password_hash, visibility_type
+    allow_editing, allow_downloads, password_hash, visibility_type, feedback_question
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-RETURNING id, token, user_id, track_id, version_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+RETURNING id, token, user_id, track_id, version_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at, feedback_question
 `
 
 type CreateShareTokenParams struct {
-	Token          string         `json:"token"`
-	UserID         int64          `json:"user_id"`
-	TrackID        int64          `json:"track_id"`
-	VersionID      sql.NullInt64  `json:"version_id"`
-	ExpiresAt      sql.NullTime   `json:"expires_at"`
-	MaxAccessCount sql.NullInt64  `json:"max_access_count"`
-	AllowEditing   bool           `json:"allow_editing"`
-	AllowDownloads bool           `json:"allow_downloads"`
-	PasswordHash   sql.NullString `json:"password_hash"`
-	VisibilityType string         `json:"visibility_type"`
+	Token            string         `json:"token"`
+	UserID           int64          `json:"user_id"`
+	TrackID          int64          `json:"track_id"`
+	VersionID        sql.NullInt64  `json:"version_id"`
+	ExpiresAt        sql.NullTime   `json:"expires_at"`
+	MaxAccessCount   sql.NullInt64  `json:"max_access_count"`
+	AllowEditing     bool           `json:"allow_editing"`
+	AllowDownloads   bool           `json:"allow_downloads"`
+	PasswordHash     sql.NullString `json:"password_hash"`
+	VisibilityType   string         `json:"visibility_type"`
+	FeedbackQuestion sql.NullString `json:"feedback_question"`
 }
 
 // TRACK SHARE TOKENS
@@ -202,6 +206,7 @@ func (q *Queries) CreateShareToken(ctx context.Context, arg CreateShareTokenPara
 		arg.AllowDownloads,
 		arg.PasswordHash,
 		arg.VisibilityType,
+		arg.FeedbackQuestion,
 	)
 	var i ShareToken
 	err := row.Scan(
@@ -219,6 +224,7 @@ func (q *Queries) CreateShareToken(ctx context.Context, arg CreateShareTokenPara
 		&i.VisibilityType,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.FeedbackQuestion,
 	)
 	return i, err
 }
@@ -627,7 +633,7 @@ func (q *Queries) GetInstanceConfig(ctx context.Context) (InstanceConfig, error)
 }
 
 const getProjectShareToken = `-- name: GetProjectShareToken :one
-SELECT id, token, user_id, project_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at FROM project_share_tokens
+SELECT id, token, user_id, project_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at, feedback_question FROM project_share_tokens
 WHERE token = ?
 `
 
@@ -648,12 +654,13 @@ func (q *Queries) GetProjectShareToken(ctx context.Context, token string) (Proje
 		&i.VisibilityType,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.FeedbackQuestion,
 	)
 	return i, err
 }
 
 const getProjectShareTokenByID = `-- name: GetProjectShareTokenByID :one
-SELECT id, token, user_id, project_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at FROM project_share_tokens
+SELECT id, token, user_id, project_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at, feedback_question FROM project_share_tokens
 WHERE id = ? AND user_id = ?
 `
 
@@ -679,12 +686,13 @@ func (q *Queries) GetProjectShareTokenByID(ctx context.Context, arg GetProjectSh
 		&i.VisibilityType,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.FeedbackQuestion,
 	)
 	return i, err
 }
 
 const getProjectShareTokenByProject = `-- name: GetProjectShareTokenByProject :one
-SELECT id, token, user_id, project_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at FROM project_share_tokens
+SELECT id, token, user_id, project_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at, feedback_question FROM project_share_tokens
 WHERE project_id = ? AND user_id = ?
 LIMIT 1
 `
@@ -711,6 +719,7 @@ func (q *Queries) GetProjectShareTokenByProject(ctx context.Context, arg GetProj
 		&i.VisibilityType,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.FeedbackQuestion,
 	)
 	return i, err
 }
@@ -878,7 +887,7 @@ func (q *Queries) GetShareAccess(ctx context.Context, arg GetShareAccessParams) 
 }
 
 const getShareToken = `-- name: GetShareToken :one
-SELECT id, token, user_id, track_id, version_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at FROM share_tokens
+SELECT id, token, user_id, track_id, version_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at, feedback_question FROM share_tokens
 WHERE token = ?
 `
 
@@ -900,12 +909,13 @@ func (q *Queries) GetShareToken(ctx context.Context, token string) (ShareToken, 
 		&i.VisibilityType,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.FeedbackQuestion,
 	)
 	return i, err
 }
 
 const getShareTokenByID = `-- name: GetShareTokenByID :one
-SELECT id, token, user_id, track_id, version_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at FROM share_tokens
+SELECT id, token, user_id, track_id, version_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at, feedback_question FROM share_tokens
 WHERE id = ? AND user_id = ?
 `
 
@@ -932,12 +942,13 @@ func (q *Queries) GetShareTokenByID(ctx context.Context, arg GetShareTokenByIDPa
 		&i.VisibilityType,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.FeedbackQuestion,
 	)
 	return i, err
 }
 
 const getShareTokenByTrack = `-- name: GetShareTokenByTrack :one
-SELECT id, token, user_id, track_id, version_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at FROM share_tokens
+SELECT id, token, user_id, track_id, version_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at, feedback_question FROM share_tokens
 WHERE track_id = ? AND user_id = ?
 LIMIT 1
 `
@@ -965,6 +976,7 @@ func (q *Queries) GetShareTokenByTrack(ctx context.Context, arg GetShareTokenByT
 		&i.VisibilityType,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.FeedbackQuestion,
 	)
 	return i, err
 }
@@ -1179,7 +1191,7 @@ func (q *Queries) ListFederationTokensByUser(ctx context.Context, localUserID in
 }
 
 const listProjectShareTokensByProject = `-- name: ListProjectShareTokensByProject :many
-SELECT id, token, user_id, project_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at FROM project_share_tokens
+SELECT id, token, user_id, project_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at, feedback_question FROM project_share_tokens
 WHERE project_id = ?
 ORDER BY created_at DESC
 `
@@ -1207,6 +1219,7 @@ func (q *Queries) ListProjectShareTokensByProject(ctx context.Context, projectID
 			&i.VisibilityType,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.FeedbackQuestion,
 		); err != nil {
 			return nil, err
 		}
@@ -1222,7 +1235,7 @@ func (q *Queries) ListProjectShareTokensByProject(ctx context.Context, projectID
 }
 
 const listProjectShareTokensByUser = `-- name: ListProjectShareTokensByUser :many
-SELECT id, token, user_id, project_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at FROM project_share_tokens
+SELECT id, token, user_id, project_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at, feedback_question FROM project_share_tokens
 WHERE user_id = ?
 ORDER BY created_at DESC
 `
@@ -1250,6 +1263,7 @@ func (q *Queries) ListProjectShareTokensByUser(ctx context.Context, userID int64
 			&i.VisibilityType,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.FeedbackQuestion,
 		); err != nil {
 			return nil, err
 		}
@@ -1266,7 +1280,7 @@ func (q *Queries) ListProjectShareTokensByUser(ctx context.Context, userID int64
 
 const listProjectShareTokensWithProjectInfo = `-- name: ListProjectShareTokensWithProjectInfo :many
 SELECT
-    pst.id, pst.token, pst.user_id, pst.project_id, pst.expires_at, pst.max_access_count, pst.current_access_count, pst.allow_editing, pst.allow_downloads, pst.password_hash, pst.visibility_type, pst.created_at, pst.updated_at,
+    pst.id, pst.token, pst.user_id, pst.project_id, pst.expires_at, pst.max_access_count, pst.current_access_count, pst.allow_editing, pst.allow_downloads, pst.password_hash, pst.visibility_type, pst.created_at, pst.updated_at, pst.feedback_question,
     p.public_id as project_public_id
 FROM project_share_tokens pst
 JOIN projects p ON pst.project_id = p.id
@@ -1288,6 +1302,7 @@ type ListProjectShareTokensWithProjectInfoRow struct {
 	VisibilityType     string         `json:"visibility_type"`
 	CreatedAt          sql.NullTime   `json:"created_at"`
 	UpdatedAt          sql.NullTime   `json:"updated_at"`
+	FeedbackQuestion   sql.NullString `json:"feedback_question"`
 	ProjectPublicID    string         `json:"project_public_id"`
 }
 
@@ -1314,6 +1329,7 @@ func (q *Queries) ListProjectShareTokensWithProjectInfo(ctx context.Context, use
 			&i.VisibilityType,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.FeedbackQuestion,
 			&i.ProjectPublicID,
 		); err != nil {
 			return nil, err
@@ -1518,7 +1534,7 @@ func (q *Queries) ListShareAccessByUser(ctx context.Context, userID int64) ([]Sh
 }
 
 const listShareTokensByTrack = `-- name: ListShareTokensByTrack :many
-SELECT id, token, user_id, track_id, version_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at FROM share_tokens
+SELECT id, token, user_id, track_id, version_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at, feedback_question FROM share_tokens
 WHERE track_id = ?
 ORDER BY created_at DESC
 `
@@ -1547,6 +1563,7 @@ func (q *Queries) ListShareTokensByTrack(ctx context.Context, trackID int64) ([]
 			&i.VisibilityType,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.FeedbackQuestion,
 		); err != nil {
 			return nil, err
 		}
@@ -1562,7 +1579,7 @@ func (q *Queries) ListShareTokensByTrack(ctx context.Context, trackID int64) ([]
 }
 
 const listShareTokensByUser = `-- name: ListShareTokensByUser :many
-SELECT id, token, user_id, track_id, version_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at FROM share_tokens
+SELECT id, token, user_id, track_id, version_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at, feedback_question FROM share_tokens
 WHERE user_id = ?
 ORDER BY created_at DESC
 `
@@ -1591,6 +1608,7 @@ func (q *Queries) ListShareTokensByUser(ctx context.Context, userID int64) ([]Sh
 			&i.VisibilityType,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.FeedbackQuestion,
 		); err != nil {
 			return nil, err
 		}
@@ -1607,7 +1625,7 @@ func (q *Queries) ListShareTokensByUser(ctx context.Context, userID int64) ([]Sh
 
 const listShareTokensWithTrackInfo = `-- name: ListShareTokensWithTrackInfo :many
 SELECT
-    st.id, st.token, st.user_id, st.track_id, st.version_id, st.expires_at, st.max_access_count, st.current_access_count, st.allow_editing, st.allow_downloads, st.password_hash, st.visibility_type, st.created_at, st.updated_at,
+    st.id, st.token, st.user_id, st.track_id, st.version_id, st.expires_at, st.max_access_count, st.current_access_count, st.allow_editing, st.allow_downloads, st.password_hash, st.visibility_type, st.created_at, st.updated_at, st.feedback_question,
     t.public_id as track_public_id
 FROM share_tokens st
 JOIN tracks t ON st.track_id = t.id
@@ -1630,6 +1648,7 @@ type ListShareTokensWithTrackInfoRow struct {
 	VisibilityType     string         `json:"visibility_type"`
 	CreatedAt          sql.NullTime   `json:"created_at"`
 	UpdatedAt          sql.NullTime   `json:"updated_at"`
+	FeedbackQuestion   sql.NullString `json:"feedback_question"`
 	TrackPublicID      string         `json:"track_public_id"`
 }
 
@@ -1657,6 +1676,7 @@ func (q *Queries) ListShareTokensWithTrackInfo(ctx context.Context, userID int64
 			&i.VisibilityType,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.FeedbackQuestion,
 			&i.TrackPublicID,
 		); err != nil {
 			return nil, err
@@ -1940,20 +1960,22 @@ SET expires_at = ?,
     allow_downloads = ?,
     password_hash = ?,
     visibility_type = ?,
+    feedback_question = ?,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = ? AND user_id = ?
-RETURNING id, token, user_id, project_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at
+RETURNING id, token, user_id, project_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at, feedback_question
 `
 
 type UpdateProjectShareTokenParams struct {
-	ExpiresAt      sql.NullTime   `json:"expires_at"`
-	MaxAccessCount sql.NullInt64  `json:"max_access_count"`
-	AllowEditing   bool           `json:"allow_editing"`
-	AllowDownloads bool           `json:"allow_downloads"`
-	PasswordHash   sql.NullString `json:"password_hash"`
-	VisibilityType string         `json:"visibility_type"`
-	ID             int64          `json:"id"`
-	UserID         int64          `json:"user_id"`
+	ExpiresAt        sql.NullTime   `json:"expires_at"`
+	MaxAccessCount   sql.NullInt64  `json:"max_access_count"`
+	AllowEditing     bool           `json:"allow_editing"`
+	AllowDownloads   bool           `json:"allow_downloads"`
+	PasswordHash     sql.NullString `json:"password_hash"`
+	VisibilityType   string         `json:"visibility_type"`
+	FeedbackQuestion sql.NullString `json:"feedback_question"`
+	ID               int64          `json:"id"`
+	UserID           int64          `json:"user_id"`
 }
 
 func (q *Queries) UpdateProjectShareToken(ctx context.Context, arg UpdateProjectShareTokenParams) (ProjectShareToken, error) {
@@ -1964,6 +1986,7 @@ func (q *Queries) UpdateProjectShareToken(ctx context.Context, arg UpdateProject
 		arg.AllowDownloads,
 		arg.PasswordHash,
 		arg.VisibilityType,
+		arg.FeedbackQuestion,
 		arg.ID,
 		arg.UserID,
 	)
@@ -1982,6 +2005,7 @@ func (q *Queries) UpdateProjectShareToken(ctx context.Context, arg UpdateProject
 		&i.VisibilityType,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.FeedbackQuestion,
 	)
 	return i, err
 }
@@ -2140,20 +2164,22 @@ SET expires_at = ?,
     allow_downloads = ?,
     password_hash = ?,
     visibility_type = ?,
+    feedback_question = ?,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = ? AND user_id = ?
-RETURNING id, token, user_id, track_id, version_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at
+RETURNING id, token, user_id, track_id, version_id, expires_at, max_access_count, current_access_count, allow_editing, allow_downloads, password_hash, visibility_type, created_at, updated_at, feedback_question
 `
 
 type UpdateShareTokenParams struct {
-	ExpiresAt      sql.NullTime   `json:"expires_at"`
-	MaxAccessCount sql.NullInt64  `json:"max_access_count"`
-	AllowEditing   bool           `json:"allow_editing"`
-	AllowDownloads bool           `json:"allow_downloads"`
-	PasswordHash   sql.NullString `json:"password_hash"`
-	VisibilityType string         `json:"visibility_type"`
-	ID             int64          `json:"id"`
-	UserID         int64          `json:"user_id"`
+	ExpiresAt        sql.NullTime   `json:"expires_at"`
+	MaxAccessCount   sql.NullInt64  `json:"max_access_count"`
+	AllowEditing     bool           `json:"allow_editing"`
+	AllowDownloads   bool           `json:"allow_downloads"`
+	PasswordHash     sql.NullString `json:"password_hash"`
+	VisibilityType   string         `json:"visibility_type"`
+	FeedbackQuestion sql.NullString `json:"feedback_question"`
+	ID               int64          `json:"id"`
+	UserID           int64          `json:"user_id"`
 }
 
 func (q *Queries) UpdateShareToken(ctx context.Context, arg UpdateShareTokenParams) (ShareToken, error) {
@@ -2164,6 +2190,7 @@ func (q *Queries) UpdateShareToken(ctx context.Context, arg UpdateShareTokenPara
 		arg.AllowDownloads,
 		arg.PasswordHash,
 		arg.VisibilityType,
+		arg.FeedbackQuestion,
 		arg.ID,
 		arg.UserID,
 	)
@@ -2183,6 +2210,7 @@ func (q *Queries) UpdateShareToken(ctx context.Context, arg UpdateShareTokenPara
 		&i.VisibilityType,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.FeedbackQuestion,
 	)
 	return i, err
 }

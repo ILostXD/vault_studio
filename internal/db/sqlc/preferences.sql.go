@@ -26,7 +26,7 @@ func (q *Queries) CreateUserPreferences(ctx context.Context, arg CreateUserPrefe
 }
 
 const getUserPreferences = `-- name: GetUserPreferences :one
-SELECT user_id, default_quality, created_at, updated_at, disc_colors, color_spread, gradient_spread, color_shift_rotation, accent_color, theme, system_dark_theme FROM user_preferences
+SELECT user_id, default_quality, created_at, updated_at, disc_colors, color_spread, gradient_spread, color_shift_rotation, accent_color, theme, system_dark_theme, comments_enabled FROM user_preferences
 WHERE user_id = ?
 `
 
@@ -45,6 +45,7 @@ func (q *Queries) GetUserPreferences(ctx context.Context, userID int64) (UserPre
 		&i.AccentColor,
 		&i.Theme,
 		&i.SystemDarkTheme,
+		&i.CommentsEnabled,
 	)
 	return i, err
 }
@@ -59,9 +60,10 @@ SET default_quality = COALESCE(?1, default_quality),
     accent_color = COALESCE(?6, accent_color),
     theme = COALESCE(?7, theme),
     system_dark_theme = COALESCE(?8, system_dark_theme),
+    comments_enabled = COALESCE(?9, comments_enabled),
     updated_at = CURRENT_TIMESTAMP
-WHERE user_id = ?9
-RETURNING user_id, default_quality, created_at, updated_at, disc_colors, color_spread, gradient_spread, color_shift_rotation, accent_color, theme, system_dark_theme
+WHERE user_id = ?10
+RETURNING user_id, default_quality, created_at, updated_at, disc_colors, color_spread, gradient_spread, color_shift_rotation, accent_color, theme, system_dark_theme, comments_enabled
 `
 
 type UpdateUserPreferencesParams struct {
@@ -73,6 +75,7 @@ type UpdateUserPreferencesParams struct {
 	AccentColor        sql.NullString `json:"accent_color"`
 	Theme              sql.NullString `json:"theme"`
 	SystemDarkTheme    sql.NullString `json:"system_dark_theme"`
+	CommentsEnabled    sql.NullBool   `json:"comments_enabled"`
 	UserID             int64          `json:"user_id"`
 }
 
@@ -86,6 +89,7 @@ func (q *Queries) UpdateUserPreferences(ctx context.Context, arg UpdateUserPrefe
 		arg.AccentColor,
 		arg.Theme,
 		arg.SystemDarkTheme,
+		arg.CommentsEnabled,
 		arg.UserID,
 	)
 	var i UserPreference
@@ -101,6 +105,7 @@ func (q *Queries) UpdateUserPreferences(ctx context.Context, arg UpdateUserPrefe
 		&i.AccentColor,
 		&i.Theme,
 		&i.SystemDarkTheme,
+		&i.CommentsEnabled,
 	)
 	return i, err
 }

@@ -24,6 +24,7 @@ export interface UserPreferences {
   accent_color?: string
   theme?: string
   system_dark_theme?: string
+  comments_enabled?: boolean
   created_at: string
   updated_at: string
 }
@@ -150,6 +151,7 @@ export interface UpdatePreferencesRequest {
   accent_color?: string
   theme?: string
   system_dark_theme?: string
+  comments_enabled?: boolean
 }
 
 export interface UpdateInstanceNameRequest {
@@ -294,6 +296,7 @@ export interface ShareToken {
   created_at: string
   updated_at: string
   share_url: string
+  feedback_question?: string | null
 }
 
 export interface CreateShareTokenRequest {
@@ -306,6 +309,7 @@ export interface CreateShareTokenRequest {
   allow_downloads?: boolean
   password?: string
   visibility_type?: 'invite_only' | 'public'
+  feedback_question?: string
 }
 
 export interface UpdateVisibilityRequest {
@@ -344,6 +348,17 @@ export interface ValidateShareResponse {
   version?: TrackVersion
   allow_editing?: boolean
   allow_downloads?: boolean
+  feedback_question?: string | null
+}
+
+export interface WaveformComment {
+  id: number
+  version_id: number
+  user_id?: number
+  author_name: string
+  text: string
+  timestamp_seconds: number
+  created_at: string
 }
 
 export interface SharedTrackResponse {
@@ -399,4 +414,3 @@ export interface BulkOrganizeItem {
 export interface BulkOrganizeRequest {
   items: BulkOrganizeItem[]
 }
-

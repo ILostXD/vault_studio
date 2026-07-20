@@ -106,6 +106,7 @@ export default function ShareModal({
     useState<VisibilityStatus>(currentVisibility);
   const [allowEditing, setAllowEditing] = useState(false);
 	const [allowDownloads, setAllowDownloads] = useState(false);
+  const [feedbackQuestion, setFeedbackQuestion] = useState("");
   const [usePassword, setUsePassword] = useState(false);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -277,6 +278,7 @@ export default function ShareModal({
       }
       setModalView("main");
       setVisibility(currentVisibility);
+      setFeedbackQuestion("");
       loadCurrentShareLink(currentVisibility);
     } else {
       setModalView("closed");
@@ -347,6 +349,7 @@ export default function ShareModal({
         setCurrentShareLink(currentShare);
         setAllowEditing(currentShare.allow_editing);
         setAllowDownloads(currentShare.allow_downloads);
+        setFeedbackQuestion(currentShare.feedback_question || "");
         if (currentShare.has_password) {
           setUsePassword(true);
         }
@@ -399,6 +402,7 @@ export default function ShareModal({
     allowEditing?: boolean;
     allowDownloads?: boolean;
     password?: string | undefined;
+    feedbackQuestion?: string;
   }) => {
     if (!currentShareLink) return;
 
@@ -413,6 +417,7 @@ export default function ShareModal({
             : usePassword && password
               ? password
               : undefined,
+        feedback_question: overrides?.feedbackQuestion ?? feedbackQuestion,
       };
 
       if (resourceType === "track") {
@@ -448,6 +453,7 @@ export default function ShareModal({
         password: usePassword && password ? password : undefined,
         visibility_type:
           effectiveVisibility === "public" ? "public" : "invite_only",
+        feedback_question: feedbackQuestion,
       };
 
       let newShare: ShareToken;
@@ -489,6 +495,7 @@ export default function ShareModal({
         password: usePassword && password ? password : undefined,
         visibility_type:
           effectiveVisibility === "public" ? "public" : "invite_only",
+        feedback_question: feedbackQuestion,
       };
 
       let newShare: ShareToken;
@@ -869,6 +876,36 @@ export default function ShareModal({
                           </div>
                         )}
 
+                        <div className="mb-4 space-y-2 border-t border-white/10 pt-4">
+                          <Label
+                            htmlFor="feedback-question"
+                            className="text-sm text-muted-foreground"
+                          >
+                            Feedback question{" "}
+                            <span className="text-(--text-2)">(optional)</span>
+                          </Label>
+                          <Input
+                            id="feedback-question"
+                            value={feedbackQuestion}
+                            maxLength={300}
+                            placeholder="Does the drop hit hard enough?"
+                            onChange={(event) =>
+                              setFeedbackQuestion(event.target.value)
+                            }
+                            onBlur={() => {
+                              if (
+                                currentShareLink &&
+                                feedbackQuestion !==
+                                  (currentShareLink.feedback_question || "")
+                              ) {
+                                handleUpdateShareAttributes({
+                                  feedbackQuestion,
+                                });
+                              }
+                            }}
+                          />
+                        </div>
+
                         {visibility === "public" && (
                           <div className="space-y-4 border-t border-white/10 pt-4">
                             <div className="flex items-center justify-between">
@@ -910,7 +947,7 @@ export default function ShareModal({
                                     if (!checked && currentShareLink) {
                                       setPassword("");
                                       await handleUpdateShareAttributes({
-                                        password: undefined,
+                                        password: "",
                                       });
                                     }
                                   }}

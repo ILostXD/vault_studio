@@ -24,6 +24,8 @@ import {
 import { useProjectCoverImage } from "../hooks/useProjectCoverImage";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useWebHaptics } from "web-haptics/react";
+import WaveformComments from "./WaveformComments";
+import { usePreferences } from "../contexts/PreferencesContext";
 
 interface MusicPlayerProps {
   hideControls?: boolean;
@@ -35,6 +37,7 @@ export default function MusicPlayer({
   const navigate = useNavigate();
   const routerState = useRouterState();
   const haptic = useWebHaptics();
+  const { preferences } = usePreferences();
   const {
     currentTrack,
     audioUrl,
@@ -56,6 +59,8 @@ export default function MusicPlayer({
     audioPlayerRef,
     getPreloadedAudio,
     clearPreloadedAudio,
+    shareToken,
+    sharePassword,
   } = useAudioPlayer();
 
   const projectForCover =
@@ -847,6 +852,20 @@ export default function MusicPlayer({
             showPlayer ? "opacity-100" : "opacity-0"
           }`}
         >
+          {preferences?.comments_enabled !== false && (
+            <WaveformComments
+              versionId={currentTrack?.versionId}
+              duration={duration}
+              currentTime={previewProgress}
+              shareToken={shareToken}
+              sharePassword={sharePassword}
+              placement="miniPlayer"
+              onSeek={(time) => {
+                if (audioRef.current) audioRef.current.currentTime = time;
+                setPreviewProgress(time);
+              }}
+            />
+          )}
           <div
             className="relative h-[50px] sm:h-[50px] border border-(--card-border) rounded-t-[22px] overflow-hidden shadow-md"
             style={{ backgroundColor: "var(--waveform-bg)" }}

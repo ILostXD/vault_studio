@@ -277,6 +277,8 @@ func main() {
 	mux.HandleFunc("GET /api/share/{token}/download", shareRL.RateLimit(httputil.Wrap(sharingHandler.DownloadShared)))
 	mux.HandleFunc("GET /api/share/{token}/track/{trackId}/download", shareRL.RateLimit(httputil.Wrap(sharingHandler.DownloadSharedProjectTrack)))
 	mux.HandleFunc("PUT /api/share/{token}/track/{trackId}/update", shareRL.RateLimit(httputil.Wrap(sharingHandler.UpdateSharedTrackFromToken)))
+	mux.HandleFunc("GET /api/share/{token}/versions/{versionId}/comments", shareRL.RateLimit(httputil.Wrap(sharingHandler.ListSharedWaveformComments)))
+	mux.HandleFunc("POST /api/share/{token}/versions/{versionId}/comments", shareRL.RateLimit(httputil.Wrap(sharingHandler.CreateSharedWaveformComment)))
 	mux.HandleFunc("GET /api/instance/version", publicRL.RateLimit(httputil.Wrap(statsHandler.GetInstanceVersion)))
 
 	mux.HandleFunc("GET /api/health", func(w http.ResponseWriter, r *http.Request) {
@@ -382,6 +384,10 @@ func main() {
 	mux.Handle("GET /api/share/projects", authMW(httputil.Wrap(sharingHandler.ListProjectShareTokens)))
 	mux.Handle("PUT /api/share/projects/{id}", authMW(httputil.Wrap(sharingHandler.UpdateProjectShareToken)))
 	mux.Handle("DELETE /api/share/projects/{id}", authMW(httputil.Wrap(sharingHandler.DeleteProjectShareToken)))
+	mux.Handle("GET /api/versions/{versionId}/comments", authMW(httputil.Wrap(sharingHandler.ListWaveformComments)))
+	mux.Handle("POST /api/versions/{versionId}/comments", authMW(httputil.Wrap(sharingHandler.CreateWaveformComment)))
+	mux.Handle("PUT /api/comments/{commentId}", authMW(httputil.Wrap(sharingHandler.UpdateWaveformComment)))
+	mux.Handle("DELETE /api/comments/{commentId}", authMW(httputil.Wrap(sharingHandler.DeleteWaveformComment)))
 
 	mux.Handle("PUT /api/tracks/{id}/visibility", authMW(httputil.Wrap(sharingHandler.UpdateTrackVisibility)))
 	mux.Handle("PUT /api/projects/{id}/visibility", authMW(httputil.Wrap(sharingHandler.UpdateProjectVisibility)))

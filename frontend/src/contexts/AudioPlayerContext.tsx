@@ -83,7 +83,9 @@ interface AudioPlayerContextType {
   audioPlayerRef: React.RefObject<any>;
   getPreloadedAudio: () => HTMLAudioElement | null;
   clearPreloadedAudio: () => void;
-  setShareToken: (token: string | null) => void;
+  shareToken: string | null;
+  sharePassword: string;
+  setShareToken: (token: string | null, password?: string) => void;
 }
 
 const AudioPlayerContext = createContext<AudioPlayerContextType | undefined>(
@@ -107,6 +109,8 @@ export function AudioPlayerProvider({
   const [loopMode, setLoopMode] = useState<LoopMode>("off");
   const [isShuffled, setIsShuffled] = useState(false);
   const shareTokenRef = useRef<string | null>(null);
+  const [shareToken, setShareTokenValue] = useState<string | null>(null);
+  const [sharePassword, setSharePassword] = useState("");
   const [queue, setQueue] = useState<Track[]>(() => {
     try {
       const saved = localStorage.getItem(QUEUE_STORAGE_KEY);
@@ -825,8 +829,10 @@ export function AudioPlayerProvider({
     preloadAudioRef.current = null;
   }, []);
 
-  const setShareToken = useCallback((token: string | null) => {
+  const setShareToken = useCallback((token: string | null, password = "") => {
     shareTokenRef.current = token;
+    setShareTokenValue(token);
+    setSharePassword(password);
     setShareTokenVersion((version) => version + 1);
   }, []);
 
@@ -838,7 +844,7 @@ export function AudioPlayerProvider({
         (typeof currentTrack.artist === "string" &&
         currentTrack.artist.trim().length > 0
           ? currentTrack.artist
-          : currentTrack.projectName) ?? "Unknown Artist";
+          : "Unknown Artist");
       const artworkUrl = resolveApiMediaUrl(currentTrack.projectCoverUrl);
 
       void NativeMediaSession.setMetadata({
@@ -872,7 +878,7 @@ export function AudioPlayerProvider({
         (typeof currentTrack.artist === "string" &&
         currentTrack.artist.trim().length > 0
           ? currentTrack.artist
-          : currentTrack.projectName) ?? "Unknown Artist",
+          : "Unknown Artist"),
       album: currentTrack.projectName ?? "{ vault.studio }",
       ...(artwork && { artwork }),
     };
@@ -1118,6 +1124,8 @@ export function AudioPlayerProvider({
         audioPlayerRef,
         getPreloadedAudio,
         clearPreloadedAudio,
+        shareToken,
+        sharePassword,
         setShareToken,
       }}
     >

@@ -166,9 +166,6 @@ public class MediaPlaybackService extends Service {
             .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, safe(artist, "Unknown Artist"))
             .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, safe(album, "{ vault.studio }"))
             .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, safe(artist, "Unknown Artist"))
-            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, safe(title, "Unknown Track"))
-            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, safe(artist, "Unknown Artist"))
-            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, safe(album, "{ vault.studio }"))
             .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, durationMs);
         if (artwork != null) {
             builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, artwork);

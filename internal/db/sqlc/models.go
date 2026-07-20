@@ -127,6 +127,7 @@ type ProjectShareToken struct {
 	VisibilityType     string         `json:"visibility_type"`
 	CreatedAt          sql.NullTime   `json:"created_at"`
 	UpdatedAt          sql.NullTime   `json:"updated_at"`
+	FeedbackQuestion   sql.NullString `json:"feedback_question"`
 }
 
 type RefreshToken struct {
@@ -185,6 +186,7 @@ type ShareToken struct {
 	VisibilityType     string         `json:"visibility_type"`
 	CreatedAt          sql.NullTime   `json:"created_at"`
 	UpdatedAt          sql.NullTime   `json:"updated_at"`
+	FeedbackQuestion   sql.NullString `json:"feedback_question"`
 }
 
 type Track struct {
@@ -262,6 +264,7 @@ type UserPreference struct {
 	AccentColor        string         `json:"accent_color"`
 	Theme              string         `json:"theme"`
 	SystemDarkTheme    string         `json:"system_dark_theme"`
+	CommentsEnabled    bool           `json:"comments_enabled"`
 }
 
 type UserProjectShare struct {
@@ -304,6 +307,16 @@ type UserTrackShare struct {
 	CanDownload bool         `json:"can_download"`
 	CreatedAt   sql.NullTime `json:"created_at"`
 	UpdatedAt   sql.NullTime `json:"updated_at"`
+}
+
+type WaveformComment struct {
+	ID               int64         `json:"id"`
+	VersionID        int64         `json:"version_id"`
+	UserID           sql.NullInt64 `json:"user_id"`
+	AuthorName       string        `json:"author_name"`
+	CommentText      string        `json:"comment_text"`
+	TimestampSeconds float64       `json:"timestamp_seconds"`
+	CreatedAt        time.Time     `json:"created_at"`
 }
 
 type WebsocketSession struct {

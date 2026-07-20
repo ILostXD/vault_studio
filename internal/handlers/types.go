@@ -60,6 +60,7 @@ type UpdatePreferencesRequest struct {
 	AccentColor        *string         `json:"accent_color,omitempty"`
 	Theme              *string         `json:"theme,omitempty"`
 	SystemDarkTheme    *string         `json:"system_dark_theme,omitempty"`
+	CommentsEnabled    *bool           `json:"comments_enabled,omitempty"`
 }
 
 type CreateProjectRequest struct {
@@ -162,24 +163,47 @@ type VersionWithMetadata struct {
 }
 
 type CreateShareTokenRequest struct {
-	TrackID        int        `json:"track_id"`
-	VersionID      *int       `json:"version_id,omitempty"`
-	ExpiresAt      *time.Time `json:"expires_at,omitempty"`
-	MaxAccessCount *int       `json:"max_access_count,omitempty"`
-	AllowEditing   *bool      `json:"allow_editing,omitempty"`
-	AllowDownloads *bool      `json:"allow_downloads,omitempty"`
-	Password       *string    `json:"password,omitempty"`
-	VisibilityType *string    `json:"visibility_type,omitempty"` // "invite_only" or "public"
+	TrackID          int        `json:"track_id"`
+	VersionID        *int       `json:"version_id,omitempty"`
+	ExpiresAt        *time.Time `json:"expires_at,omitempty"`
+	MaxAccessCount   *int       `json:"max_access_count,omitempty"`
+	AllowEditing     *bool      `json:"allow_editing,omitempty"`
+	AllowDownloads   *bool      `json:"allow_downloads,omitempty"`
+	Password         *string    `json:"password,omitempty"`
+	VisibilityType   *string    `json:"visibility_type,omitempty"` // "invite_only" or "public"
+	FeedbackQuestion *string    `json:"feedback_question,omitempty"`
 }
 
 type CreateProjectShareTokenRequest struct {
-	ProjectID      int        `json:"project_id"`
-	ExpiresAt      *time.Time `json:"expires_at,omitempty"`
-	MaxAccessCount *int       `json:"max_access_count,omitempty"`
-	AllowEditing   *bool      `json:"allow_editing,omitempty"`
-	AllowDownloads *bool      `json:"allow_downloads,omitempty"`
-	Password       *string    `json:"password,omitempty"`
-	VisibilityType *string    `json:"visibility_type,omitempty"` // "invite_only" or "public"
+	ProjectID        int        `json:"project_id"`
+	ExpiresAt        *time.Time `json:"expires_at,omitempty"`
+	MaxAccessCount   *int       `json:"max_access_count,omitempty"`
+	AllowEditing     *bool      `json:"allow_editing,omitempty"`
+	AllowDownloads   *bool      `json:"allow_downloads,omitempty"`
+	Password         *string    `json:"password,omitempty"`
+	VisibilityType   *string    `json:"visibility_type,omitempty"` // "invite_only" or "public"
+	FeedbackQuestion *string    `json:"feedback_question,omitempty"`
+}
+
+type CreateWaveformCommentRequest struct {
+	TimestampSeconds float64 `json:"timestamp_seconds"`
+	Text             string  `json:"text"`
+	AuthorName       string  `json:"author_name,omitempty"`
+	Password         string  `json:"password,omitempty"`
+}
+
+type UpdateWaveformCommentRequest struct {
+	Text string `json:"text"`
+}
+
+type WaveformCommentResponse struct {
+	ID               int64   `json:"id"`
+	VersionID        int64   `json:"version_id"`
+	UserID           *int64  `json:"user_id,omitempty"`
+	AuthorName       string  `json:"author_name"`
+	Text             string  `json:"text"`
+	TimestampSeconds float64 `json:"timestamp_seconds"`
+	CreatedAt        string  `json:"created_at"`
 }
 
 type UpdateVisibilityRequest struct {
@@ -322,6 +346,7 @@ type ValidateShareResponse struct {
 	Version          interface{}              `json:"version,omitempty"`
 	AllowEditing     bool                     `json:"allow_editing,omitempty"`
 	AllowDownloads   bool                     `json:"allow_downloads,omitempty"`
+	FeedbackQuestion *string                  `json:"feedback_question,omitempty"`
 }
 
 type ShareTokenResponse struct {
@@ -341,6 +366,7 @@ type ShareTokenResponse struct {
 	CreatedAt          interface{} `json:"created_at,omitempty"`
 	UpdatedAt          interface{} `json:"updated_at,omitempty"`
 	ShareURL           string      `json:"share_url"`
+	FeedbackQuestion   *string     `json:"feedback_question,omitempty"`
 }
 
 type ProjectShareTokenResponse struct {
@@ -359,4 +385,5 @@ type ProjectShareTokenResponse struct {
 	CreatedAt          interface{} `json:"created_at,omitempty"`
 	UpdatedAt          interface{} `json:"updated_at,omitempty"`
 	ShareURL           string      `json:"share_url"`
+	FeedbackQuestion   *string     `json:"feedback_question,omitempty"`
 }

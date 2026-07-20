@@ -46,6 +46,8 @@ interface SharedProjectViewProps {
   tracks: Track[];
   shareToken: string;
   allowDownloads?: boolean;
+  sharePassword?: string;
+  feedbackQuestion?: string | null;
 }
 
 export default function SharedProjectView({
@@ -53,6 +55,8 @@ export default function SharedProjectView({
   tracks,
   shareToken,
   allowDownloads = false,
+  sharePassword = "",
+  feedbackQuestion,
 }: SharedProjectViewProps) {
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -120,14 +124,14 @@ export default function SharedProjectView({
 
   useLayoutEffect(() => {
     if (!isAuthenticated) {
-      audioPlayerContext.setShareToken(shareToken);
+      audioPlayerContext.setShareToken(shareToken, sharePassword);
     }
     return () => {
       if (!isAuthenticated) {
         audioPlayerContext.setShareToken(null);
       }
     };
-  }, [isAuthenticated, shareToken, audioPlayerContext.setShareToken]);
+  }, [isAuthenticated, shareToken, sharePassword, audioPlayerContext.setShareToken]);
 
   useEffect(() => {
     if (project) {
@@ -323,6 +327,11 @@ export default function SharedProjectView({
       </header>
 
       <div className="mx-auto max-w-7xl px-6 pt-24 md:pt-30 pb-40 relative">
+        {feedbackQuestion && (
+          <div className="mx-auto mb-6 max-w-2xl rounded-xl border border-(--card-border) bg-(--bg-1) px-5 py-4 text-center text-lg text-(--text-0)">
+            {feedbackQuestion}
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 relative">
           <motion.div
             initial={false}

@@ -29,6 +29,7 @@ import type {
   Quality,
 } from "@/types/api";
 import { ToggleGroup } from "@/components/ui/toggle-group";
+import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/profile/")({
   component: ProfilePage,
@@ -447,6 +448,28 @@ function ProfilePage() {
                         </div>
                       )}
                     </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4 border-b border-(--card-border) pb-4">
+                    <div className="min-w-0">
+                      <p className="text-(--text-0) text-base">
+                        Waveform comments
+                      </p>
+                      <p className="text-(--text-2) text-sm">
+                        Show feedback markers and the comment button
+                      </p>
+                    </div>
+                    <Switch
+                      checked={preferences?.comments_enabled !== false}
+                      onCheckedChange={async (checked) => {
+                        try {
+                          await updatePreferences({ comments_enabled: checked });
+                        } catch (error) {
+                          console.error("Failed to update comments setting:", error);
+                        }
+                      }}
+                      aria-label="Show waveform comments"
+                    />
                   </div>
 
                   <div className="flex flex-col gap-4">

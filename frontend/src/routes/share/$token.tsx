@@ -22,6 +22,7 @@ interface ShareData {
   allow_editing?: boolean;
   allow_downloads?: boolean;
   error?: string;
+  feedback_question?: string | null;
 }
 
 function SharePage() {
@@ -118,14 +119,22 @@ function SharePage() {
     const track = shareData.track;
 
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-4">
-        <SharedTrackPlayer
-          track={track}
-          project={shareData.project}
-          token={token}
-          allowDownloads={shareData.allow_downloads}
-          allowEditing={shareData.allow_editing}
-        />
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-full max-w-5xl space-y-4">
+          {shareData.feedback_question && (
+            <div className="rounded-xl border border-(--card-border) bg-(--bg-1) px-5 py-4 text-center text-lg text-(--text-0)">
+              {shareData.feedback_question}
+            </div>
+          )}
+          <SharedTrackPlayer
+            track={track}
+            project={shareData.project}
+            token={token}
+            sharePassword={password}
+            allowDownloads={shareData.allow_downloads}
+            allowEditing={shareData.allow_editing}
+          />
+        </div>
       </div>
     );
   }
@@ -136,6 +145,8 @@ function SharePage() {
         project={shareData.project}
         tracks={shareData.tracks || []}
         shareToken={token}
+        sharePassword={password}
+        feedbackQuestion={shareData.feedback_question}
         allowDownloads={shareData.allow_downloads || false}
       />
     );

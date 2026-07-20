@@ -22,6 +22,7 @@ type PreferencesResponse struct {
 	AccentColor        string    `json:"accent_color"`
 	Theme              string    `json:"theme"`
 	SystemDarkTheme    string    `json:"system_dark_theme"`
+	CommentsEnabled    bool      `json:"comments_enabled"`
 	CreatedAt          string    `json:"created_at"`
 	UpdatedAt          string    `json:"updated_at"`
 }
@@ -41,6 +42,7 @@ func toPreferencesResponse(prefs sqlc.UserPreference) PreferencesResponse {
 		AccentColor:     prefs.AccentColor,
 		Theme:           prefs.Theme,
 		SystemDarkTheme: prefs.SystemDarkTheme,
+		CommentsEnabled: prefs.CommentsEnabled,
 		CreatedAt:       prefs.CreatedAt.Time.Format(time.RFC3339),
 		UpdatedAt:       prefs.UpdatedAt.Time.Format(time.RFC3339),
 	}
@@ -159,6 +161,10 @@ func (h *PreferencesHandler) UpdatePreferences(w http.ResponseWriter, r *http.Re
 
 	if req.SystemDarkTheme != nil {
 		params.SystemDarkTheme = sql.NullString{String: *req.SystemDarkTheme, Valid: true}
+	}
+
+	if req.CommentsEnabled != nil {
+		params.CommentsEnabled = sql.NullBool{Bool: *req.CommentsEnabled, Valid: true}
 	}
 
 	prefs, err := h.db.UpdateUserPreferences(ctx, params)

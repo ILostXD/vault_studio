@@ -44,6 +44,7 @@ type Querier interface {
 	// USER-TO-USER SHARING (SAME INSTANCE)
 	CreateUserProjectShare(ctx context.Context, arg CreateUserProjectShareParams) (UserProjectShare, error)
 	CreateUserTrackShare(ctx context.Context, arg CreateUserTrackShareParams) (UserTrackShare, error)
+	CreateWaveformComment(ctx context.Context, arg CreateWaveformCommentParams) (WaveformComment, error)
 	// WEBSOCKET SESSIONS
 	CreateWebSocketSession(ctx context.Context, arg CreateWebSocketSessionParams) (WebsocketSession, error)
 	DeleteAllSharedProjectOrganizationsInFolder(ctx context.Context, arg DeleteAllSharedProjectOrganizationsInFolderParams) error
@@ -78,6 +79,7 @@ type Querier interface {
 	DeleteUserTrackShare(ctx context.Context, arg DeleteUserTrackShareParams) error
 	DeleteUserTrackShareByID(ctx context.Context, arg DeleteUserTrackShareByIDParams) error
 	DeleteUserTrackShareByShareID(ctx context.Context, id int64) error
+	DeleteWaveformComment(ctx context.Context, arg DeleteWaveformCommentParams) (int64, error)
 	DeleteWebSocketSession(ctx context.Context, sessionID string) error
 	FindFileByContentHash(ctx context.Context, contentHash sql.NullString) (TrackFile, error)
 	GetCompletedTrackFile(ctx context.Context, arg GetCompletedTrackFileParams) (TrackFile, error)
@@ -190,6 +192,7 @@ type Querier interface {
 	ListUserSharedTrackOrganizations(ctx context.Context, userID int64) ([]UserSharedTrackOrganization, error)
 	ListUsersProjectIsSharedWith(ctx context.Context, projectID int64) ([]UserProjectShare, error)
 	ListUsersTrackIsSharedWith(ctx context.Context, trackID int64) ([]UserTrackShare, error)
+	ListWaveformCommentsByVersion(ctx context.Context, versionID int64) ([]WaveformComment, error)
 	ListWebSocketSessionsByResource(ctx context.Context, arg ListWebSocketSessionsByResourceParams) ([]WebsocketSession, error)
 	MarkCoverProcessed(ctx context.Context, id int64) error
 	MarkTokenAsUsed(ctx context.Context, id int64) (InviteToken, error)
@@ -244,6 +247,7 @@ type Querier interface {
 	UpdateUserTrackShareByID(ctx context.Context, arg UpdateUserTrackShareByIDParams) (UserTrackShare, error)
 	UpdateUsername(ctx context.Context, arg UpdateUsernameParams) (User, error)
 	UpdateWaveform(ctx context.Context, arg UpdateWaveformParams) error
+	UpdateWaveformComment(ctx context.Context, arg UpdateWaveformCommentParams) (WaveformComment, error)
 	UpdateWebSocketHeartbeat(ctx context.Context, sessionID string) error
 	UpsertInstanceSettings(ctx context.Context, name string) (InstanceSetting, error)
 	UpsertProjectNote(ctx context.Context, arg UpsertProjectNoteParams) (Note, error)

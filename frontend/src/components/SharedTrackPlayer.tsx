@@ -19,6 +19,7 @@ import {
 import { useMotionValue, useSpring, useTransform, motion } from "motion/react";
 import { Filter } from "virtual:refractionFilter?width=20&height=32&radius=10&bezelWidth=12&glassThickness=50&refractiveIndex=1.48&bezelType=convex_squircle";
 import { resolveApiUrl } from "@/api/server";
+import WaveformComments from "@/components/WaveformComments";
 
 interface SharedTrackPlayerProps {
   track: any;
@@ -28,6 +29,7 @@ interface SharedTrackPlayerProps {
   allowEditing?: boolean;
   streamUrl?: string;
   downloadUrl?: string;
+  sharePassword?: string;
 }
 
 export default function SharedTrackPlayer({
@@ -38,6 +40,7 @@ export default function SharedTrackPlayer({
   allowEditing = false,
   streamUrl: customStreamUrl,
   downloadUrl: customDownloadUrl,
+  sharePassword = "",
 }: SharedTrackPlayerProps) {
   const INITIAL_VOLUME = 100;
   const VOLUME_STORAGE_KEY = "vault-volume";
@@ -693,6 +696,17 @@ export default function SharedTrackPlayer({
               >
                 <div className="h-full w-0.5 bg-accent-blue shadow-[0_0_10px_var(--accent-color)]" />
               </div>
+              <WaveformComments
+                versionId={track.active_version_id}
+                duration={duration}
+                currentTime={previewProgress}
+                shareToken={token}
+                sharePassword={sharePassword}
+                onSeek={(time) => {
+                  if (audioRef.current) audioRef.current.currentTime = time;
+                  setPreviewProgress(time);
+                }}
+              />
             </div>
           </div>
         </div>

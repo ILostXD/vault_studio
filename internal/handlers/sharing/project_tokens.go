@@ -69,17 +69,22 @@ func (h *SharingHandler) CreateProjectShareToken(w http.ResponseWriter, r *http.
 	if req.VisibilityType != nil {
 		visibilityType = *req.VisibilityType
 	}
+	question, err := feedbackQuestion(req.FeedbackQuestion)
+	if err != nil {
+		return apperr.NewBadRequest(err.Error())
+	}
 
 	shareToken, err := h.db.CreateProjectShareToken(ctx, sqlc.CreateProjectShareTokenParams{
-		Token:          token,
-		UserID:         int64(userID),
-		ProjectID:      project.ID,
-		ExpiresAt:      expiresAt,
-		MaxAccessCount: maxAccessCount,
-		AllowEditing:   req.AllowEditing != nil && *req.AllowEditing,
-		AllowDownloads: req.AllowDownloads == nil || *req.AllowDownloads,
-		PasswordHash:   passwordHash,
-		VisibilityType: visibilityType,
+		Token:            token,
+		UserID:           int64(userID),
+		ProjectID:        project.ID,
+		ExpiresAt:        expiresAt,
+		MaxAccessCount:   maxAccessCount,
+		AllowEditing:     req.AllowEditing != nil && *req.AllowEditing,
+		AllowDownloads:   req.AllowDownloads == nil || *req.AllowDownloads,
+		PasswordHash:     passwordHash,
+		VisibilityType:   visibilityType,
+		FeedbackQuestion: question,
 	})
 	if err != nil {
 		return apperr.NewInternal("failed to create share token", err)
@@ -99,6 +104,7 @@ func (h *SharingHandler) CreateProjectShareToken(w http.ResponseWriter, r *http.
 		VisibilityType:     shareToken.VisibilityType,
 		CreatedAt:          shareToken.CreatedAt.Time,
 		ShareURL:           buildShareURL(r, token),
+		FeedbackQuestion:   optionalString(shareToken.FeedbackQuestion),
 	}
 	return httputil.CreatedResult(w, response)
 }
@@ -139,10 +145,11 @@ func (h *SharingHandler) ValidateProjectShareToken(w http.ResponseWriter, r *htt
 	h.db.IncrementProjectAccessCount(ctx, shareToken.ID)
 
 	return httputil.OKResult(w, map[string]interface{}{
-		"valid":           true,
-		"project":         project,
-		"allow_editing":   shareToken.AllowEditing,
-		"allow_downloads": shareToken.AllowDownloads,
+		"valid":             true,
+		"project":           project,
+		"allow_editing":     shareToken.AllowEditing,
+		"allow_downloads":   shareToken.AllowDownloads,
+		"feedback_question": optionalString(shareToken.FeedbackQuestion),
 	})
 }
 
@@ -182,6 +189,7 @@ func (h *SharingHandler) ListProjectShareTokens(w http.ResponseWriter, r *http.R
 			CreatedAt:          token.CreatedAt.Time,
 			UpdatedAt:          token.UpdatedAt.Time,
 			ShareURL:           scheme + "://" + host + "/share/" + token.Token,
+			FeedbackQuestion:   optionalString(token.FeedbackQuestion),
 		}
 	}
 	return httputil.OKResult(w, response)
@@ -214,20 +222,31 @@ func (h *SharingHandler) UpdateProjectShareToken(w http.ResponseWriter, r *http.
 		return apperr.NewForbidden("unauthorized")
 	}
 
-	passwordHash, err := hashSharePassword(req.Password)
-	if err != nil {
-		return apperr.NewInternal("failed to hash password", err)
+	passwordHash := existingToken.PasswordHash
+	if req.Password != nil {
+		passwordHash, err = hashSharePassword(req.Password)
+		if err != nil {
+			return apperr.NewInternal("failed to hash password", err)
+		}
+	}
+	question := existingToken.FeedbackQuestion
+	if req.FeedbackQuestion != nil {
+		question, err = feedbackQuestion(req.FeedbackQuestion)
+		if err != nil {
+			return apperr.NewBadRequest(err.Error())
+		}
 	}
 
 	updatedToken, err := h.db.UpdateProjectShareToken(ctx, sqlc.UpdateProjectShareTokenParams{
-		ExpiresAt:      existingToken.ExpiresAt,
-		MaxAccessCount: existingToken.MaxAccessCount,
-		AllowEditing:   req.AllowEditing != nil && *req.AllowEditing,
-		AllowDownloads: req.AllowDownloads != nil && *req.AllowDownloads,
-		PasswordHash:   passwordHash,
-		VisibilityType: existingToken.VisibilityType,
-		ID:             tokenID,
-		UserID:         int64(userID),
+		ExpiresAt:        existingToken.ExpiresAt,
+		MaxAccessCount:   existingToken.MaxAccessCount,
+		AllowEditing:     req.AllowEditing != nil && *req.AllowEditing,
+		AllowDownloads:   req.AllowDownloads != nil && *req.AllowDownloads,
+		PasswordHash:     passwordHash,
+		VisibilityType:   existingToken.VisibilityType,
+		FeedbackQuestion: question,
+		ID:               tokenID,
+		UserID:           int64(userID),
 	})
 	if err != nil {
 		return apperr.NewInternal("failed to update token", err)
@@ -254,6 +273,7 @@ func (h *SharingHandler) UpdateProjectShareToken(w http.ResponseWriter, r *http.
 		ExpiresAt:          updatedToken.ExpiresAt,
 		MaxAccessCount:     updatedToken.MaxAccessCount,
 		CurrentAccessCount: updatedToken.CurrentAccessCount.Int64,
+		FeedbackQuestion:   optionalString(updatedToken.FeedbackQuestion),
 	}
 	return httputil.OKResult(w, response)
 }
@@ -404,10 +424,11 @@ func (h *SharingHandler) validateProjectShare(w http.ResponseWriter, r *http.Req
 	}
 
 	return httputil.OKResult(w, &handlers.ValidateShareResponse{
-		Valid:          true,
-		Project:        projectDetail,
-		Tracks:         tracks,
-		AllowEditing:   shareToken.AllowEditing,
-		AllowDownloads: shareToken.AllowDownloads,
+		Valid:            true,
+		Project:          projectDetail,
+		Tracks:           tracks,
+		AllowEditing:     shareToken.AllowEditing,
+		AllowDownloads:   shareToken.AllowDownloads,
+		FeedbackQuestion: optionalString(shareToken.FeedbackQuestion),
 	})
 }

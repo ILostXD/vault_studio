@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"bungleware/vault/internal/db"
 	sqlc "bungleware/vault/internal/db/sqlc"
@@ -41,6 +42,24 @@ func hashSharePassword(password *string) (sql.NullString, error) {
 	}
 
 	return sql.NullString{String: string(hash), Valid: true}, nil
+}
+
+func feedbackQuestion(value *string) (sql.NullString, error) {
+	if value == nil {
+		return sql.NullString{}, nil
+	}
+	question := strings.TrimSpace(*value)
+	if len(question) > 300 {
+		return sql.NullString{}, fmt.Errorf("feedback question must be 300 characters or fewer")
+	}
+	return sql.NullString{String: question, Valid: question != ""}, nil
+}
+
+func optionalString(value sql.NullString) *string {
+	if !value.Valid {
+		return nil
+	}
+	return &value.String
 }
 
 func (h *SharingHandler) canManageTrackShares(ctx context.Context, track sqlc.Track, userID int64) (bool, error) {
