@@ -28,7 +28,7 @@ import { uploadVersion } from "@/api/versions";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { trackKeys } from "@/hooks/useTracks";
 import * as sharingApi from "@/api/sharing";
-import { uploadProjectCover, fetchProjectCover } from "@/api/projects";
+import { uploadProjectCover, downloadProjectCover } from "@/api/projects";
 import { useProjectCoverImage } from "@/hooks/useProjectCoverImage";
 import type { Track, VisibilityStatus } from "@/types/api";
 import { formatTrackDuration, formatDurationLong } from "@/lib/duration";
@@ -320,20 +320,12 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
     if (!project?.cover_url) return;
 
     try {
-      const blob = await fetchProjectCover(
+      const result = await downloadProjectCover(
         project.public_id,
         project.cover_url,
-        "source",
+        `${project.name}-cover.jpg`,
       );
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${project.name}-cover.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      toast.success("Cover art downloaded");
+      if (!result.cancelled) toast.success("Cover art saved");
     } catch (error) {
       console.error("Failed to export cover", error);
       toast.error("Failed to download cover art");

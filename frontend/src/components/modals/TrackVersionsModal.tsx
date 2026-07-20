@@ -495,8 +495,8 @@ export default function TrackVersionsModal({
 
   const handleDownloadVersion = async (versionId: number) => {
     try {
-      await downloadVersion(trackId, versionId);
-      toast.success("Download started");
+      const result = await downloadVersion(trackId, versionId);
+      if (!result.cancelled) toast.success("File saved");
     } catch (error) {
       toast.error("Failed to download version");
       console.error("Failed to download version:", error);

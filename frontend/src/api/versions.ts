@@ -1,6 +1,7 @@
 import { get, put, del, getCSRFToken, getAuthHeaders } from './client'
 import type { VersionWithMetadata, UpdateVersionRequest } from '../types/api'
 import { resolveApiUrl } from './server'
+import { saveDownload, type DownloadResult } from '../lib/download'
 
 
 export async function getVersions(trackId: string): Promise<VersionWithMetadata[]> {
@@ -98,34 +99,10 @@ export function getVersionDownloadUrl(trackId: string, versionId: number): strin
   return resolveApiUrl(`/api/tracks/${trackId}/versions/${versionId}/download`)
 }
 
-export async function downloadVersion(trackId: string, versionId: number): Promise<void> {
-	const response = await fetch(getVersionDownloadUrl(trackId, versionId), {
-		method: 'GET',
-		credentials: 'include',
-		headers: getAuthHeaders(),
-	})
-
-  if (!response.ok) {
-    throw new Error('Failed to download version')
-  }
-
-  const contentDisposition = response.headers.get('Content-Disposition')
-  let filename = `version_${versionId}.wav`
-
-  if (contentDisposition) {
-    const filenameMatch = contentDisposition.match(/filename="([^"]+)"|filename=([^;]+)/i)
-    if (filenameMatch) {
-      filename = (filenameMatch[1] || filenameMatch[2]).trim()
-    }
-  }
-
-  const blob = await response.blob()
-  const url = window.URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  window.URL.revokeObjectURL(url)
-  document.body.removeChild(a)
+export async function downloadVersion(trackId: string, versionId: number): Promise<DownloadResult> {
+  return saveDownload({
+    url: getVersionDownloadUrl(trackId, versionId),
+    fileName: `version-${versionId}.wav`,
+    mimeType: 'audio/wav',
+  })
 }

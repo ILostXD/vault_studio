@@ -1,6 +1,7 @@
 import { get, post, put, del, getCSRFToken, getAuthHeaders } from './client'
 import type { Track, TrackWithShareInfo, CreateTrackRequest, UpdateTrackRequest } from '../types/api'
 import { resolveApiUrl } from './server'
+import { saveDownload, type DownloadResult } from '../lib/download'
 
 export async function getTracks(projectId?: number): Promise<Track[]> {
   const endpoint = projectId
@@ -78,37 +79,12 @@ export async function reorderTracks(
   return post<void>('/api/tracks/reorder', { track_orders: trackOrders })
 }
 
-export async function downloadTrack(trackId: string, versionId: number): Promise<void> {
-	const response = await fetch(resolveApiUrl(`/api/tracks/${trackId}/versions/${versionId}/download`), {
-		method: 'GET',
-		credentials: 'include',
-		headers: getAuthHeaders(),
-	})
-
-  if (!response.ok) {
-    throw new Error('Failed to download track')
-  }
-
-  const contentDisposition = response.headers.get('Content-Disposition')
-  let filename = 'track.mp3'
-  if (contentDisposition) {
-    const filenameMatch = contentDisposition.match(/filename="([^"]+)"|filename=([^;]+)/i)
-    if (filenameMatch) {
-      filename = (filenameMatch[1] || filenameMatch[2]).trim()
-    }
-  }
-
-  const blob = await response.blob()
-
-  const url = window.URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-
-  window.URL.revokeObjectURL(url)
-  document.body.removeChild(a)
+export async function downloadTrack(trackId: string, versionId: number): Promise<DownloadResult> {
+  return saveDownload({
+    url: `/api/tracks/${trackId}/versions/${versionId}/download`,
+    fileName: `track-${trackId}.wav`,
+    mimeType: 'audio/wav',
+  })
 }
 
 export async function duplicateTrack(trackId: string): Promise<Track> {

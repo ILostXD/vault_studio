@@ -35,7 +35,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { trackKeys } from "@/hooks/useTracks";
 import { usePrefetchSharingData } from "@/hooks/useSharing";
 import { resolveApiUrl } from "@/api/server";
-import { getAuthHeaders } from "@/api/client";
+import { saveDownload } from "@/lib/download";
 
 interface TrackDetailsModalProps {
   isOpen: boolean;
@@ -298,9 +298,9 @@ function TrackDetailsModal({
 
     try {
       toast.loading("Preparing download...");
-      await downloadTrack(trackId, track.active_version_id);
+      const result = await downloadTrack(trackId, track.active_version_id);
       toast.dismiss();
-      toast.success("Download started");
+      if (!result.cancelled) toast.success("File saved");
     } catch (error) {
       toast.dismiss();
       toast.error("Failed to download track");
@@ -338,26 +338,13 @@ function TrackDetailsModal({
       const downloadUrl = resolveApiUrl(
         `/api/share/${shareToken}/track/${trackId}/download`,
       );
-      const response = await fetch(downloadUrl, {
-        headers: getAuthHeaders(),
+      const result = await saveDownload({
+        url: downloadUrl,
+        fileName: `${track.title}.wav`,
+        mimeType: "audio/wav",
       });
-
-      if (!response.ok) {
-        throw new Error(`Download failed: ${response.statusText}`);
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${track.title}.mp3`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
       toast.dismiss(toastId);
-      toast.success("Download started");
+      if (!result.cancelled) toast.success("File saved");
     } catch (error) {
       toast.dismiss();
       toast.error("Failed to download track");

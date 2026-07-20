@@ -2,6 +2,7 @@ import { get, post, put, del, getCSRFToken, getAuthHeaders } from './client'
 import { getProjectCoverUrl } from './media'
 import type { Project, CreateProjectRequest, UpdateProjectRequest, MoveProjectRequest } from '../types/api'
 import { resolveApiUrl } from './server'
+import { saveDownload, type DownloadResult } from '../lib/download'
 
 export async function getProjects(folderId?: number | 'root'): Promise<Project[]> {
   const params = folderId !== undefined ? `?folder_id=${folderId}` : ''
@@ -127,6 +128,27 @@ export async function fetchProjectCover(
 	}
 
   return response.blob()
+}
+
+export async function downloadProjectCover(
+  id: string,
+  coverUrl: string | null | undefined,
+  fileName: string,
+): Promise<DownloadResult> {
+  if (coverUrl?.startsWith('/api/share/')) {
+    return saveDownload({
+      url: `${coverUrl}${coverUrl.includes('?') ? '&' : '?'}size=source`,
+      fileName,
+      mimeType: 'image/jpeg',
+    })
+  }
+
+  const signed = await getProjectCoverUrl(id, { size: 'source' })
+  return saveDownload({
+    url: signed.url,
+    fileName,
+    mimeType: 'image/jpeg',
+  })
 }
 
 export async function duplicateProject(id: string): Promise<Project> {
