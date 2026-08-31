@@ -318,6 +318,22 @@ export default function MusicPlayer({
   }, [isMobileScreen, isVolumePopupOpen]);
 
   useEffect(() => {
+    const volumeControl = volumeControlRef.current;
+    if (!volumeControl) return;
+
+    const handleWheel = (event: WheelEvent) => {
+      if (event.deltaY === 0) return;
+      event.preventDefault();
+      setVolumePercentage((volume) =>
+        Math.max(0, Math.min(100, volume + (event.deltaY < 0 ? 5 : -5))),
+      );
+    };
+
+    volumeControl.addEventListener("wheel", handleWheel, { passive: false });
+    return () => volumeControl.removeEventListener("wheel", handleWheel);
+  }, [currentTrack, hideControls, queue.length]);
+
+  useEffect(() => {
     const hasContent = currentTrack || queue.length > 0;
 
     if (hasContent && !showPlayer) {
@@ -1120,7 +1136,7 @@ export default function MusicPlayer({
               </div>
             </div>
 
-            <div className="flex items-center gap-5 sm:gap-6 justify-self-end z-10 pr-3 sm:pr-4">
+            <div className="flex items-center gap-5 sm:gap-6 justify-self-end z-40 pr-3 sm:pr-4">
               <button
                 type="button"
                 className={`transition-colors ${loopMode !== "off" ? "text-accent-blue" : "text-(--text-0) hover:text-gray-300"}`}
