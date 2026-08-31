@@ -56,7 +56,8 @@ function ProjectLayout() {
   const { projectId } = Route.useParams();
   const { data: project } = useProject(projectId);
   const { data: tracks = [] } = useTracks(project ? project.id : null);
-  const { addProjectToQueue } = useAudioPlayer();
+  const { addProjectToQueue, currentTrack, isNowPlayingOpen, closeNowPlaying } =
+    useAudioPlayer();
   const { imageUrl: projectCoverImage } = useProjectCoverImage(project, "medium");
   const deleteProject = useDeleteProject();
   const duplicateProject = useDuplicateProject();
@@ -69,6 +70,9 @@ function ProjectLayout() {
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const isCurrentProjectNowPlaying = Boolean(
+    isNowPlayingOpen && currentTrack?.projectId === project?.public_id,
+  );
 
   const { data: sharedProjects = [] } = useQuery({
     queryKey: ["shared-projects"],
@@ -192,7 +196,11 @@ function ProjectLayout() {
             variant="default"
             size="icon-lg"
             haptic="light"
-            onClick={() => window.history.back()}
+            onClick={() => {
+              if (isCurrentProjectNowPlaying) closeNowPlaying();
+              window.history.back();
+            }}
+            className="transition-transform duration-300"
           >
             <ChevronLeftIcon className="size-4.5" />
           </Button>

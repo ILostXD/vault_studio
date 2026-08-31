@@ -19,10 +19,12 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface QueuePanelProps {
   isOpen: boolean;
   onClose: () => void;
+  layer?: "player" | "expanded";
 }
 
 interface QueueTrack {
@@ -60,7 +62,11 @@ function QueueTrackCover({ track }: { track: QueueTrack }) {
   );
 }
 
-export default function QueuePanel({ isOpen, onClose }: QueuePanelProps) {
+export default function QueuePanel({
+  isOpen,
+  onClose,
+  layer = "player",
+}: QueuePanelProps) {
   const { queue, removeFromQueue, clearQueue, reorderQueue } = useAudioPlayer();
   const navigate = useNavigate();
   const routerState = useRouterState();
@@ -163,7 +169,10 @@ export default function QueuePanel({ isOpen, onClose }: QueuePanelProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.1 }}
-            className="fixed inset-0 z-119 overlay-backdrop"
+            className={cn(
+              "fixed inset-0 overlay-backdrop",
+              layer === "expanded" ? "z-[139]" : "z-119",
+            )}
             onClick={onClose}
           />
 
@@ -176,7 +185,12 @@ export default function QueuePanel({ isOpen, onClose }: QueuePanelProps) {
               stiffness: 700,
               damping: 40,
             }}
-            className="fixed bottom-[145px] left-1/2 -translate-x-1/2 z-120 w-[calc(100%-1rem)] sm:w-[calc(100%-3rem)] max-w-[800px]"
+            className={cn(
+              "fixed left-1/2 -translate-x-1/2 w-[calc(100%-1rem)] sm:w-[calc(100%-3rem)] max-w-[800px]",
+              layer === "expanded"
+                ? "bottom-[max(env(safe-area-inset-bottom),1rem)] z-[140]"
+                : "bottom-[145px] z-120",
+            )}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative flex max-h-[500px] w-full flex-col overflow-hidden rounded-3xl text-(--text-0) shadow-2xl border border-(--card-border) overlay-surface">

@@ -22,6 +22,7 @@ import {
 	deleteProjectMotionAsset,
 	uploadProjectMotionAsset,
 } from "@/api/projects";
+import MotionArtworkStage from "@/components/motion/MotionArtworkStage";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup } from "@/components/ui/toggle-group";
 import {
@@ -93,7 +94,7 @@ function SpotifyPreview({
 	trackTitle: string;
 }) {
 	return (
-		<div className="relative mx-auto h-[min(62dvh,640px)] aspect-[9/16] overflow-hidden rounded-[30px] bg-black shadow-2xl">
+		<div className="relative mx-auto aspect-[9/19.5] h-[min(62dvh,640px)] overflow-hidden rounded-[30px] bg-black shadow-2xl">
 			<ArtworkMedia asset={asset} coverUrl={coverUrl} />
 			<div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,.42),transparent_26%,transparent_55%,rgba(0,0,0,.82))]" />
 			<div className="absolute inset-x-0 top-0 flex items-center justify-between px-5 pt-5 text-white">
@@ -145,84 +146,13 @@ function ApplePortraitPreview({
 	artistName: string;
 	trackTitle: string;
 }) {
-	const foregroundVideoRef = useRef<HTMLVideoElement>(null);
-	const backgroundVideoRef = useRef<HTMLVideoElement>(null);
-
-	const syncBackgroundVideo = () => {
-		const foreground = foregroundVideoRef.current;
-		const background = backgroundVideoRef.current;
-		if (!foreground || !background) return;
-
-		if (Math.abs(background.currentTime - foreground.currentTime) > 0.08) {
-			background.currentTime = foreground.currentTime;
-		}
-		if (foreground.paused) {
-			background.pause();
-		} else {
-			void background.play().catch(() => undefined);
-		}
-	};
-
-	const artwork = asset?.preview_url;
-
 	return (
 		<div className="relative mx-auto aspect-[9/19.5] w-[min(100%,31.4dvh,320px)] overflow-hidden rounded-[32px] bg-black text-white shadow-2xl">
-			<div className="absolute inset-0 overflow-hidden bg-black">
-				{coverUrl && (
-					<img
-						src={coverUrl}
-						alt=""
-						className="absolute -inset-[14%] size-[128%] scale-110 object-cover blur-[34px] brightness-[0.48] saturate-125"
-					/>
-				)}
-				{artwork && (
-					<video
-						ref={backgroundVideoRef}
-						key={`background-${artwork}`}
-						src={artwork}
-						poster={coverUrl ?? undefined}
-						autoPlay
-						muted
-						loop
-						playsInline
-						disablePictureInPicture
-						className="absolute -inset-[14%] size-[128%] scale-110 object-cover blur-[34px] brightness-[0.48] saturate-125 motion-reduce:hidden"
-					/>
-				)}
-			</div>
-
-			<div
-				className="absolute inset-x-0 top-0 aspect-[3/4] overflow-hidden"
-				style={{
-					WebkitMaskImage:
-						"linear-gradient(to bottom, black 0%, black 72%, transparent 100%)",
-					maskImage:
-						"linear-gradient(to bottom, black 0%, black 72%, transparent 100%)",
-				}}
-			>
-				{coverUrl && (
-					<img src={coverUrl} alt="" className="size-full object-cover" />
-				)}
-				{artwork && (
-					<video
-						ref={foregroundVideoRef}
-						key={`foreground-${artwork}`}
-						src={artwork}
-						poster={coverUrl ?? undefined}
-						autoPlay
-						muted
-						loop
-						playsInline
-						disablePictureInPicture
-						onLoadedMetadata={syncBackgroundVideo}
-						onPlay={syncBackgroundVideo}
-						onPause={syncBackgroundVideo}
-						onSeeked={syncBackgroundVideo}
-						onTimeUpdate={syncBackgroundVideo}
-						className="absolute inset-0 size-full object-cover motion-reduce:hidden"
-					/>
-				)}
-			</div>
+			<MotionArtworkStage
+				presentation="apple-portrait"
+				assetUrl={asset?.preview_url}
+				coverUrl={coverUrl}
+			/>
 
 			<div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,.18)_0%,transparent_25%,transparent_46%,rgba(0,0,0,.12)_62%,rgba(0,0,0,.3)_100%)]" />
 

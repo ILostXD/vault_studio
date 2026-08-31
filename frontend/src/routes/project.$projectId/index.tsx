@@ -1,44 +1,43 @@
-import { DotIcon, Shuffle, Play, Pause, LinkIcon, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useWebHaptics } from "web-haptics/react";
-import AlbumCover from "@/components/AlbumCover";
-import ScrollingText from "@/components/ScrollingText";
-import NotesPanel from "@/components/NotesPanel";
-import LinkNotAvailable from "@/components/LinkNotAvailable";
-import { createFileRoute } from "@tanstack/react-router";
 import { Filter } from "virtual:refractionFilter?width=48&height=48&radius=16&bezelWidth=12&glassThickness=40&refractiveIndex=1.45&bezelType=convex_squircle";
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import type React from "react";
-import { motion, AnimatePresence } from "motion/react";
 import type { DropResult } from "@hello-pangea/dnd";
-import { useProject, projectKeys } from "@/hooks/useProjects";
-import { useTracks } from "@/hooks/useTracks";
-import { useAuth } from "@/contexts/AuthContext";
-import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
-import { usePreferences } from "@/contexts/PreferencesContext";
-import { toast } from "@/routes/__root";
-import { uploadTrack, reorderTracks } from "@/api/tracks";
-import { uploadVersion } from "@/api/versions";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { trackKeys } from "@/hooks/useTracks";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
+import { DotIcon, LinkIcon, Pause, Play, Shuffle, Users } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import type React from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useWebHaptics } from "web-haptics/react";
+import { downloadProjectCover, uploadProjectCover } from "@/api/projects";
 import * as sharingApi from "@/api/sharing";
-import { uploadProjectCover, downloadProjectCover } from "@/api/projects";
-import { useProjectCoverImage } from "@/hooks/useProjectCoverImage";
-import { useProjectMotionAssets } from "@/hooks/useProjectMotionAssets";
-import type { Track, VisibilityStatus } from "@/types/api";
-import { formatTrackDuration, formatDurationLong } from "@/lib/duration";
-
-import { usePlayButtonAnimation } from "@/hooks/usePlayButtonAnimation";
-import { useProjectSearch } from "@/hooks/useProjectSearch";
-import { useFileDragUpload } from "@/hooks/useFileDragUpload";
-import { useScrollToTrack } from "@/hooks/useScrollToTrack";
-import { useProjectEditing } from "@/hooks/useProjectEditing";
+import { reorderTracks, uploadTrack } from "@/api/tracks";
+import { uploadVersion } from "@/api/versions";
+import AlbumCover from "@/components/AlbumCover";
+import LinkNotAvailable from "@/components/LinkNotAvailable";
+import NotesPanel from "@/components/NotesPanel";
+import NowPlayingView from "@/components/NowPlayingView";
 import { ProjectModals } from "@/components/ProjectModals";
 import { ProjectTrackList } from "@/components/ProjectTrackList";
+import ScrollingText from "@/components/ScrollingText";
+import { Button } from "@/components/ui/button";
+import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePreferences } from "@/contexts/PreferencesContext";
+import { useFileDragUpload } from "@/hooks/useFileDragUpload";
+import { usePlayButtonAnimation } from "@/hooks/usePlayButtonAnimation";
+import { useProjectCoverImage } from "@/hooks/useProjectCoverImage";
+import { useProjectEditing } from "@/hooks/useProjectEditing";
+import { useProjectMotionAssets } from "@/hooks/useProjectMotionAssets";
+import { useProjectSearch } from "@/hooks/useProjectSearch";
+import { projectKeys, useProject } from "@/hooks/useProjects";
 import {
-	mapTrackToPlayerTrack,
 	mapTracksToPlayerTracks,
+	mapTrackToPlayerTrack,
 } from "@/hooks/useProjectUtils";
+import { useScrollToTrack } from "@/hooks/useScrollToTrack";
+import { trackKeys, useTracks } from "@/hooks/useTracks";
+import { formatDurationLong, formatTrackDuration } from "@/lib/duration";
+import { toast } from "@/routes/__root";
+import type { Track, VisibilityStatus } from "@/types/api";
 
 export const Route = createFileRoute("/project/$projectId/")({
 	component: ProjectPage,
@@ -106,6 +105,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 		setProjectTracks,
 		toggleShuffle,
 		isShuffled,
+		isNowPlayingOpen,
 	} = useAudioPlayer();
 
 	const tracks = useMemo(() => apiTracks || [], [apiTracks]);
@@ -114,6 +114,9 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 			? tracks.some((t) => t.public_id === currentTrack.id)
 			: false;
 	}, [isPlaying, currentTrack, tracks]);
+	const isCurrentProjectNowPlaying = Boolean(
+		isNowPlayingOpen && currentTrack?.projectId === project?.public_id,
+	);
 
 	const playButton = usePlayButtonAnimation();
 	const normalizedTheme =
@@ -630,7 +633,9 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 					</div>
 				</div>
 
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-5 relative">
+				<div
+					className="grid grid-cols-1 gap-5 relative z-10 md:grid-cols-2"
+				>
 					<motion.div
 						initial={false}
 						animate={{
@@ -639,28 +644,46 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 								isNotesOpen && !isSmallScreen ? 0 : showCoverPanel ? 1 : 0,
 						}}
 						transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
-						className="flex items-start justify-center overflow-visible px-2 md:pl-5 md:pr-22 md:sticky md:self-start pt-2 top-30"
+						className="flex items-start justify-center overflow-visible px-2 pt-2 md:sticky md:self-start md:pl-5 md:pr-22 top-30"
 					>
-						<div className="relative w-full md:max-w-[24rem]">
-							<AlbumCover
-								imageUrl={projectCoverImage || undefined}
-								motionUrl={squareMotionUrl}
-								title={String(project.name)}
-								className="w-full"
-								onUploadClick={() => setIsCoverModalOpen(true)}
-								showUploadOverlay={canEditProject}
-								onColorsReady={() => setCoverColorsReady(true)}
-								isPlaying={isCurrentProjectPlaying}
-								playbackProgress={previewProgress}
-							/>
-							<input
-								ref={coverInputRef}
-								type="file"
-								accept="image/png,image/jpeg,image/webp"
-								className="hidden"
-								onChange={handleCoverFileChange}
-							/>
-						</div>
+						<AnimatePresence initial={false} mode="sync">
+							{isCurrentProjectNowPlaying ? (
+								<NowPlayingView
+									key="now-playing"
+									projectId={project.public_id}
+									projectName={String(project.name)}
+									coverUrl={projectCoverImage}
+									variant={isSmallScreen ? "mobile" : "desktop"}
+								/>
+							) : (
+								<motion.div
+									key="project-cover"
+									initial={{ opacity: 0 }}
+									animate={{ opacity: 1 }}
+									exit={{ opacity: 0 }}
+									className="relative w-full md:max-w-[24rem]"
+								>
+									<AlbumCover
+										imageUrl={projectCoverImage || undefined}
+										motionUrl={squareMotionUrl}
+										title={String(project.name)}
+										className="w-full"
+										onUploadClick={() => setIsCoverModalOpen(true)}
+										showUploadOverlay={canEditProject}
+										onColorsReady={() => setCoverColorsReady(true)}
+										isPlaying={isCurrentProjectPlaying}
+										playbackProgress={previewProgress}
+									/>
+									<input
+										ref={coverInputRef}
+										type="file"
+										accept="image/png,image/jpeg,image/webp"
+										className="hidden"
+										onChange={handleCoverFileChange}
+									/>
+								</motion.div>
+							)}
+						</AnimatePresence>
 					</motion.div>
 
 					<motion.div

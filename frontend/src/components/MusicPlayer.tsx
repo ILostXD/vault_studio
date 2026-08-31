@@ -61,6 +61,8 @@ export default function MusicPlayer({
     clearPreloadedAudio,
     shareToken,
     sharePassword,
+    isNowPlayingOpen,
+    openNowPlaying,
   } = useAudioPlayer();
 
   const projectForCover =
@@ -195,7 +197,7 @@ export default function MusicPlayer({
     }
   }, [isPlaying, pause, resume, currentTrack, queue.length, playFromQueue]);
 
-  const handleTrackTitleClick = useCallback(() => {
+  const handleTrackTitleClick = useCallback(async () => {
     if (!currentTrack?.id) return;
 
     if (currentTrack.isSharedTrack) {
@@ -210,26 +212,21 @@ export default function MusicPlayer({
       const currentPath = routerState.location.pathname;
       const targetPath = `/project/${currentTrack.projectId}`;
 
-      if (currentPath === targetPath || currentPath === `${targetPath}/`) {
-        window.dispatchEvent(
-          new CustomEvent("scroll-to-track", {
-            detail: { trackId: currentTrack.id },
-          }),
-        );
-      } else {
-        sessionStorage.setItem("scrollToTrack", currentTrack.id);
-
-        navigate({
+      if (currentPath !== targetPath && currentPath !== `${targetPath}/`) {
+        await navigate({
           to: "/project/$projectId",
           params: { projectId: currentTrack.projectId },
         });
       }
+      setIsQueueOpen(false);
+      openNowPlaying();
     }
   }, [
     currentTrack?.id,
     currentTrack?.projectId,
     currentTrack?.isSharedTrack,
     navigate,
+    openNowPlaying,
     routerState.location.pathname,
   ]);
 
@@ -864,8 +861,12 @@ export default function MusicPlayer({
 
       {!hideControls && (
         <div
-          className={`fixed bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 z-110 w-[calc(100%-1rem)] sm:w-[calc(100%-3rem)] max-w-[800px] transition-opacity duration-300 ${
-            showPlayer ? "opacity-100" : "opacity-0"
+          className={`fixed bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 z-110 w-[calc(100%-1rem)] sm:w-[calc(100%-3rem)] max-w-[800px] transition-[opacity,transform] duration-400 ease-out ${
+            isNowPlayingOpen
+              ? "pointer-events-none translate-y-5 opacity-0"
+              : showPlayer
+                ? "translate-y-0 opacity-100"
+                : "translate-y-3 opacity-0"
           }`}
         >
           {preferences?.comments_enabled !== false && (
@@ -960,7 +961,15 @@ export default function MusicPlayer({
                 "linear-gradient(0deg, var(--surface-overlay-from) 0%, var(--surface-overlay-to) 100%)",
             }}
           >
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0 z-10 ml-1.5 sm:ml-2">
+            <button
+              type="button"
+              className="flex items-center gap-2 sm:gap-3 min-w-0 z-10 ml-1.5 sm:ml-2 text-left"
+              onClick={currentTrack ? handleTrackTitleClick : undefined}
+              disabled={!currentTrack}
+              aria-label={
+                currentTrack ? `Open Now Playing for ${playerTitle}` : undefined
+              }
+            >
               <div className="size-9 sm:size-10 bg-[#333333] border border-[rgba(53,51,51,0.2)] rounded-tl-[9px] rounded-tr-[9px] rounded-br-[9px] rounded-bl-[13px] shrink-0 overflow-hidden">
                 {currentTrack && coverUrl && (
                   <img
@@ -980,13 +989,7 @@ export default function MusicPlayer({
                 )}
               </div>
 
-              <div
-                role={currentTrack ? "button" : undefined}
-                tabIndex={currentTrack ? 0 : undefined}
-                className="min-w-0 w-full cursor-pointer"
-                onClick={currentTrack ? handleTrackTitleClick : undefined}
-                onKeyDown={currentTrack ? (e) => { if (e.key === "Enter" || e.key === " ") handleTrackTitleClick(); } : undefined}
-              >
+              <div className="min-w-0 w-full cursor-pointer">
                 <ScrollingText
                   text={playerTitle}
                   className="text-(--text-0) font-medium text-sm sm:text-base leading-tight hover:opacity-80 transition-opacity"
@@ -998,7 +1001,7 @@ export default function MusicPlayer({
                   gradientColor="#000000"
                 />
               </div>
-            </div>
+            </button>
 
             <div className="flex items-center gap-4 sm:gap-6 justify-self-center z-20">
               <div

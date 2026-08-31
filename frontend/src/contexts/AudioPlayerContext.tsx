@@ -48,6 +48,7 @@ interface AudioPlayerContextType {
   isPlaying: boolean;
   duration: number;
   previewProgress: number;
+  isNowPlayingOpen: boolean;
   queue: Track[];
   currentProjectTracks: Track[];
   shuffledProjectTracks: Track[];
@@ -62,6 +63,8 @@ interface AudioPlayerContextType {
   pause: () => void;
   resume: () => void;
   stop: () => void;
+  openNowPlaying: () => void;
+  closeNowPlaying: () => void;
   nextTrack: () => void;
   previousTrack: () => void;
   playFromQueue: () => void;
@@ -105,6 +108,7 @@ export function AudioPlayerProvider({
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [previewProgress, setPreviewProgress] = useState(0);
+  const [isNowPlayingOpen, setIsNowPlayingOpen] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [loopMode, setLoopMode] = useState<LoopMode>("off");
   const [isShuffled, setIsShuffled] = useState(false);
@@ -187,8 +191,6 @@ export function AudioPlayerProvider({
       originalQueueRef.current = [];
     }
   }, [isShuffled, currentTrack, currentProjectTracks]);
-
-
 
   const getWaveformCacheKey = useCallback((track: Track): string => {
     return `${track.id}:${track.versionId ?? "active"}`;
@@ -551,6 +553,7 @@ export function AudioPlayerProvider({
 
   const stop = useCallback(() => {
     setIsPlaying(false);
+    setIsNowPlayingOpen(false);
     setCurrentTrack(null);
     setAudioUrl(null);
     setDuration(0);
@@ -560,6 +563,9 @@ export function AudioPlayerProvider({
       audioPlayerRef.current.audio.current.currentTime = 0;
     }
   }, []);
+
+  const openNowPlaying = useCallback(() => setIsNowPlayingOpen(true), []);
+  const closeNowPlaying = useCallback(() => setIsNowPlayingOpen(false), []);
 
   const playFromQueue = useCallback(() => {
     if (queue.length === 0) return;
@@ -1095,6 +1101,7 @@ export function AudioPlayerProvider({
         isPlaying,
         duration,
         previewProgress,
+        isNowPlayingOpen,
         queue,
         currentProjectTracks,
         shuffledProjectTracks,
@@ -1103,6 +1110,8 @@ export function AudioPlayerProvider({
         pause,
         resume,
         stop,
+        openNowPlaying,
+        closeNowPlaying,
         nextTrack,
         previousTrack,
         playFromQueue,

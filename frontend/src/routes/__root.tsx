@@ -13,6 +13,7 @@ import { toast as sonnerToast, Toaster } from "sonner";
 import MusicPlayer from "../components/MusicPlayer";
 import { useAuth } from "../contexts/AuthContext";
 import { usePreferences } from "../contexts/PreferencesContext";
+import { useAudioPlayer } from "../contexts/AudioPlayerContext";
 import { Button } from "../components/ui/button";
 import { checkUsersExist } from "../api/auth";
 import { useWebSocket } from "../hooks/useWebSocket";
@@ -200,6 +201,7 @@ function RootComponent() {
   const isSetupRoute = routerState.location.pathname.startsWith("/reset-setup");
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { effectiveTheme } = usePreferences();
+  const { isNowPlayingOpen, closeNowPlaying } = useAudioPlayer();
   const navigate = useNavigate();
   const [hasCheckedUsers, setHasCheckedUsers] = useState(false);
   const [isCheckingUsers, setIsCheckingUsers] = useState(false);
@@ -234,6 +236,10 @@ function RootComponent() {
 
     App.addListener("backButton", ({ canGoBack }) => {
       if (closeTopOverlay()) return;
+      if (isNowPlayingOpen) {
+        closeNowPlaying();
+        return;
+      }
 
       const pathname = currentPathRef.current;
       const isExitPath = ROOT_EXIT_PATHS.has(pathname);
@@ -255,7 +261,7 @@ function RootComponent() {
     return () => {
       listener?.remove();
     };
-  }, [navigate]);
+  }, [closeNowPlaying, isNowPlayingOpen, navigate]);
 
   useWebSocket(isAuthenticated);
 
