@@ -5,6 +5,12 @@ import (
 	"io"
 )
 
+type ReadSeekCloser interface {
+	io.Reader
+	io.Seeker
+	io.Closer
+}
+
 type Storage interface {
 	SaveTrackSource(ctx context.Context, input SaveTrackSourceInput) (*SaveTrackSourceResult, error)
 	DeleteTrack(ctx context.Context, input DeleteTrackInput) error
@@ -15,6 +21,9 @@ type Storage interface {
 	SaveProcessedCover(ctx context.Context, input SaveProcessedCoverInput) (*SaveProcessedCoverResult, error)
 	DeleteProjectCover(ctx context.Context, input DeleteProjectCoverInput) error
 	OpenProjectCover(ctx context.Context, input OpenProjectCoverInput) (*ProjectCoverStream, error)
+	SaveProjectMotionAsset(ctx context.Context, input SaveProjectMotionAssetInput) (*SaveProjectMotionAssetResult, error)
+	DeleteProjectMotionAsset(ctx context.Context, input DeleteProjectMotionAssetInput) error
+	OpenProjectMotionAsset(ctx context.Context, input OpenProjectMotionAssetInput) (*ProjectMotionAssetStream, error)
 }
 
 type SaveTrackSourceInput struct {
@@ -85,4 +94,33 @@ type SaveProcessedCoverInput struct {
 type SaveProcessedCoverResult struct {
 	SourcePath string
 	SourceMime string
+}
+
+type SaveProjectMotionAssetInput struct {
+	ProjectPublicID string
+	Kind            string
+	SourceExt       string
+	Source          io.Reader
+	Preview         io.Reader
+}
+
+type SaveProjectMotionAssetResult struct {
+	SourcePath  string
+	PreviewPath string
+}
+
+type DeleteProjectMotionAssetInput struct {
+	ProjectPublicID string
+	Kind            string
+}
+
+type OpenProjectMotionAssetInput struct {
+	ProjectPublicID string
+	Kind            string
+	Path            string
+}
+
+type ProjectMotionAssetStream struct {
+	Reader ReadSeekCloser
+	Size   int64
 }

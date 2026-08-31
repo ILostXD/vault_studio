@@ -114,6 +114,10 @@ func (s *FilesystemStorage) coverDir(projectPublicID string) string {
 	return filepath.Join(s.projectDir(projectPublicID), "cover")
 }
 
+func (s *FilesystemStorage) motionAssetDir(projectPublicID, kind string) string {
+	return filepath.Join(s.projectDir(projectPublicID), "motion-art", kind)
+}
+
 func (s *FilesystemStorage) SaveProjectCover(ctx context.Context, input SaveProjectCoverInput) (*SaveProjectCoverResult, error) {
 	select {
 	case <-ctx.Done():
@@ -229,6 +233,102 @@ func (s *FilesystemStorage) DeleteProjectCover(ctx context.Context, input Delete
 	dir := s.coverDir(input.ProjectPublicID)
 	if err := os.RemoveAll(dir); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to delete cover directory: %w", err)
+	}
+	return nil
+}
+
+func (s *FilesystemStorage) SaveProjectMotionAsset(ctx context.Context, input SaveProjectMotionAssetInput) (*SaveProjectMotionAssetResult, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
+	dir := s.motionAssetDir(input.ProjectPublicID, input.Kind)
+	if err := os.RemoveAll(dir); err != nil && !os.IsNotExist(err) {
+		return nil, fmt.Errorf("failed to clean motion artwork directory: %w", err)
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return nil, fmt.Errorf("failed to create motion artwork directory: %w", err)
+	}
+
+	sourcePath := filepath.Join(dir, "source"+strings.ToLower(input.SourceExt))
+	previewPath := filepath.Join(dir, "preview.mp4")
+	if err := copyReaderToFile(sourcePath, input.Source); err != nil {
+		return nil, err
+	}
+	if err := copyReaderToFile(previewPath, input.Preview); err != nil {
+		return nil, err
+	}
+
+	absSourcePath, err := filepath.Abs(sourcePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve motion artwork source path: %w", err)
+	}
+	absPreviewPath, err := filepath.Abs(previewPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve motion artwork preview path: %w", err)
+	}
+
+	return &SaveProjectMotionAssetResult{
+		SourcePath:  absSourcePath,
+		PreviewPath: absPreviewPath,
+	}, nil
+}
+
+func (s *FilesystemStorage) DeleteProjectMotionAsset(ctx context.Context, input DeleteProjectMotionAssetInput) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
+	dir := s.motionAssetDir(input.ProjectPublicID, input.Kind)
+	if err := os.RemoveAll(dir); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to delete motion artwork directory: %w", err)
+	}
+	return nil
+}
+
+func (s *FilesystemStorage) OpenProjectMotionAsset(ctx context.Context, input OpenProjectMotionAssetInput) (*ProjectMotionAssetStream, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
+	assetDir, err := filepath.Abs(s.motionAssetDir(input.ProjectPublicID, input.Kind))
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve motion artwork directory: %w", err)
+	}
+	path, err := filepath.Abs(input.Path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve motion artwork path: %w", err)
+	}
+	if path != assetDir && !strings.HasPrefix(path, assetDir+string(filepath.Separator)) {
+		return nil, fmt.Errorf("motion artwork path is outside its project directory")
+	}
+
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open motion artwork: %w", err)
+	}
+	info, err := file.Stat()
+	if err != nil {
+		file.Close()
+		return nil, fmt.Errorf("failed to stat motion artwork: %w", err)
+	}
+	return &ProjectMotionAssetStream{Reader: file, Size: info.Size()}, nil
+}
+
+func copyReaderToFile(path string, reader io.Reader) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return fmt.Errorf("failed to create motion artwork file: %w", err)
+	}
+	defer file.Close()
+	if _, err := io.Copy(file, reader); err != nil {
+		return fmt.Errorf("failed to write motion artwork file: %w", err)
 	}
 	return nil
 }

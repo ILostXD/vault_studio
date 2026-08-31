@@ -113,6 +113,24 @@ type Project struct {
 	DistributorNotes        sql.NullString `json:"distributor_notes"`
 }
 
+type ProjectMotionAsset struct {
+	ProjectID       int64     `json:"project_id"`
+	Kind            string    `json:"kind"`
+	SourcePath      string    `json:"source_path"`
+	SourceMime      string    `json:"source_mime"`
+	PreviewPath     string    `json:"preview_path"`
+	PreviewMime     string    `json:"preview_mime"`
+	Width           int64     `json:"width"`
+	Height          int64     `json:"height"`
+	DurationSeconds float64   `json:"duration_seconds"`
+	Codec           string    `json:"codec"`
+	FrameRate       float64   `json:"frame_rate"`
+	Bitrate         int64     `json:"bitrate"`
+	HasAudio        bool      `json:"has_audio"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+}
+
 type ProjectShareToken struct {
 	ID                 int64          `json:"id"`
 	Token              string         `json:"token"`

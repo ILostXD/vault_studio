@@ -343,6 +343,10 @@ func main() {
 	mux.Handle("PUT /api/projects/{id}/cover", authMW(httputil.Wrap(projectsHandler.UploadProjectCover)))
 	mux.Handle("DELETE /api/projects/{id}/cover", authMW(httputil.Wrap(projectsHandler.DeleteProjectCover)))
 	mux.Handle("GET /api/projects/{id}/cover", optionalAuthMW(signedURLMW(httputil.Wrap(projectsHandler.GetProjectCover))))
+	mux.Handle("GET /api/projects/{id}/motion-art", authMW(httputil.Wrap(projectsHandler.ListProjectMotionAssets)))
+	mux.Handle("PUT /api/projects/{id}/motion-art/{kind}", authMW(httputil.Wrap(projectsHandler.UploadProjectMotionAsset)))
+	mux.Handle("DELETE /api/projects/{id}/motion-art/{kind}", authMW(httputil.Wrap(projectsHandler.DeleteProjectMotionAsset)))
+	mux.Handle("GET /api/projects/{id}/motion-art/{kind}/preview", optionalAuthMW(signedURLMW(httputil.Wrap(projectsHandler.StreamProjectMotionAsset))))
 	mux.Handle("POST /api/projects/{id}/duplicate", authMW(httputil.Wrap(projectsHandler.DuplicateProject)))
 	mux.Handle("GET /api/projects/{id}/export", authMW(httputil.Wrap(projectsHandler.ExportProject)))
 
@@ -424,6 +428,7 @@ func main() {
 
 	mux.Handle("GET /api/media/stream/{id}", authMW(httputil.Wrap(mediaHandler.StreamURL)))
 	mux.Handle("GET /api/media/projects/{id}/cover", authMW(httputil.Wrap(mediaHandler.ProjectCoverURL)))
+	mux.Handle("GET /api/media/projects/{id}/motion-art/{kind}", authMW(httputil.Wrap(mediaHandler.ProjectMotionAssetURL)))
 
 	mux.Handle("/", frontendHandler)
 
@@ -446,11 +451,12 @@ func main() {
 	)
 
 	server := &http.Server{
-		Addr:         fmt.Sprintf(":%s", config.Port),
-		Handler:      handler,
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 0,
-		IdleTimeout:  60 * time.Second,
+		Addr:              fmt.Sprintf(":%s", config.Port),
+		Handler:           handler,
+		ReadHeaderTimeout: 15 * time.Second,
+		ReadTimeout:       15 * time.Minute,
+		WriteTimeout:      0,
+		IdleTimeout:       60 * time.Second,
 	}
 
 	slog.Info("Server starting",

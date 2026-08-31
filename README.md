@@ -12,16 +12,19 @@ Self-hosted streaming, organization, and creative tools for work-in-progress mus
 [![License](https://img.shields.io/github/license/ILostXD/vault_studio)](LICENSE)
 [![Upstream](https://img.shields.io/badge/upstream-bungleware%2Fvault-555)](https://github.com/bungleware/vault)
 
-<img width="1208" height="852" alt="Project library" src="docs/covers.webp" />
+<img width="1208" height="852" alt="Project library" src="docs/covers.gif" />
 
 <details>
   <summary>More screenshots</summary>
-  <img width="1252" height="896" alt="Project tracks" src="docs/tracks.webp" />
+  <img width="1252" height="896" alt="Project tracks" src="docs/tracks.gif" />
+  <img width="1252" height="896" alt="Apple Music motion artwork preview" src="docs/apple_motion.gif" />
   <img width="1624" height="1056" alt="Project sharing" src="docs/sharing.webp" />
   <img width="1624" height="1056" alt="Track versions" src="docs/versions.webp" />
   <img width="1624" height="1056" alt="Library search" src="docs/search.webp" />
   <img width="1624" height="1056" alt="Application settings" src="docs/settings.webp" />
 </details>
+
+<sub><em>Demo media notice: the projects shown in these GIFs are not my work and appear only to demonstrate the interface. They include DAYS BEFORE RODEO, Halfblood (Bloodluxe), SCARING THE HOES, Yandhi, Let God Sort Em Out, and blind2her (relapse). All rights remain with their respective artists and rights holders.</em></sub>
 
 </div>
 
@@ -38,8 +41,16 @@ The project is also inspired by [untitled](https://untitled.stream/), while rema
 - Automatic BPM and musical-key analysis, plus manual re-detection
 - Rich per-track notes with formatting and autosave
 - Mobile voice-memo capture that uploads ideas directly into a project
+- Animated artwork management and previews for Apple Music `1:1` and `3:4` motion artwork and Spotify Canvas `9:16` video
 - Light, Default, Black, and System themes with a configurable accent color
 - Mobile-focused layouts, edge-to-edge Android presentation, and gesture-aware navigation
+
+### Motion Artwork Preview
+
+Upload animated artwork once and inspect it in responsive, platform-inspired previews before delivery. `{ vault.studio }` retains the original source, creates a silent browser-compatible preview with FFmpeg, and checks dimensions, duration, codec, frame rate, bitrate, and audio presence against the selected format. Apple Music portrait previews also simulate the live blurred color continuation behind the player controls as the artwork changes.
+
+> [!NOTE]
+> Animated artwork previews are an informed estimation, not a pixel-perfect reproduction of Apple Music or Spotify. Final rendering can vary by platform, device, operating system, and app version.
 
 ## Core {vault} Features
 

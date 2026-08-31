@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"log/slog"
 	"bungleware/vault/internal/db"
 	sqlc "bungleware/vault/internal/db/sqlc"
 	"bungleware/vault/internal/ids"
 	"bungleware/vault/internal/storage"
+	"log/slog"
 )
 
 type projectService struct {
@@ -37,6 +37,10 @@ type ProjectService interface {
 	UploadCover(ctx context.Context, input UploadCoverInput) (sqlc.Project, error)
 	DeleteCover(ctx context.Context, publicID string, userID int64) (sqlc.Project, error)
 	GetCoverStream(ctx context.Context, publicID string, userID int64, size string) (*CoverStream, error)
+	UploadMotionAsset(ctx context.Context, input UploadMotionAssetInput) (sqlc.ProjectMotionAsset, error)
+	ListMotionAssets(ctx context.Context, publicID string, userID int64) ([]sqlc.ProjectMotionAsset, error)
+	DeleteMotionAsset(ctx context.Context, publicID string, userID int64, kind MotionAssetKind) error
+	GetMotionAssetStream(ctx context.Context, publicID string, userID int64, kind MotionAssetKind) (*MotionAssetStream, error)
 	MigrateCovers(ctx context.Context) error
 }
 

@@ -58,6 +58,7 @@ type Querier interface {
 	DeleteFolderByID(ctx context.Context, id int64) error
 	DeleteNote(ctx context.Context, arg DeleteNoteParams) error
 	DeleteProject(ctx context.Context, arg DeleteProjectParams) error
+	DeleteProjectMotionAsset(ctx context.Context, arg DeleteProjectMotionAssetParams) error
 	DeleteProjectShareToken(ctx context.Context, arg DeleteProjectShareTokenParams) error
 	DeleteProjectShareTokenByProject(ctx context.Context, arg DeleteProjectShareTokenByProjectParams) error
 	DeleteRemoteTrack(ctx context.Context, arg DeleteRemoteTrackParams) error
@@ -109,6 +110,7 @@ type Querier interface {
 	GetProjectByID(ctx context.Context, id int64) (Project, error)
 	GetProjectByPublicID(ctx context.Context, arg GetProjectByPublicIDParams) (GetProjectByPublicIDRow, error)
 	GetProjectByPublicIDNoFilter(ctx context.Context, publicID string) (GetProjectByPublicIDNoFilterRow, error)
+	GetProjectMotionAsset(ctx context.Context, arg GetProjectMotionAssetParams) (ProjectMotionAsset, error)
 	GetProjectShareToken(ctx context.Context, token string) (ProjectShareToken, error)
 	GetProjectShareTokenByID(ctx context.Context, arg GetProjectShareTokenByIDParams) (ProjectShareToken, error)
 	GetProjectShareTokenByProject(ctx context.Context, arg GetProjectShareTokenByProjectParams) (ProjectShareToken, error)
@@ -156,6 +158,7 @@ type Querier interface {
 	ListFoldersByParent(ctx context.Context, arg ListFoldersByParentParams) ([]Folder, error)
 	ListFoldersByUser(ctx context.Context, userID int64) ([]Folder, error)
 	ListPlainTracksByProject(ctx context.Context, arg ListPlainTracksByProjectParams) ([]Track, error)
+	ListProjectMotionAssets(ctx context.Context, projectID int64) ([]ProjectMotionAsset, error)
 	ListProjectShareTokensByProject(ctx context.Context, projectID int64) ([]ProjectShareToken, error)
 	ListProjectShareTokensByUser(ctx context.Context, userID int64) ([]ProjectShareToken, error)
 	ListProjectShareTokensWithProjectInfo(ctx context.Context, userID int64) ([]ListProjectShareTokensWithProjectInfoRow, error)
@@ -250,6 +253,7 @@ type Querier interface {
 	UpdateWaveformComment(ctx context.Context, arg UpdateWaveformCommentParams) (WaveformComment, error)
 	UpdateWebSocketHeartbeat(ctx context.Context, sessionID string) error
 	UpsertInstanceSettings(ctx context.Context, name string) (InstanceSetting, error)
+	UpsertProjectMotionAsset(ctx context.Context, arg UpsertProjectMotionAssetParams) (ProjectMotionAsset, error)
 	UpsertProjectNote(ctx context.Context, arg UpsertProjectNoteParams) (Note, error)
 	UpsertSharedProjectOrganization(ctx context.Context, arg UpsertSharedProjectOrganizationParams) (UserSharedProjectOrganization, error)
 	UpsertSharedTrackOrganization(ctx context.Context, arg UpsertSharedTrackOrganizationParams) (UserSharedTrackOrganization, error)
