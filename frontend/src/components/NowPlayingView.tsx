@@ -1,6 +1,10 @@
+import { Fullscreen } from "@boengli/capacitor-fullscreen";
+import { Capacitor } from "@capacitor/core";
+import { EdgeToEdge } from "@capawesome/capacitor-android-edge-to-edge-support";
 import {
 	ChevronDown,
 	ListMusic,
+	Menu,
 	Pause,
 	Play,
 	Repeat,
@@ -11,7 +15,13 @@ import {
 	X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import {
+	type KeyboardEvent as ReactKeyboardEvent,
+	type PointerEvent as ReactPointerEvent,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
 import { createPortal } from "react-dom";
 import MotionArtworkStage, {
 	MotionArtworkFlowBackground,
@@ -19,11 +29,22 @@ import MotionArtworkStage, {
 } from "@/components/motion/MotionArtworkStage";
 import QueuePanel from "@/components/QueuePanel";
 import { Button } from "@/components/ui/button";
-import { ToggleGroup } from "@/components/ui/toggle-group";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { useProjectMotionAssets } from "@/hooks/useProjectMotionAssets";
 import { formatTrackDuration } from "@/lib/duration";
-import type { MotionAssetKind } from "@/lib/motionArtwork";
+import {
+	isNowPlayingArtworkMode,
+	NOW_PLAYING_ARTWORK_MODE_KEY,
+	type NowPlayingArtworkMode,
+	resolveNowPlayingArtworkMode,
+} from "@/lib/motionArtwork";
 import { cn } from "@/lib/utils";
 
 interface NowPlayingViewProps {
@@ -31,6 +52,109 @@ interface NowPlayingViewProps {
 	projectName: string;
 	coverUrl?: string | null;
 	variant: "mobile" | "desktop";
+}
+
+const WAVEFORM_HEIGHT = 120;
+const WAVEFORM_BAR_WIDTH = 0.8;
+const WAVEFORM_BAR_GAP = 2;
+const WAVEFORM_X_OFFSET = 0.1;
+
+interface PlaybackWaveformProps {
+	bars: number[];
+	duration: number;
+	progress: number;
+	onSeek: (time: number) => void;
+}
+
+function PlaybackWaveform({
+	bars,
+	duration,
+	progress,
+	onSeek,
+}: PlaybackWaveformProps) {
+	const viewBoxWidth =
+		Math.max(bars.length - 1, 0) * WAVEFORM_BAR_GAP +
+		WAVEFORM_BAR_WIDTH +
+		WAVEFORM_X_OFFSET * 2;
+	const progressPercent = duration > 0 ? (progress / duration) * 100 : 0;
+	const progressPosition = (progressPercent / 100) * viewBoxWidth;
+
+	const seekAt = (clientX: number, element: HTMLDivElement) => {
+		if (duration <= 0) return;
+		const rect = element.getBoundingClientRect();
+		const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+		onSeek(ratio * duration);
+	};
+
+	const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+		event.currentTarget.setPointerCapture(event.pointerId);
+		seekAt(event.clientX, event.currentTarget);
+	};
+
+	const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+		if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+		seekAt(event.clientX, event.currentTarget);
+	};
+
+	const handleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+		if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+		event.preventDefault();
+		onSeek(
+			Math.max(
+				0,
+				Math.min(duration, progress + (event.key === "ArrowLeft" ? -5 : 5)),
+			),
+		);
+	};
+
+	return (
+		<div
+			className="relative h-[50px] w-full touch-none cursor-pointer select-none"
+			onPointerDown={handlePointerDown}
+			onPointerMove={handlePointerMove}
+			onKeyDown={handleKeyDown}
+			role="slider"
+			tabIndex={0}
+			aria-label="Playback position"
+			aria-valuemin={0}
+			aria-valuemax={Math.floor(duration)}
+			aria-valuenow={Math.floor(progress)}
+		>
+			<svg
+				width="100%"
+				height="100%"
+				viewBox={`0 0 ${viewBoxWidth} ${WAVEFORM_HEIGHT}`}
+				preserveAspectRatio="none"
+				aria-hidden="true"
+			>
+				{bars.map((height, index) => {
+					const normalizedHeight = Math.max(0, Math.min(100, Number(height)));
+					const scaledHeight = Math.max(
+						12,
+						(normalizedHeight / 100) * WAVEFORM_HEIGHT,
+					);
+					const x = WAVEFORM_X_OFFSET + index * WAVEFORM_BAR_GAP;
+					return (
+						<rect
+							key={x}
+							x={x}
+							y={(WAVEFORM_HEIGHT - scaledHeight) / 2}
+							width={WAVEFORM_BAR_WIDTH}
+							height={scaledHeight}
+							rx={2}
+							fill={
+								progressPosition >= x ? "#ffffff" : "rgba(255,255,255,0.25)"
+							}
+						/>
+					);
+				})}
+			</svg>
+			<div
+				className="pointer-events-none absolute inset-y-0 w-0.5 -translate-x-1/2 rounded-full bg-[var(--accent-color)] shadow-[0_0_8px_var(--accent-color)]"
+				style={{ left: `${progressPercent}%` }}
+			/>
+		</div>
+	);
 }
 
 export default function NowPlayingView({
@@ -61,28 +185,37 @@ export default function NowPlayingView({
 		clearQueue,
 	} = useAudioPlayer();
 	const { data: motionAssets = [] } = useProjectMotionAssets(projectId);
-	const [selectedTallKind, setSelectedTallKind] =
-		useState<MotionAssetKind>("spotify_canvas");
+	const [preferredArtworkMode, setPreferredArtworkMode] =
+		useState<NowPlayingArtworkMode>(() => {
+			if (typeof window === "undefined") return "spotify_canvas";
+			const saved = window.localStorage.getItem(NOW_PLAYING_ARTWORK_MODE_KEY);
+			return isNowPlayingArtworkMode(saved) ? saved : "spotify_canvas";
+		});
 	const [isQueueOpen, setIsQueueOpen] = useState(variant === "desktop");
-	const tallAssets = useMemo(
-		() =>
-			motionAssets.filter(
-				(asset) =>
-					asset.kind === "spotify_canvas" || asset.kind === "apple_portrait",
-			),
-		[motionAssets],
-	);
 	const squareAsset = motionAssets.find(
 		(asset) => asset.kind === "apple_square",
 	);
 
 	useEffect(() => {
-		if (tallAssets.some((asset) => asset.kind === selectedTallKind)) return;
-		setSelectedTallKind(tallAssets[0]?.kind ?? "spotify_canvas");
-	}, [selectedTallKind, tallAssets]);
+		setIsQueueOpen(variant === "desktop");
+	}, [variant]);
 
 	useEffect(() => {
-		setIsQueueOpen(variant === "desktop");
+		if (variant !== "mobile" || !Capacitor.isNativePlatform()) return;
+
+		void EdgeToEdge.disable()
+			.then(() => Fullscreen.activateImmersiveMode())
+			.catch((error) => {
+				console.error("Failed to enter immersive mode:", error);
+			});
+
+		return () => {
+			void Fullscreen.deactivateImmersiveMode()
+				.then(() => EdgeToEdge.enable())
+				.catch((error) => {
+					console.error("Failed to leave immersive mode:", error);
+				});
+		};
 	}, [variant]);
 
 	useEffect(() => {
@@ -106,23 +239,44 @@ export default function NowPlayingView({
 		return () => window.removeEventListener("keydown", handleKeyDown);
 	}, [closeNowPlaying, isQueueOpen]);
 
+	const waveformBars = useMemo(() => {
+		if (currentTrack?.waveform) {
+			try {
+				const parsed = JSON.parse(currentTrack.waveform);
+				if (Array.isArray(parsed) && parsed.length > 0) {
+					return parsed.map(Number).filter(Number.isFinite);
+				}
+			} catch {
+				// Fall back to a stable placeholder while analysis is unavailable.
+			}
+		}
+		return Array.from({ length: 200 }, (_, index) => {
+			const value = Math.sin(index * 127.1 + 311.7) * 43758.5453;
+			return (value - Math.floor(value)) * 60 + 20;
+		});
+	}, [currentTrack?.waveform]);
+
 	if (!currentTrack) return null;
 
-	const tallAsset =
-		tallAssets.find((asset) => asset.kind === selectedTallKind) ??
-		tallAssets[0];
-	const activeMobileAsset = tallAsset ?? squareAsset;
-	const mobilePresentation: MotionArtworkPresentation = tallAsset
-		? tallAsset.kind === "apple_portrait"
-			? "apple-portrait"
-			: "fill"
-		: "square";
+	const resolvedArtworkMode = resolveNowPlayingArtworkMode(
+		preferredArtworkMode,
+		motionAssets.map((asset) => asset.kind),
+	);
+	const activeMobileAsset = motionAssets.find(
+		(asset) => asset.kind === resolvedArtworkMode,
+	);
+	const isTallArtwork =
+		resolvedArtworkMode === "apple_portrait" ||
+		resolvedArtworkMode === "spotify_canvas";
+	const mobilePresentation: MotionArtworkPresentation =
+		resolvedArtworkMode === "apple_portrait" ? "apple-portrait" : "fill";
 	const progress = duration > 0 ? Math.min(previewProgress, duration) : 0;
 	const artist = currentTrack.artist || currentTrack.projectName || projectName;
-	const toggleOptions = tallAssets.map((asset) => ({
-		label: asset.kind === "spotify_canvas" ? "Canvas" : "Apple",
-		value: asset.kind,
-	}));
+	const selectArtworkMode = (mode: string) => {
+		if (!isNowPlayingArtworkMode(mode)) return;
+		setPreferredArtworkMode(mode);
+		window.localStorage.setItem(NOW_PLAYING_ARTWORK_MODE_KEY, mode);
+	};
 
 	if (variant === "desktop") {
 		return createPortal(
@@ -165,9 +319,9 @@ export default function NowPlayingView({
 							initial={false}
 							animate={{ x: isQueueOpen ? "-22vw" : "0vw" }}
 							transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-							className="flex w-full max-w-[36rem] flex-col items-center will-change-transform"
+							className="flex w-[min(36rem,44vw)] flex-col items-center will-change-transform"
 						>
-							<div className="relative size-[min(54dvh,32vw,36rem)] shrink-0 overflow-hidden rounded-lg shadow-2xl">
+							<div className="relative size-[min(54dvh,32vw,36rem)] max-w-full shrink-0 overflow-hidden rounded-lg shadow-2xl">
 								<MotionArtworkStage
 									presentation="fill"
 									assetUrl={squareAsset?.preview_url}
@@ -200,15 +354,11 @@ export default function NowPlayingView({
 							</div>
 
 							<div className="mt-6 w-full">
-								<input
-									type="range"
-									min={0}
-									max={Math.max(duration, 0)}
-									step={0.1}
-									value={progress}
-									onChange={(event) => seekTo(Number(event.target.value))}
-									className="h-1.5 w-full cursor-pointer accent-white"
-									aria-label="Playback position"
+								<PlaybackWaveform
+									bars={waveformBars}
+									duration={duration}
+									progress={progress}
+									onSeek={seekTo}
 								/>
 								<div className="mt-1.5 flex justify-between font-mono text-xs text-white/55">
 									<span>{formatTrackDuration(progress) ?? "0:00"}</span>
@@ -286,7 +436,7 @@ export default function NowPlayingView({
 							</div>
 						</motion.div>
 
-						<div className="pointer-events-none absolute inset-y-0 right-0 flex w-[min(38rem,42vw)] items-center">
+						<div className="pointer-events-none absolute inset-y-0 right-0 flex w-[min(38rem,40vw)] items-center">
 							<AnimatePresence initial={false}>
 								{isQueueOpen && (
 									<motion.aside
@@ -387,24 +537,33 @@ export default function NowPlayingView({
 		);
 	}
 
-	return (
+	return createPortal(
 		<>
 			<motion.section
 				initial={{ opacity: 0, y: 28, scale: 0.975 }}
 				animate={{ opacity: 1, y: 0, scale: 1 }}
 				exit={{ opacity: 0, y: 24, scale: 0.98 }}
 				transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-				className="fixed inset-0 z-[130] h-[100dvh] w-screen isolate overflow-hidden bg-black text-white shadow-2xl will-change-transform"
+				className="fixed inset-0 z-[9999] isolate h-[100dvh] w-screen overflow-hidden bg-black text-white shadow-2xl will-change-transform"
+				role="dialog"
+				aria-modal="true"
 				aria-label={`Now playing ${currentTrack.title}`}
 			>
-				<MotionArtworkStage
-					presentation={mobilePresentation}
-					assetUrl={activeMobileAsset?.preview_url}
-					coverUrl={coverUrl ?? currentTrack.coverUrl}
-				/>
+				{isTallArtwork ? (
+					<MotionArtworkStage
+						presentation={mobilePresentation}
+						assetUrl={activeMobileAsset?.preview_url}
+						coverUrl={coverUrl ?? currentTrack.coverUrl}
+					/>
+				) : (
+					<MotionArtworkFlowBackground
+						assetUrl={activeMobileAsset?.preview_url}
+						coverUrl={coverUrl ?? currentTrack.coverUrl}
+					/>
+				)}
 				<div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.24)_0%,transparent_28%,rgba(0,0,0,0.08)_50%,rgba(0,0,0,0.76)_70%,rgba(0,0,0,0.97)_100%)]" />
 
-				<div className="absolute inset-0 flex flex-col justify-between px-7 pb-[max(env(safe-area-inset-bottom),2rem)] pt-[max(env(safe-area-inset-top),1.25rem)]">
+				<div className="absolute inset-0 grid grid-rows-[auto_minmax(0,1fr)_auto] px-7 pb-[max(env(safe-area-inset-bottom),2rem)] pt-[max(env(safe-area-inset-top),2rem)]">
 					<div className="flex items-center justify-between gap-3">
 						<Button
 							type="button"
@@ -416,16 +575,53 @@ export default function NowPlayingView({
 						>
 							<ChevronDown className="size-7" />
 						</Button>
-						{toggleOptions.length > 1 && (
-							<ToggleGroup
-								options={toggleOptions}
-								value={selectedTallKind}
-								onValueChange={(value) =>
-									setSelectedTallKind(value as MotionAssetKind)
-								}
-								size="sm"
-								className="w-40 border-white/15 bg-black/40 text-white backdrop-blur-md [&_button]:text-white/65"
-							/>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button
+									type="button"
+									variant="ghost"
+									size="icon-lg"
+									className="size-12 rounded-full bg-black/30 text-white backdrop-blur-md hover:bg-black/50"
+									aria-label="Choose artwork"
+								>
+									<Menu className="size-6" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								align="end"
+								sideOffset={8}
+								className="z-[10002] w-64 border-white/15 bg-black/90 text-white backdrop-blur-xl"
+							>
+								<DropdownMenuRadioGroup
+									value={preferredArtworkMode}
+									onValueChange={selectArtworkMode}
+								>
+									<DropdownMenuRadioItem value="apple_portrait">
+										Apple Motion Artwork 3x4
+									</DropdownMenuRadioItem>
+									<DropdownMenuRadioItem value="spotify_canvas">
+										Spotify Canvas
+									</DropdownMenuRadioItem>
+									<DropdownMenuRadioItem value="apple_square">
+										Apple Motion Artwork 1x1
+									</DropdownMenuRadioItem>
+									<DropdownMenuRadioItem value="still_cover">
+										Still Cover
+									</DropdownMenuRadioItem>
+								</DropdownMenuRadioGroup>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</div>
+
+					<div className="flex min-h-0 items-center justify-center py-4">
+						{!isTallArtwork && (
+							<div className="relative aspect-square w-[min(86vw,48dvh)] max-w-full shrink-0 overflow-hidden rounded-[6%] shadow-2xl">
+								<MotionArtworkStage
+									presentation="fill"
+									assetUrl={activeMobileAsset?.preview_url}
+									coverUrl={coverUrl ?? currentTrack.coverUrl}
+								/>
+							</div>
 						)}
 					</div>
 
@@ -442,15 +638,11 @@ export default function NowPlayingView({
 						</div>
 
 						<div>
-							<input
-								type="range"
-								min={0}
-								max={Math.max(duration, 0)}
-								step={0.1}
-								value={progress}
-								onChange={(event) => seekTo(Number(event.target.value))}
-								className="h-1.5 w-full cursor-pointer accent-white"
-								aria-label="Playback position"
+							<PlaybackWaveform
+								bars={waveformBars}
+								duration={duration}
+								progress={progress}
+								onSeek={seekTo}
 							/>
 							<div className="mt-1.5 flex justify-between font-mono text-[11px] text-white/55">
 								<span>{formatTrackDuration(progress) ?? "0:00"}</span>
@@ -547,6 +739,7 @@ export default function NowPlayingView({
 				onClose={() => setIsQueueOpen(false)}
 				layer="expanded"
 			/>
-		</>
+		</>,
+		document.body,
 	);
 }

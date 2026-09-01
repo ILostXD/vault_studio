@@ -299,7 +299,7 @@ export default function ProjectCard({
     const projectTracks = tracks.map((t) => ({
       id: t.public_id,
       title: String(t.title),
-      artist: t.artist,
+      artist: t.artist || authorDisplay,
       projectName: String(project.name),
       coverUrl: coverImage,
       projectId: project.public_id,
@@ -345,7 +345,7 @@ export default function ProjectCard({
       const projectTracks = reorderedTracks.map((t) => ({
         id: t.public_id,
         title: String(t.title),
-        artist: t.artist,
+        artist: t.artist || authorDisplay,
         projectName: String(project.name),
         coverUrl: coverImage,
         projectId: project.public_id,
@@ -357,7 +357,7 @@ export default function ProjectCard({
       const queueTracks = tracksAfterPlaying.map((t) => ({
         id: t.public_id,
         title: String(t.title),
-        artist: t.artist,
+        artist: t.artist || authorDisplay,
         projectName: String(project.name),
         coverUrl: coverImage,
         projectId: project.public_id,
@@ -370,7 +370,7 @@ export default function ProjectCard({
         {
           id: trackToPlay.public_id,
           title: String(trackToPlay.title),
-          artist: trackToPlay.artist,
+          artist: trackToPlay.artist || authorDisplay,
           projectName: String(project.name),
           coverUrl: coverImage,
           projectId: project.public_id,

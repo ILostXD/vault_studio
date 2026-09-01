@@ -847,10 +847,9 @@ export function AudioPlayerProvider({
       if (!currentTrack) return;
 
       const artist =
-        (typeof currentTrack.artist === "string" &&
-        currentTrack.artist.trim().length > 0
-          ? currentTrack.artist
-          : "Unknown Artist");
+        (typeof currentTrack.artist === "string" && currentTrack.artist.trim()) ||
+        currentTrack.projectName?.trim() ||
+        "{ vault.studio }";
       const artworkUrl = resolveApiMediaUrl(currentTrack.projectCoverUrl);
 
       void NativeMediaSession.setMetadata({
@@ -881,10 +880,9 @@ export function AudioPlayerProvider({
     const metadata = {
       title: currentTrack.title || "Unknown Track",
       artist:
-        (typeof currentTrack.artist === "string" &&
-        currentTrack.artist.trim().length > 0
-          ? currentTrack.artist
-          : "Unknown Artist"),
+        (typeof currentTrack.artist === "string" && currentTrack.artist.trim()) ||
+        currentTrack.projectName?.trim() ||
+        "{ vault.studio }",
       album: currentTrack.projectName ?? "{ vault.studio }",
       ...(artwork && { artwork }),
     };

@@ -5,6 +5,7 @@
     "": {
       "name": "vault",
       "dependencies": {
+        "@boengli/capacitor-fullscreen": "0.0.20",
         "@capacitor/android": "^8.4.1",
         "@capacitor/app": "^8.1.0",
         "@capacitor/core": "^8.4.1",
@@ -296,6 +297,8 @@
     "@biomejs/cli-win32-arm64": ["@biomejs/cli-win32-arm64@2.2.4", "", { "os": "win32", "cpu": "arm64" }, "sha512-NXnfTeKHDFUWfxAefa57DiGmu9VyKi0cDqFpdI+1hJWQjGJhJutHPX0b5m+eXvTKOaf+brU+P0JrQAZMb5yYaQ=="],
 
     "@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.2.4", "", { "os": "win32", "cpu": "x64" }, "sha512-3Y4V4zVRarVh/B/eSHczR4LYoSVyv3Dfuvm3cWs5w/HScccS0+Wt/lHOcDTRYeHjQmMYVC3rIRWqyN2EI52+zg=="],
+
+    "@boengli/capacitor-fullscreen": ["@boengli/capacitor-fullscreen@0.0.20", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-W++o0bg7cpi5zzcGvTpGqlAEpnnEyJhO9OK5g/plObtbv907OuJpAY0xUrjjO7uY2ZtzE8e4UPiYmyDmbsDABQ=="],
 
     "@capacitor/android": ["@capacitor/android@8.4.1", "", { "peerDependencies": { "@capacitor/core": "^8.4.0" } }, "sha512-igtDCJ7QQn0P2qHFD9p4KXaa6V1b2PRNt+MxjVwtjTm/BJvqmiazOJq6rPjwFSZnfHm6iFoZk8TfzHd44pyBGw=="],
 

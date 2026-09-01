@@ -7,6 +7,9 @@
     "androidScheme": "http"
   },
   "plugins": {
+    "Fullscreen": {
+      "activateOnLoad": false
+    },
     "SystemBars": {
       "insetsHandling": "disable"
     },

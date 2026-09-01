@@ -171,7 +171,7 @@ export default function QueuePanel({
             transition={{ duration: 0.1 }}
             className={cn(
               "fixed inset-0 overlay-backdrop",
-              layer === "expanded" ? "z-[139]" : "z-119",
+              layer === "expanded" ? "z-[10000]" : "z-119",
             )}
             onClick={onClose}
           />
@@ -188,7 +188,7 @@ export default function QueuePanel({
             className={cn(
               "fixed left-1/2 -translate-x-1/2 w-[calc(100%-1rem)] sm:w-[calc(100%-3rem)] max-w-[800px]",
               layer === "expanded"
-                ? "bottom-[max(env(safe-area-inset-bottom),1rem)] z-[140]"
+                ? "bottom-[max(env(safe-area-inset-bottom),1rem)] z-[10001]"
                 : "bottom-[145px] z-120",
             )}
             onClick={(e) => e.stopPropagation()}

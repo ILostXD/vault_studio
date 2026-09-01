@@ -70,6 +70,8 @@ function ProjectLayout() {
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const projectArtist =
+    project?.author_override || project?.owner_username || user?.username;
   const isCurrentProjectNowPlaying = Boolean(
     isNowPlayingOpen && currentTrack?.projectId === project?.public_id,
   );
@@ -132,7 +134,7 @@ function ProjectLayout() {
     const projectTracks = tracks.map((t) => ({
       id: t.public_id,
       title: String(t.title),
-      artist: t.artist,
+      artist: t.artist || projectArtist,
       projectName: String(project.name),
       coverUrl: projectCoverImage,
       projectId: project.public_id,

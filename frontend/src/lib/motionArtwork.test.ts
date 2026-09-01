@@ -3,6 +3,7 @@ import {
 	getMotionArtworkChecks,
 	isMotionArtworkCompliant,
 	type ProjectMotionAsset,
+	resolveNowPlayingArtworkMode,
 } from "./motionArtwork";
 
 const appleSquare: ProjectMotionAsset = {
@@ -32,5 +33,16 @@ describe("motion artwork compliance", () => {
 			duration_seconds: 9,
 		});
 		expect(checks.map((check) => check.passed)).toEqual([false, false, true]);
+	});
+});
+
+describe("Now Playing artwork fallback", () => {
+	it("uses the preferred format before falling through missing assets", () => {
+		expect(
+			resolveNowPlayingArtworkMode("apple_portrait", ["apple_square"]),
+		).toBe("apple_square");
+		expect(resolveNowPlayingArtworkMode("spotify_canvas", [])).toBe(
+			"still_cover",
+		);
 	});
 });

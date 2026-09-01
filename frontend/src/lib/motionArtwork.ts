@@ -3,6 +3,52 @@ export type MotionAssetKind =
 	| "apple_portrait"
 	| "spotify_canvas";
 
+export type NowPlayingArtworkMode = MotionAssetKind | "still_cover";
+
+export const NOW_PLAYING_ARTWORK_MODE_KEY = "vault.nowPlayingArtworkMode";
+
+const ARTWORK_MODE_FALLBACKS: Record<
+	NowPlayingArtworkMode,
+	NowPlayingArtworkMode[]
+> = {
+	apple_portrait: [
+		"apple_portrait",
+		"spotify_canvas",
+		"apple_square",
+		"still_cover",
+	],
+	spotify_canvas: [
+		"spotify_canvas",
+		"apple_portrait",
+		"apple_square",
+		"still_cover",
+	],
+	apple_square: [
+		"apple_square",
+		"apple_portrait",
+		"spotify_canvas",
+		"still_cover",
+	],
+	still_cover: ["still_cover"],
+};
+
+export function isNowPlayingArtworkMode(
+	value: string | null,
+): value is NowPlayingArtworkMode {
+	return value !== null && value in ARTWORK_MODE_FALLBACKS;
+}
+
+export function resolveNowPlayingArtworkMode(
+	preferred: NowPlayingArtworkMode,
+	availableKinds: MotionAssetKind[],
+): NowPlayingArtworkMode {
+	return (
+		ARTWORK_MODE_FALLBACKS[preferred].find(
+			(mode) => mode === "still_cover" || availableKinds.includes(mode),
+		) ?? "still_cover"
+	);
+}
+
 export interface ProjectMotionAsset {
 	kind: MotionAssetKind;
 	width: number;
