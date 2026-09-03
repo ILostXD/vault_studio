@@ -79,6 +79,10 @@ vi.mock("@/hooks/useProjectMotionAssets", () => ({
 	useProjectMotionAssets: () => ({ data: [] }),
 }));
 
+vi.mock("@tanstack/react-router", () => ({
+	useNavigate: () => vi.fn(),
+}));
+
 vi.mock("motion/react", async (importOriginal) => {
 	const actual = await importOriginal<typeof import("motion/react")>();
 	return {
@@ -352,6 +356,41 @@ describe("NowPlayingView Fullscreen QoL", () => {
 			fireEvent.click(notesBtn);
 			expect(screen.getByTestId("notes-panel")).toBeDefined();
 			expect(screen.getByText("Notes for Cosmic Odyssey")).toBeDefined();
+		});
+
+		it("11. positions comments and notes on the left and queue on the right in desktop mode", () => {
+			render(
+				<NowPlayingView
+					projectId="proj_abc"
+					projectName="Astro Album"
+					variant="desktop"
+				/>,
+			);
+
+			const leftContainer = document.querySelector(".absolute.left-0");
+			expect(leftContainer).toBeTruthy();
+			expect(leftContainer?.querySelector('button[aria-label="Comments"]')).toBeTruthy();
+			expect(leftContainer?.querySelector('button[aria-label="Show notes"]')).toBeTruthy();
+
+			const rightContainer = document.querySelector(".absolute.right-0");
+			expect(rightContainer).toBeTruthy();
+			expect(rightContainer?.querySelector('button[aria-label="Hide queue"]')).toBeTruthy();
+		});
+
+		it("12. desktop queue provides reorder handles and track action options", () => {
+			render(
+				<NowPlayingView
+					projectId="proj_abc"
+					projectName="Astro Album"
+					variant="desktop"
+				/>,
+			);
+
+			const reorderHandles = document.querySelectorAll('[aria-label^="Reorder"]');
+			expect(reorderHandles.length).toBe(sampleQueue.length);
+
+			const optionButtons = document.querySelectorAll('[aria-label^="Options for"]');
+			expect(optionButtons.length).toBe(sampleQueue.length);
 		});
 	});
 });

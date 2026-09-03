@@ -4,9 +4,12 @@ import { EdgeToEdge } from "@capawesome/capacitor-android-edge-to-edge-support";
 import {
 	ChevronDown,
 	FileText,
+	FolderOpen,
+	GripVertical,
 	ListMusic,
 	Menu,
 	MessageSquare,
+	MoreHorizontal,
 	Pause,
 	Play,
 	Repeat,
@@ -14,6 +17,7 @@ import {
 	Shuffle,
 	SkipBack,
 	SkipForward,
+	Trash2,
 	X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -25,6 +29,13 @@ import {
 	useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "@tanstack/react-router";
+import {
+	DragDropContext,
+	Droppable,
+	Draggable,
+	type DropResult,
+} from "@hello-pangea/dnd";
 import MotionArtworkStage, {
 	MotionArtworkFlowBackground,
 	type MotionArtworkPresentation,
@@ -36,6 +47,7 @@ import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuItem,
 	DropdownMenuRadioGroup,
 	DropdownMenuRadioItem,
 	DropdownMenuTrigger,
@@ -194,8 +206,10 @@ export default function NowPlayingView({
 		currentProjectTracks,
 		play,
 		removeFromQueue,
+		reorderQueue,
 		clearQueue,
 	} = useAudioPlayer();
+	const navigate = useNavigate();
 	const { preferences } = usePreferences();
 	const { data: motionAssets = [] } = useProjectMotionAssets(projectId);
 	const [preferredArtworkMode, setPreferredArtworkMode] =
@@ -212,6 +226,12 @@ export default function NowPlayingView({
 	const squareAsset = motionAssets.find(
 		(asset) => asset.kind === "apple_square",
 	);
+
+	const handleQueueDragEnd = (result: DropResult) => {
+		if (!result.destination) return;
+		if (result.destination.index === result.source.index) return;
+		reorderQueue(result.source.index, result.destination.index);
+	};
 
 	useEffect(() => {
 		setIsQueueOpen(
@@ -350,7 +370,8 @@ export default function NowPlayingView({
 
 	if (variant === "desktop") {
 		return createPortal(
-			<motion.section
+			<>
+				<motion.section
 				initial={{ opacity: 0, scale: 1.015 }}
 				animate={{ opacity: 1, scale: 1 }}
 				exit={{ opacity: 0, scale: 1.01 }}
@@ -387,7 +408,7 @@ export default function NowPlayingView({
 					<div className="relative flex w-full max-w-[92rem] items-center justify-center">
 						<motion.div
 							initial={false}
-							animate={{ x: isQueueOpen || isNotesOpen ? "-22vw" : "0vw" }}
+							animate={{ x: isQueueOpen ? "-22vw" : "0vw" }}
 							transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
 							className="flex w-[min(36rem,44vw)] flex-col items-center will-change-transform"
 						>
@@ -400,13 +421,7 @@ export default function NowPlayingView({
 							</div>
 
 							<div className="relative mt-7 w-full px-28 text-center">
-								<h2 className="truncate text-xl font-semibold">
-									{currentTrack.title}
-								</h2>
-								<p className="mt-1 truncate text-base text-white/60">
-									{artist}
-								</p>
-								<div className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
+								<div className="absolute left-0 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
 									{isCommentsEnabled && activeVersionId && (
 										<Button
 											type="button"
@@ -439,13 +454,23 @@ export default function NowPlayingView({
 									>
 										<FileText className="size-5" />
 									</Button>
+								</div>
+
+								<h2 className="truncate text-xl font-semibold">
+									{currentTrack.title}
+								</h2>
+								<p className="mt-1 truncate text-base text-white/60">
+									{artist}
+								</p>
+
+								<div className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
 									<Button
 										type="button"
 										variant="ghost"
 										size="icon-lg"
 										className={cn(
 											"size-10 rounded-full bg-black/20 text-white/75 backdrop-blur-md hover:bg-black/40 hover:text-white",
-											isQueueOpen && !isNotesOpen && "bg-white/15 text-white",
+											isQueueOpen && "bg-white/15 text-white",
 										)}
 										onClick={toggleQueue}
 										aria-label={isQueueOpen ? "Hide queue" : "Show queue"}
@@ -554,31 +579,12 @@ export default function NowPlayingView({
 
 						<div className="pointer-events-none absolute inset-y-0 right-0 flex w-[min(38rem,40vw)] items-center">
 							<AnimatePresence initial={false}>
-								{isNotesOpen && (
-									<motion.aside
-										key="fullscreen-notes-panel"
-										initial={{ opacity: 0, x: 32, filter: "blur(8px)" }}
-										animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-										exit={{ opacity: 0, x: 24, filter: "blur(6px)" }}
-										transition={{
-											duration: 0.35,
-											ease: [0.22, 1, 0.36, 1],
-										}}
-										className="pointer-events-auto flex max-h-[72dvh] w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl p-6 shadow-2xl"
-									>
-										<NotesPanel
-											mode="track"
-											selectedTrack={activeTrack}
-											onClose={() => setIsNotesOpen(false)}
-										/>
-									</motion.aside>
-								)}
-								{!isNotesOpen && isQueueOpen && (
+								{isQueueOpen && (
 									<motion.aside
 										key="fullscreen-queue-panel"
-										initial={{ opacity: 0, x: 32, filter: "blur(8px)" }}
-										animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-										exit={{ opacity: 0, x: 24, filter: "blur(6px)" }}
+										initial={{ opacity: 0, x: 32 }}
+										animate={{ opacity: 1, x: 0 }}
+										exit={{ opacity: 0, x: 24 }}
 										transition={{
 											duration: 0.35,
 											ease: [0.22, 1, 0.36, 1],
@@ -608,58 +614,170 @@ export default function NowPlayingView({
 													The queue is empty.
 												</div>
 											) : (
-												queue.map((track, index) => (
-													<div
-														key={`${track.id}-${index}`}
-														className="group flex items-center gap-3 border-t border-white/10 py-3"
+												<DragDropContext onDragEnd={handleQueueDragEnd}>
+													<Droppable
+														droppableId="fullscreen-desktop-queue"
+														renderClone={(provided, _snapshot, rubric) => {
+															const track = queue[rubric.source.index];
+															return createPortal(
+																<div
+																	ref={provided.innerRef}
+																	{...provided.draggableProps}
+																	{...provided.dragHandleProps}
+																	className="flex items-center gap-2 rounded-xl border border-white/20 bg-neutral-900/95 px-3 py-3 text-white shadow-2xl backdrop-blur-xl"
+																	style={{
+																		...provided.draggableProps.style,
+																		zIndex: 100005,
+																		width: "min(36rem, 36vw)",
+																		boxSizing: "border-box",
+																	}}
+																>
+																	<div className="text-white/70 p-1">
+																		<GripVertical className="size-4" />
+																	</div>
+																	<div className="size-12 shrink-0 overflow-hidden rounded-md bg-black/25">
+																		{(track.coverUrl || track.projectCoverUrl) && (
+																			<img
+																				src={
+																					track.coverUrl || track.projectCoverUrl
+																				}
+																				alt=""
+																				className="size-full object-cover"
+																			/>
+																		)}
+																	</div>
+																	<div className="min-w-0 flex-1">
+																		<p className="truncate font-medium">
+																			{track.title}
+																		</p>
+																		<p className="truncate text-sm text-white/50">
+																			{track.artist ||
+																				track.projectName ||
+																				"Unknown artist"}
+																		</p>
+																	</div>
+																</div>,
+																document.body,
+															);
+														}}
 													>
-														<button
-															type="button"
-															className="flex min-w-0 flex-1 items-center gap-4 text-left"
-															onClick={() =>
-																play(
-																	track,
-																	currentProjectTracks,
-																	true,
-																	false,
-																	queue.slice(index + 1),
-																)
-															}
-														>
-															<div className="size-12 shrink-0 overflow-hidden rounded-md bg-black/25">
-																{(track.coverUrl || track.projectCoverUrl) && (
-																	<img
-																		src={
-																			track.coverUrl || track.projectCoverUrl
-																		}
-																		alt=""
-																		className="size-full object-cover"
-																	/>
-																)}
+														{(provided) => (
+															<div
+																ref={provided.innerRef}
+																{...provided.droppableProps}
+																className="space-y-1"
+															>
+																{queue.map((track, index) => (
+																	<Draggable
+																		key={`${track.id}-${index}`}
+																		draggableId={`${track.id}-${index}`}
+																		index={index}
+																	>
+																		{(dragProvided, dragSnapshot) => (
+																			<div
+																				ref={dragProvided.innerRef}
+																				{...dragProvided.draggableProps}
+																				className={cn(
+																					"group flex items-center gap-2 border-t border-white/10 py-3 transition-colors",
+																					dragSnapshot.isDragging &&
+																						"bg-white/10 rounded-xl px-2 border-transparent shadow-lg",
+																				)}
+																			>
+																				<div
+																					{...dragProvided.dragHandleProps}
+																					className="cursor-grab active:cursor-grabbing text-white/40 hover:text-white p-1 rounded transition-colors touch-none"
+																					title="Drag to reorder"
+																					aria-label={`Reorder ${track.title}`}
+																				>
+																					<GripVertical className="size-4" />
+																				</div>
+																				<button
+																					type="button"
+																					className="flex min-w-0 flex-1 items-center gap-4 text-left"
+																					onClick={() =>
+																						play(
+																							track,
+																							currentProjectTracks,
+																							true,
+																							false,
+																							queue.slice(index + 1),
+																						)
+																					}
+																				>
+																					<div className="size-12 shrink-0 overflow-hidden rounded-md bg-black/25">
+																						{(track.coverUrl || track.projectCoverUrl) && (
+																							<img
+																								src={
+																									track.coverUrl || track.projectCoverUrl
+																								}
+																								alt=""
+																								className="size-full object-cover"
+																							/>
+																						)}
+																					</div>
+																					<div className="min-w-0">
+																						<p className="truncate font-medium">
+																							{track.title}
+																						</p>
+																						<p className="truncate text-sm text-white/50">
+																							{track.artist ||
+																								track.projectName ||
+																								"Unknown artist"}
+																						</p>
+																					</div>
+																				</button>
+																				<DropdownMenu>
+																					<DropdownMenuTrigger asChild>
+																						<Button
+																							type="button"
+																							variant="ghost"
+																							size="icon-sm"
+																							className="size-8 rounded-full text-white/45 opacity-0 hover:bg-white/10 hover:text-white group-hover:opacity-100 focus-visible:opacity-100"
+																							aria-label={`Options for ${track.title}`}
+																						>
+																							<MoreHorizontal className="size-4" />
+																						</Button>
+																					</DropdownMenuTrigger>
+																					<DropdownMenuContent
+																						align="end"
+																						className="w-48 z-[10005] bg-neutral-900 border-white/10 text-white"
+																					>
+																						{track.projectId && (
+																							<DropdownMenuItem
+																								onClick={() => {
+																									navigate({
+																										to: "/project/$projectId",
+																										params: {
+																											projectId: track.projectId!,
+																										},
+																									});
+																									closeNowPlaying();
+																								}}
+																								className="gap-2 cursor-pointer hover:bg-white/10"
+																							>
+																								<FolderOpen className="size-4" />
+																								<span>Go to project</span>
+																							</DropdownMenuItem>
+																						)}
+																						<DropdownMenuItem
+																							variant="destructive"
+																							onClick={() => removeFromQueue(index)}
+																							className="gap-2 text-red-400 cursor-pointer hover:bg-white/10 hover:text-red-300"
+																						>
+																							<Trash2 className="size-4 text-red-500!" />
+																							<span>Remove from queue</span>
+																						</DropdownMenuItem>
+																					</DropdownMenuContent>
+																				</DropdownMenu>
+																			</div>
+																		)}
+																	</Draggable>
+																))}
+																{provided.placeholder}
 															</div>
-															<div className="min-w-0">
-																<p className="truncate font-medium">
-																	{track.title}
-																</p>
-																<p className="truncate text-sm text-white/50">
-																	{track.artist ||
-																		track.projectName ||
-																		"Unknown artist"}
-																</p>
-															</div>
-														</button>
-														<Button
-															type="button"
-															variant="ghost"
-															size="icon-sm"
-															className="size-8 rounded-full text-white/45 opacity-0 hover:bg-white/10 hover:text-white group-hover:opacity-100 focus-visible:opacity-100"
-															onClick={() => removeFromQueue(index)}
-															aria-label={`Remove ${track.title} from queue`}
-														>
-															<X className="size-4" />
-														</Button>
-													</div>
-												))
+														)}
+													</Droppable>
+												</DragDropContext>
 											)}
 										</div>
 									</motion.aside>
@@ -668,10 +786,34 @@ export default function NowPlayingView({
 						</div>
 					</div>
 				</div>
-			</motion.section>,
-			document.body,
-		);
-	}
+			</motion.section>
+			<AnimatePresence>
+				{isNotesOpen && (
+					<div
+						className="fixed inset-0 z-[10002] flex items-center justify-center bg-black/70 p-4 sm:p-6"
+						onMouseDown={() => setIsNotesOpen(false)}
+					>
+						<motion.div
+							initial={{ opacity: 0, scale: 0.95, y: 10 }}
+							animate={{ opacity: 1, scale: 1, y: 0 }}
+							exit={{ opacity: 0, scale: 0.95, y: 10 }}
+							transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+							className="relative flex max-h-[82dvh] w-full max-w-[800px] flex-col overflow-hidden rounded-3xl border border-(--card-border) bg-background text-(--text-0) shadow-2xl p-6"
+							onMouseDown={(e) => e.stopPropagation()}
+						>
+							<NotesPanel
+								mode="track"
+								selectedTrack={activeTrack}
+								onClose={() => setIsNotesOpen(false)}
+							/>
+						</motion.div>
+					</div>
+				)}
+			</AnimatePresence>
+		</>,
+		document.body,
+	);
+}
 
 	return createPortal(
 		<>
@@ -923,36 +1065,25 @@ export default function NowPlayingView({
 			/>
 			<AnimatePresence>
 				{isNotesOpen && (
-					<>
+					<div
+						className="fixed inset-0 z-[10002] flex items-end sm:items-center justify-center bg-black/70 p-3 sm:p-6"
+						onMouseDown={() => setIsNotesOpen(false)}
+					>
 						<motion.div
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}
-							transition={{ duration: 0.1 }}
-							className="fixed inset-0 overlay-backdrop z-[10000]"
-							onClick={() => setIsNotesOpen(false)}
-						/>
-						<motion.div
-							initial={{ opacity: 0, y: 15, filter: "blur(8px)" }}
-							animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-							exit={{ opacity: 0, y: 15, filter: "blur(4px)" }}
-							transition={{
-								type: "spring",
-								stiffness: 700,
-								damping: 40,
-							}}
-							className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-1rem)] sm:w-[calc(100%-3rem)] max-w-[800px] bottom-[max(env(safe-area-inset-bottom),1rem)] z-[10001]"
-							onClick={(e) => e.stopPropagation()}
+							initial={{ opacity: 0, scale: 0.95, y: 15 }}
+							animate={{ opacity: 1, scale: 1, y: 0 }}
+							exit={{ opacity: 0, scale: 0.95, y: 15 }}
+							transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+							className="relative flex max-h-[82dvh] w-full max-w-[800px] flex-col overflow-hidden rounded-3xl border border-(--card-border) bg-background text-(--text-0) shadow-2xl p-6"
+							onMouseDown={(e) => e.stopPropagation()}
 						>
-							<div className="relative flex max-h-[82dvh] w-full flex-col overflow-hidden rounded-3xl text-(--text-0) shadow-2xl border border-(--card-border) overlay-surface p-6">
-								<NotesPanel
-									mode="track"
-									selectedTrack={activeTrack}
-									onClose={() => setIsNotesOpen(false)}
-								/>
-							</div>
+							<NotesPanel
+								mode="track"
+								selectedTrack={activeTrack}
+								onClose={() => setIsNotesOpen(false)}
+							/>
 						</motion.div>
-					</>
+					</div>
 				)}
 			</AnimatePresence>
 		</>,

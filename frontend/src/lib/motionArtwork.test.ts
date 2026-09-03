@@ -4,6 +4,7 @@ import {
 	isMotionArtworkCompliant,
 	type ProjectMotionAsset,
 	resolveNowPlayingArtworkMode,
+	resolveProjectPageArtworkMode,
 } from "./motionArtwork";
 
 const appleSquare: ProjectMotionAsset = {
@@ -46,3 +47,37 @@ describe("Now Playing artwork fallback", () => {
 		);
 	});
 });
+
+describe("Project Page artwork fallback", () => {
+	it("resolves preferred format without allowing spotify_canvas", () => {
+		expect(
+			resolveProjectPageArtworkMode("apple_portrait", [
+				"apple_portrait",
+				"spotify_canvas",
+			]),
+		).toBe("apple_portrait");
+
+		expect(
+			resolveProjectPageArtworkMode("apple_portrait", [
+				"spotify_canvas",
+				"apple_square",
+			]),
+		).toBe("apple_square");
+
+		expect(
+			resolveProjectPageArtworkMode("apple_portrait", ["spotify_canvas"]),
+		).toBe("still_cover");
+
+		expect(
+			resolveProjectPageArtworkMode("apple_square", ["apple_portrait"]),
+		).toBe("still_cover");
+
+		expect(
+			resolveProjectPageArtworkMode("still_cover", [
+				"apple_portrait",
+				"apple_square",
+			]),
+		).toBe("still_cover");
+	});
+});
+

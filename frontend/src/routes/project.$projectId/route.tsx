@@ -11,6 +11,7 @@ import {
   Download,
   ListPlus,
   Trash2,
+  Film,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,9 +20,19 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
+import {
+  type ProjectPageArtworkMode,
+  PROJECT_PAGE_ARTWORK_MODE_KEY,
+  isProjectPageArtworkMode,
+} from "@/lib/motionArtwork";
 import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useDeleteProject,
   useProject,
@@ -75,6 +86,37 @@ function ProjectLayout() {
   const isCurrentProjectNowPlaying = Boolean(
     isNowPlayingOpen && currentTrack?.projectId === project?.public_id,
   );
+
+  const [projectArtworkMode, setProjectArtworkMode] =
+    useState<ProjectPageArtworkMode>(() => {
+      if (typeof window === "undefined") return "apple_portrait";
+      const saved = window.localStorage.getItem(PROJECT_PAGE_ARTWORK_MODE_KEY);
+      return isProjectPageArtworkMode(saved) ? saved : "apple_portrait";
+    });
+
+  useEffect(() => {
+    const handleModeChange = () => {
+      const saved = window.localStorage.getItem(PROJECT_PAGE_ARTWORK_MODE_KEY);
+      if (isProjectPageArtworkMode(saved)) {
+        setProjectArtworkMode(saved);
+      }
+    };
+    window.addEventListener("project-artwork-mode-change", handleModeChange);
+    window.addEventListener("storage", handleModeChange);
+    return () => {
+      window.removeEventListener("project-artwork-mode-change", handleModeChange);
+      window.removeEventListener("storage", handleModeChange);
+    };
+  }, []);
+
+  const handleArtworkModeChange = (mode: string) => {
+    if (!isProjectPageArtworkMode(mode)) return;
+    setProjectArtworkMode(mode);
+    window.localStorage.setItem(PROJECT_PAGE_ARTWORK_MODE_KEY, mode);
+    window.dispatchEvent(
+      new CustomEvent("project-artwork-mode-change", { detail: mode }),
+    );
+  };
 
   const { data: sharedProjects = [] } = useQuery({
     queryKey: ["shared-projects"],
@@ -230,6 +272,39 @@ function ProjectLayout() {
             >
               <SearchIcon strokeWidth={3} className="size-4.5" />
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="default"
+                  size="icon-lg"
+                  haptic="light"
+                  className="sm:hidden"
+                  aria-label="Choose artwork mode"
+                >
+                  <Film className="size-4.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                sideOffset={8}
+                className="w-56 border-muted bg-background"
+              >
+                <DropdownMenuRadioGroup
+                  value={projectArtworkMode}
+                  onValueChange={handleArtworkModeChange}
+                >
+                  <DropdownMenuRadioItem value="apple_portrait">
+                    Apple Motion 3x4
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="apple_square">
+                    Apple Motion 1x1
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="still_cover">
+                    Static Cover
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <DropdownMenu onOpenChange={(open) => open && prefetchFolders()}>
               <DropdownMenuTrigger asChild>
                 <Button variant="default" size="icon-lg" haptic="light">
@@ -239,8 +314,31 @@ function ProjectLayout() {
               <DropdownMenuContent
                 align="end"
                 sideOffset={8}
-                className="w-44 border-muted bg-background"
+                className="w-48 border-muted bg-background"
               >
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Film className="ml-1 mr-1.5 size-4.5" />
+                    Artwork display
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-56 border-muted bg-background">
+                    <DropdownMenuRadioGroup
+                      value={projectArtworkMode}
+                      onValueChange={handleArtworkModeChange}
+                    >
+                      <DropdownMenuRadioItem value="apple_portrait">
+                        Apple Motion 3x4
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="apple_square">
+                        Apple Motion 1x1
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="still_cover">
+                        Static Cover
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onSelect={() =>
                     window.dispatchEvent(new Event("project-rename"))

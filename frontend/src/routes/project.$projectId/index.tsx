@@ -36,6 +36,13 @@ import {
 import { useScrollToTrack } from "@/hooks/useScrollToTrack";
 import { trackKeys, useTracks } from "@/hooks/useTracks";
 import { formatDurationLong, formatTrackDuration } from "@/lib/duration";
+import { cn } from "@/lib/utils";
+import {
+	type ProjectPageArtworkMode,
+	PROJECT_PAGE_ARTWORK_MODE_KEY,
+	isProjectPageArtworkMode,
+	resolveProjectPageArtworkMode,
+} from "@/lib/motionArtwork";
 import { toast } from "@/routes/__root";
 import type { Track, VisibilityStatus } from "@/types/api";
 
@@ -92,6 +99,45 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 	const squareMotionUrl = motionAssets.find(
 		(asset) => asset.kind === "apple_square",
 	)?.preview_url;
+	const portraitMotionUrl = motionAssets.find(
+		(asset) => asset.kind === "apple_portrait",
+	)?.preview_url;
+
+	const [preferredArtworkMode, setPreferredArtworkMode] =
+		useState<ProjectPageArtworkMode>(() => {
+			if (typeof window === "undefined") return "apple_portrait";
+			const saved = window.localStorage.getItem(PROJECT_PAGE_ARTWORK_MODE_KEY);
+			return isProjectPageArtworkMode(saved) ? saved : "apple_portrait";
+		});
+
+	useEffect(() => {
+		const handleArtworkModeChange = () => {
+			const saved = window.localStorage.getItem(PROJECT_PAGE_ARTWORK_MODE_KEY);
+			if (isProjectPageArtworkMode(saved)) {
+				setPreferredArtworkMode(saved);
+			}
+		};
+		window.addEventListener(
+			"project-artwork-mode-change",
+			handleArtworkModeChange,
+		);
+		window.addEventListener("storage", handleArtworkModeChange);
+		return () => {
+			window.removeEventListener(
+				"project-artwork-mode-change",
+				handleArtworkModeChange,
+			);
+			window.removeEventListener("storage", handleArtworkModeChange);
+		};
+	}, []);
+
+	const resolvedArtworkMode = useMemo(() => {
+		return resolveProjectPageArtworkMode(
+			preferredArtworkMode,
+			motionAssets.map((asset) => asset.kind),
+		);
+	}, [preferredArtworkMode, motionAssets]);
+
 	const coverInputRef = useRef<HTMLInputElement>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const {
@@ -134,6 +180,10 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 	const [showCoverPanel, setShowCoverPanel] = useState(false);
 	const [coverColorsReady, setCoverColorsReady] = useState(false);
 	const [isSmallScreen, setIsSmallScreen] = useState(false);
+	const isMobilePortrait =
+		isSmallScreen &&
+		resolvedArtworkMode === "apple_portrait" &&
+		Boolean(portraitMotionUrl);
 	const [isEditingMobileTitle, setIsEditingMobileTitle] = useState(false);
 
 	const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
@@ -644,7 +694,10 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 								isNotesOpen && !isSmallScreen ? 0 : showCoverPanel ? 1 : 0,
 						}}
 						transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
-						className="flex items-start justify-center overflow-visible px-2 pt-2 md:sticky md:self-start md:pl-5 md:pr-22 top-30"
+						className={cn(
+							"flex items-start justify-center overflow-visible md:sticky md:self-start md:pl-5 md:pr-22 top-30",
+							isMobilePortrait ? "p-0 -mt-2" : "px-2 pt-2",
+						)}
 					>
 						<AnimatePresence initial={false} mode="sync">
 							{isCurrentProjectNowPlaying ? (
@@ -656,6 +709,56 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 									variant={isSmallScreen ? "mobile" : "desktop"}
 									tracks={tracks}
 								/>
+							) : isMobilePortrait ? (
+								<motion.div
+									key="project-portrait-cover"
+									initial={{ opacity: 0 }}
+									animate={{ opacity: 1 }}
+									exit={{ opacity: 0 }}
+									transition={{ duration: 0.3 }}
+									className="relative -mx-6 -mt-10 sm:mx-0 sm:mt-0 w-[calc(100%+3rem)] sm:w-full h-[52dvh] min-h-[380px] max-h-[480px] overflow-hidden select-none"
+									onClick={
+										canEditProject ? () => setIsCoverModalOpen(true) : undefined
+									}
+								>
+									{projectCoverImage && (
+										<img
+											src={projectCoverImage}
+											alt={String(project.name)}
+											className="absolute inset-0 size-full object-cover object-top"
+											onLoad={() => setCoverColorsReady(true)}
+										/>
+									)}
+									<video
+										key={portraitMotionUrl}
+										src={portraitMotionUrl}
+										poster={projectCoverImage || undefined}
+										autoPlay
+										muted
+										loop
+										playsInline
+										disablePictureInPicture
+										aria-label={`${project.name} animated cover`}
+										className="absolute inset-0 size-full object-cover object-top motion-reduce:hidden"
+									/>
+									<div
+										className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/60 to-transparent"
+									/>
+									{canEditProject && (
+										<div className="absolute inset-0 bg-black/35 opacity-0 hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+											<span className="text-(--text-0) text-sm font-medium bg-black/60 px-3.5 py-1.5 rounded-full backdrop-blur-md">
+												Change cover art
+											</span>
+										</div>
+									)}
+									<input
+										ref={coverInputRef}
+										type="file"
+										accept="image/png,image/jpeg,image/webp"
+										className="hidden"
+										onChange={handleCoverFileChange}
+									/>
+								</motion.div>
 							) : (
 								<motion.div
 									key="project-cover"
@@ -666,7 +769,11 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 								>
 									<AlbumCover
 										imageUrl={projectCoverImage || undefined}
-										motionUrl={squareMotionUrl}
+										motionUrl={
+											resolvedArtworkMode === "still_cover"
+												? undefined
+												: squareMotionUrl
+										}
 										title={String(project.name)}
 										className="w-full"
 										onUploadClick={() => setIsCoverModalOpen(true)}
@@ -694,7 +801,10 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 							opacity: showTracksPanel ? 1 : 0,
 						}}
 						transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
-						className="flex flex-col text-(--text-0) pt-6 md:pt-0 md:pr-5 md:max-w-lg md:-ml-10"
+						className={cn(
+							"flex flex-col text-(--text-0) md:pt-0 md:pr-5 md:max-w-lg md:-ml-10",
+							isMobilePortrait ? "-mt-4 sm:mt-0 pt-0" : "pt-6",
+						)}
 					>
 						<div className="mb-4 -space-y-1">
 							<div className="flex items-center justify-between gap-2 relative z-20">

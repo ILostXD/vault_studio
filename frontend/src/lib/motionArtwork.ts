@@ -49,6 +49,39 @@ export function resolveNowPlayingArtworkMode(
 	);
 }
 
+export type ProjectPageArtworkMode =
+	| "apple_portrait"
+	| "apple_square"
+	| "still_cover";
+
+export const PROJECT_PAGE_ARTWORK_MODE_KEY = "vault.projectPageArtworkMode";
+
+const PROJECT_PAGE_ARTWORK_MODE_FALLBACKS: Record<
+	ProjectPageArtworkMode,
+	ProjectPageArtworkMode[]
+> = {
+	apple_portrait: ["apple_portrait", "apple_square", "still_cover"],
+	apple_square: ["apple_square", "still_cover"],
+	still_cover: ["still_cover"],
+};
+
+export function isProjectPageArtworkMode(
+	value: string | null,
+): value is ProjectPageArtworkMode {
+	return value !== null && value in PROJECT_PAGE_ARTWORK_MODE_FALLBACKS;
+}
+
+export function resolveProjectPageArtworkMode(
+	preferred: ProjectPageArtworkMode,
+	availableKinds: MotionAssetKind[],
+): ProjectPageArtworkMode {
+	return (
+		PROJECT_PAGE_ARTWORK_MODE_FALLBACKS[preferred]?.find(
+			(mode) => mode === "still_cover" || availableKinds.includes(mode),
+		) ?? "still_cover"
+	);
+}
+
 export interface ProjectMotionAsset {
 	kind: MotionAssetKind;
 	width: number;
