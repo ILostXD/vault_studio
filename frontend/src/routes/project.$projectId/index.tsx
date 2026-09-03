@@ -654,6 +654,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 									projectName={String(project.name)}
 									coverUrl={projectCoverImage}
 									variant={isSmallScreen ? "mobile" : "desktop"}
+									tracks={tracks}
 								/>
 							) : (
 								<motion.div

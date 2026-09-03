@@ -20,7 +20,10 @@ interface WaveformCommentsProps {
   onSeek: (time: number) => void;
   shareToken?: string | null;
   sharePassword?: string;
-  placement?: "waveform" | "miniPlayer";
+  placement?: "waveform" | "miniPlayer" | "fullscreen";
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  showButton?: boolean;
 }
 
 export function getCommentPosition(timestamp: number, duration: number) {
@@ -43,10 +46,18 @@ export default function WaveformComments({
   shareToken,
   sharePassword = "",
   placement = "waveform",
+  isOpen: controlledIsOpen,
+  onOpenChange,
+  showButton = true,
 }: WaveformCommentsProps) {
   const { user } = useAuth();
   const [comments, setComments] = useState<WaveformComment[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+  const setIsOpen = (open: boolean) => {
+    setInternalIsOpen(open);
+    onOpenChange?.(open);
+  };
   const [text, setText] = useState("");
   const [authorName, setAuthorName] = useState(
     () => localStorage.getItem("vault.feedbackGuestName") || "",
@@ -168,32 +179,34 @@ export default function WaveformComments({
         ))}
       </div>
 
-      <Button
-        type="button"
-        size="icon"
-        variant="outline"
-        className={`${placement === "miniPlayer" ? "absolute -top-11 right-0" : "absolute right-1 top-1"} pointer-events-auto z-30 size-9 bg-background/95 shadow-md`}
-        aria-label="Open waveform comments"
-        title="Waveform comments"
-        onMouseDown={(event) => event.stopPropagation()}
-        onTouchStart={(event) => event.stopPropagation()}
-        onClick={(event) => {
-          event.stopPropagation();
-          setIsOpen(true);
-        }}
-      >
-        <MessageSquarePlus className="size-4" />
-        {comments.length > 0 && (
-          <span className="absolute -right-1 -top-1 min-w-4 h-4 px-1 rounded-full bg-accent-blue text-[10px] font-bold leading-4 text-black">
-            {comments.length}
-          </span>
-        )}
-      </Button>
+      {showButton && (
+        <Button
+          type="button"
+          size="icon"
+          variant="outline"
+          className={`${placement === "miniPlayer" ? "absolute -top-11 right-0" : "absolute right-1 top-1"} pointer-events-auto z-30 size-9 bg-background/95 shadow-md`}
+          aria-label="Open waveform comments"
+          title="Waveform comments"
+          onMouseDown={(event) => event.stopPropagation()}
+          onTouchStart={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            event.stopPropagation();
+            setIsOpen(true);
+          }}
+        >
+          <MessageSquarePlus className="size-4" />
+          {comments.length > 0 && (
+            <span className="absolute -right-1 -top-1 min-w-4 h-4 px-1 rounded-full bg-accent-blue text-[10px] font-bold leading-4 text-black">
+              {comments.length}
+            </span>
+          )}
+        </Button>
+      )}
 
       {isOpen &&
         createPortal(
           <div
-            className="fixed inset-0 z-200 flex items-end sm:items-center justify-center bg-black/70 p-3 sm:p-6"
+            className={`fixed inset-0 ${placement === "fullscreen" ? "z-[10002]" : "z-200"} flex items-end sm:items-center justify-center bg-black/70 p-3 sm:p-6`}
             onMouseDown={() => setIsOpen(false)}
           >
             <section

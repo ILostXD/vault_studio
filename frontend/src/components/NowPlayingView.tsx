@@ -3,8 +3,10 @@ import { Capacitor } from "@capacitor/core";
 import { EdgeToEdge } from "@capawesome/capacitor-android-edge-to-edge-support";
 import {
 	ChevronDown,
+	FileText,
 	ListMusic,
 	Menu,
+	MessageSquare,
 	Pause,
 	Play,
 	Repeat,
@@ -27,7 +29,9 @@ import MotionArtworkStage, {
 	MotionArtworkFlowBackground,
 	type MotionArtworkPresentation,
 } from "@/components/motion/MotionArtworkStage";
+import NotesPanel from "@/components/NotesPanel";
 import QueuePanel from "@/components/QueuePanel";
+import WaveformComments from "@/components/WaveformComments";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -37,8 +41,13 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
+import { usePreferences } from "@/contexts/PreferencesContext";
 import { useProjectMotionAssets } from "@/hooks/useProjectMotionAssets";
 import { formatTrackDuration } from "@/lib/duration";
+import {
+	getFullscreenDesktopQueueOpen,
+	setFullscreenDesktopQueueOpen,
+} from "@/lib/fullscreenQueue";
 import {
 	isNowPlayingArtworkMode,
 	NOW_PLAYING_ARTWORK_MODE_KEY,
@@ -46,12 +55,14 @@ import {
 	resolveNowPlayingArtworkMode,
 } from "@/lib/motionArtwork";
 import { cn } from "@/lib/utils";
+import type { Track } from "@/types/api";
 
 interface NowPlayingViewProps {
 	projectId: string;
 	projectName: string;
 	coverUrl?: string | null;
 	variant: "mobile" | "desktop";
+	tracks?: Track[];
 }
 
 const WAVEFORM_HEIGHT = 120;
@@ -162,6 +173,7 @@ export default function NowPlayingView({
 	projectName,
 	coverUrl,
 	variant,
+	tracks,
 }: NowPlayingViewProps) {
 	const {
 		currentTrack,
@@ -184,6 +196,7 @@ export default function NowPlayingView({
 		removeFromQueue,
 		clearQueue,
 	} = useAudioPlayer();
+	const { preferences } = usePreferences();
 	const { data: motionAssets = [] } = useProjectMotionAssets(projectId);
 	const [preferredArtworkMode, setPreferredArtworkMode] =
 		useState<NowPlayingArtworkMode>(() => {
@@ -191,14 +204,33 @@ export default function NowPlayingView({
 			const saved = window.localStorage.getItem(NOW_PLAYING_ARTWORK_MODE_KEY);
 			return isNowPlayingArtworkMode(saved) ? saved : "spotify_canvas";
 		});
-	const [isQueueOpen, setIsQueueOpen] = useState(variant === "desktop");
+	const [isQueueOpen, setIsQueueOpen] = useState(() =>
+		variant === "desktop" ? getFullscreenDesktopQueueOpen() : false,
+	);
+	const [isNotesOpen, setIsNotesOpen] = useState(false);
+	const [isCommentsOpen, setIsCommentsOpen] = useState(false);
 	const squareAsset = motionAssets.find(
 		(asset) => asset.kind === "apple_square",
 	);
 
 	useEffect(() => {
-		setIsQueueOpen(variant === "desktop");
+		setIsQueueOpen(
+			variant === "desktop" ? getFullscreenDesktopQueueOpen() : false,
+		);
 	}, [variant]);
+
+	const toggleQueue = () => {
+		setIsQueueOpen((prev) => {
+			const next = !prev;
+			if (variant === "desktop") {
+				setFullscreenDesktopQueueOpen(next);
+			}
+			if (next) {
+				setIsNotesOpen(false);
+			}
+			return next;
+		});
+	};
 
 	useEffect(() => {
 		if (variant !== "mobile" || !Capacitor.isNativePlatform()) return;
@@ -229,15 +261,26 @@ export default function NowPlayingView({
 	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
 			if (event.key !== "Escape") return;
+			if (isCommentsOpen) {
+				setIsCommentsOpen(false);
+				return;
+			}
+			if (isNotesOpen) {
+				setIsNotesOpen(false);
+				return;
+			}
 			if (isQueueOpen) {
 				setIsQueueOpen(false);
+				if (variant === "desktop") {
+					setFullscreenDesktopQueueOpen(false);
+				}
 				return;
 			}
 			closeNowPlaying();
 		};
 		window.addEventListener("keydown", handleKeyDown);
 		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [closeNowPlaying, isQueueOpen]);
+	}, [closeNowPlaying, isCommentsOpen, isNotesOpen, isQueueOpen, variant]);
 
 	const waveformBars = useMemo(() => {
 		if (currentTrack?.waveform) {
@@ -257,6 +300,33 @@ export default function NowPlayingView({
 	}, [currentTrack?.waveform]);
 
 	if (!currentTrack) return null;
+
+	const activeTrack: Track = useMemo(() => {
+		const found = tracks?.find((t) => t.public_id === currentTrack.id);
+		if (found) return found;
+		return {
+			id: 0,
+			user_id: 0,
+			project_id: 0,
+			public_id: currentTrack.id,
+			title: currentTrack.title,
+			artist: currentTrack.artist ?? null,
+			track_order: 0,
+			created_at: "",
+			updated_at: "",
+			active_version_id: currentTrack.versionId ?? null,
+		} as Track;
+	}, [
+		tracks,
+		currentTrack.id,
+		currentTrack.title,
+		currentTrack.artist,
+		currentTrack.versionId,
+	]);
+
+	const activeVersionId =
+		currentTrack.versionId ?? activeTrack.active_version_id;
+	const isCommentsEnabled = preferences?.comments_enabled !== false;
 
 	const resolvedArtworkMode = resolveNowPlayingArtworkMode(
 		preferredArtworkMode,
@@ -317,7 +387,7 @@ export default function NowPlayingView({
 					<div className="relative flex w-full max-w-[92rem] items-center justify-center">
 						<motion.div
 							initial={false}
-							animate={{ x: isQueueOpen ? "-22vw" : "0vw" }}
+							animate={{ x: isQueueOpen || isNotesOpen ? "-22vw" : "0vw" }}
 							transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
 							className="flex w-[min(36rem,44vw)] flex-col items-center will-change-transform"
 						>
@@ -329,31 +399,77 @@ export default function NowPlayingView({
 								/>
 							</div>
 
-							<div className="relative mt-7 w-full px-14 text-center">
+							<div className="relative mt-7 w-full px-28 text-center">
 								<h2 className="truncate text-xl font-semibold">
 									{currentTrack.title}
 								</h2>
 								<p className="mt-1 truncate text-base text-white/60">
 									{artist}
 								</p>
-								<Button
-									type="button"
-									variant="ghost"
-									size="icon-lg"
-									className={cn(
-										"absolute right-0 top-1/2 size-11 -translate-y-1/2 rounded-full bg-black/20 text-white/75 backdrop-blur-md hover:bg-black/40 hover:text-white",
-										isQueueOpen && "bg-white/15 text-white",
+								<div className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
+									{isCommentsEnabled && activeVersionId && (
+										<Button
+											type="button"
+											variant="ghost"
+											size="icon-lg"
+											className={cn(
+												"size-10 rounded-full bg-black/20 text-white/75 backdrop-blur-md hover:bg-black/40 hover:text-white",
+												isCommentsOpen && "bg-white/15 text-white",
+											)}
+											onClick={() => setIsCommentsOpen(true)}
+											aria-label="Comments"
+											aria-pressed={isCommentsOpen}
+											title="Comments"
+										>
+											<MessageSquare className="size-5" />
+										</Button>
 									)}
-									onClick={() => setIsQueueOpen((open) => !open)}
-									aria-label={isQueueOpen ? "Hide queue" : "Show queue"}
-									aria-pressed={isQueueOpen}
-									title={isQueueOpen ? "Hide queue" : "Show queue"}
-								>
-									<ListMusic className="size-5" />
-								</Button>
+									<Button
+										type="button"
+										variant="ghost"
+										size="icon-lg"
+										className={cn(
+											"size-10 rounded-full bg-black/20 text-white/75 backdrop-blur-md hover:bg-black/40 hover:text-white",
+											isNotesOpen && "bg-white/15 text-white",
+										)}
+										onClick={() => setIsNotesOpen((open) => !open)}
+										aria-label={isNotesOpen ? "Hide notes" : "Show notes"}
+										aria-pressed={isNotesOpen}
+										title={isNotesOpen ? "Hide notes" : "Show notes"}
+									>
+										<FileText className="size-5" />
+									</Button>
+									<Button
+										type="button"
+										variant="ghost"
+										size="icon-lg"
+										className={cn(
+											"size-10 rounded-full bg-black/20 text-white/75 backdrop-blur-md hover:bg-black/40 hover:text-white",
+											isQueueOpen && !isNotesOpen && "bg-white/15 text-white",
+										)}
+										onClick={toggleQueue}
+										aria-label={isQueueOpen ? "Hide queue" : "Show queue"}
+										aria-pressed={isQueueOpen}
+										title={isQueueOpen ? "Hide queue" : "Show queue"}
+									>
+										<ListMusic className="size-5" />
+									</Button>
+								</div>
 							</div>
 
-							<div className="mt-6 w-full">
+							<div className="relative mt-6 w-full">
+								{isCommentsEnabled && activeVersionId && (
+									<WaveformComments
+										versionId={activeVersionId}
+										duration={duration}
+										currentTime={progress}
+										onSeek={seekTo}
+										placement="fullscreen"
+										isOpen={isCommentsOpen}
+										onOpenChange={setIsCommentsOpen}
+										showButton={false}
+									/>
+								)}
 								<PlaybackWaveform
 									bars={waveformBars}
 									duration={duration}
@@ -438,8 +554,28 @@ export default function NowPlayingView({
 
 						<div className="pointer-events-none absolute inset-y-0 right-0 flex w-[min(38rem,40vw)] items-center">
 							<AnimatePresence initial={false}>
-								{isQueueOpen && (
+								{isNotesOpen && (
 									<motion.aside
+										key="fullscreen-notes-panel"
+										initial={{ opacity: 0, x: 32, filter: "blur(8px)" }}
+										animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+										exit={{ opacity: 0, x: 24, filter: "blur(6px)" }}
+										transition={{
+											duration: 0.35,
+											ease: [0.22, 1, 0.36, 1],
+										}}
+										className="pointer-events-auto flex max-h-[72dvh] w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl p-6 shadow-2xl"
+									>
+										<NotesPanel
+											mode="track"
+											selectedTrack={activeTrack}
+											onClose={() => setIsNotesOpen(false)}
+										/>
+									</motion.aside>
+								)}
+								{!isNotesOpen && isQueueOpen && (
+									<motion.aside
+										key="fullscreen-queue-panel"
 										initial={{ opacity: 0, x: 32, filter: "blur(8px)" }}
 										animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
 										exit={{ opacity: 0, x: 24, filter: "blur(6px)" }}
@@ -637,7 +773,19 @@ export default function NowPlayingView({
 							</div>
 						</div>
 
-						<div>
+						<div className="relative">
+							{isCommentsEnabled && activeVersionId && (
+								<WaveformComments
+									versionId={activeVersionId}
+									duration={duration}
+									currentTime={progress}
+									onSeek={seekTo}
+									placement="fullscreen"
+									isOpen={isCommentsOpen}
+									onOpenChange={setIsCommentsOpen}
+									showButton={false}
+								/>
+							)}
 							<PlaybackWaveform
 								bars={waveformBars}
 								duration={duration}
@@ -719,14 +867,48 @@ export default function NowPlayingView({
 							</Button>
 						</div>
 
-						<div className="flex justify-end pt-1">
+						<div className="flex items-center justify-end gap-2.5 pt-1">
+							{isCommentsEnabled && activeVersionId && (
+								<Button
+									type="button"
+									variant="ghost"
+									size="icon-lg"
+									className={cn(
+										"size-12 rounded-full bg-black/25 text-white backdrop-blur-sm hover:bg-black/45",
+										isCommentsOpen && "bg-white/15 text-white",
+									)}
+									onClick={() => setIsCommentsOpen(true)}
+									aria-label="Comments"
+									title="Comments"
+								>
+									<MessageSquare className="size-6" />
+								</Button>
+							)}
 							<Button
 								type="button"
 								variant="ghost"
 								size="icon-lg"
-								className="size-12 rounded-full bg-black/25 text-white backdrop-blur-sm hover:bg-black/45"
+								className={cn(
+									"size-12 rounded-full bg-black/25 text-white backdrop-blur-sm hover:bg-black/45",
+									isNotesOpen && "bg-white/15 text-white",
+								)}
+								onClick={() => setIsNotesOpen(true)}
+								aria-label="Notes"
+								title="Notes"
+							>
+								<FileText className="size-6" />
+							</Button>
+							<Button
+								type="button"
+								variant="ghost"
+								size="icon-lg"
+								className={cn(
+									"size-12 rounded-full bg-black/25 text-white backdrop-blur-sm hover:bg-black/45",
+									isQueueOpen && "bg-white/15 text-white",
+								)}
 								onClick={() => setIsQueueOpen(true)}
 								aria-label="Open queue"
+								title="Queue"
 							>
 								<ListMusic className="size-6" />
 							</Button>
@@ -739,6 +921,40 @@ export default function NowPlayingView({
 				onClose={() => setIsQueueOpen(false)}
 				layer="expanded"
 			/>
+			<AnimatePresence>
+				{isNotesOpen && (
+					<>
+						<motion.div
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							transition={{ duration: 0.1 }}
+							className="fixed inset-0 overlay-backdrop z-[10000]"
+							onClick={() => setIsNotesOpen(false)}
+						/>
+						<motion.div
+							initial={{ opacity: 0, y: 15, filter: "blur(8px)" }}
+							animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+							exit={{ opacity: 0, y: 15, filter: "blur(4px)" }}
+							transition={{
+								type: "spring",
+								stiffness: 700,
+								damping: 40,
+							}}
+							className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-1rem)] sm:w-[calc(100%-3rem)] max-w-[800px] bottom-[max(env(safe-area-inset-bottom),1rem)] z-[10001]"
+							onClick={(e) => e.stopPropagation()}
+						>
+							<div className="relative flex max-h-[82dvh] w-full flex-col overflow-hidden rounded-3xl text-(--text-0) shadow-2xl border border-(--card-border) overlay-surface p-6">
+								<NotesPanel
+									mode="track"
+									selectedTrack={activeTrack}
+									onClose={() => setIsNotesOpen(false)}
+								/>
+							</div>
+						</motion.div>
+					</>
+				)}
+			</AnimatePresence>
 		</>,
 		document.body,
 	);
