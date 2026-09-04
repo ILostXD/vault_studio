@@ -435,7 +435,7 @@ function TrackDetailsModal({
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div
-                    className={`grid ${isSharedView ? "grid-cols-1" : "grid-cols-1 md:grid-cols-[2fr_3fr]"} ${isSharedView ? "max-h-auto" : "max-h-[680px] md:min-h-[560px]"} overflow-y-auto md:overflow-visible`}
+                    className={`grid ${isSharedView ? "grid-cols-1" : "grid-cols-1 md:grid-cols-[2fr_3fr]"} ${isSharedView ? "max-h-auto" : "max-h-[680px] md:min-h-[560px]"} touch-pan-y overscroll-contain overflow-y-auto md:overflow-visible`}
                   >
                     <div
                       className={`flex flex-col ${isSharedView ? "px-6 py-8" : "md:p-6"}`}

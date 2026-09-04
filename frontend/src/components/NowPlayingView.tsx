@@ -1,5 +1,4 @@
-import { Fullscreen } from "@boengli/capacitor-fullscreen";
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, SystemBars, SystemBarsStyle } from "@capacitor/core";
 import { EdgeToEdge } from "@capawesome/capacitor-android-edge-to-edge-support";
 import {
 	ChevronDown,
@@ -253,20 +252,18 @@ export default function NowPlayingView({
 	};
 
 	useEffect(() => {
-		if (variant !== "mobile" || !Capacitor.isNativePlatform()) return;
+		if (variant !== "mobile" || Capacitor.getPlatform() !== "android") return;
 
-		void EdgeToEdge.disable()
-			.then(() => Fullscreen.activateImmersiveMode())
-			.catch((error) => {
-				console.error("Failed to enter immersive mode:", error);
+		void Promise.all([
+			EdgeToEdge.disable(),
+			SystemBars.show(),
+			SystemBars.setStyle({ style: SystemBarsStyle.Dark }),
+		]).catch((error) => {
+			console.error("Failed to apply fullscreen system bars:", error);
 			});
 
 		return () => {
-			void Fullscreen.deactivateImmersiveMode()
-				.then(() => EdgeToEdge.enable())
-				.catch((error) => {
-					console.error("Failed to leave immersive mode:", error);
-				});
+			window.dispatchEvent(new Event("vault-system-bars-refresh"));
 		};
 	}, [variant]);
 
@@ -385,6 +382,7 @@ export default function NowPlayingView({
 					<MotionArtworkFlowBackground
 						assetUrl={squareAsset?.preview_url}
 						coverUrl={coverUrl ?? currentTrack.coverUrl}
+						paused={isQueueOpen || isNotesOpen || isCommentsOpen}
 					/>
 					<div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.4)_0%,rgba(0,0,0,0.06)_52%,rgba(0,0,0,0.24)_100%)]" />
 					<div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.1)_0%,transparent_42%,rgba(0,0,0,0.3)_100%)]" />
@@ -624,7 +622,7 @@ export default function NowPlayingView({
 																	ref={provided.innerRef}
 																	{...provided.draggableProps}
 																	{...provided.dragHandleProps}
-																	className="flex items-center gap-2 rounded-xl border border-white/20 bg-neutral-900/95 px-3 py-3 text-white shadow-2xl backdrop-blur-xl"
+																		className="flex items-center gap-2 rounded-xl border border-white/15 bg-black/35 px-3 py-3 text-white shadow-2xl backdrop-blur-2xl"
 																	style={{
 																		...provided.draggableProps.style,
 																		zIndex: 100005,
@@ -639,7 +637,7 @@ export default function NowPlayingView({
 																		{(track.coverUrl || track.projectCoverUrl) && (
 																			<img
 																				src={
-																					track.coverUrl || track.projectCoverUrl
+																				track.coverUrl || track.projectCoverUrl
 																				}
 																				alt=""
 																				className="size-full object-cover"
@@ -705,10 +703,10 @@ export default function NowPlayingView({
 																					}
 																				>
 																					<div className="size-12 shrink-0 overflow-hidden rounded-md bg-black/25">
-																						{(track.coverUrl || track.projectCoverUrl) && (
+																			{(track.coverUrl || track.projectCoverUrl) && (
 																							<img
 																								src={
-																									track.coverUrl || track.projectCoverUrl
+																						track.coverUrl || track.projectCoverUrl
 																								}
 																								alt=""
 																								className="size-full object-cover"
@@ -748,7 +746,7 @@ export default function NowPlayingView({
 																									navigate({
 																										to: "/project/$projectId",
 																										params: {
-																											projectId: track.projectId!,
+																						projectId: track.projectId!,
 																										},
 																									});
 																									closeNowPlaying();
@@ -761,7 +759,7 @@ export default function NowPlayingView({
 																						)}
 																						<DropdownMenuItem
 																							variant="destructive"
-																							onClick={() => removeFromQueue(index)}
+																			onClick={() => removeFromQueue(index)}
 																							className="gap-2 text-red-400 cursor-pointer hover:bg-white/10 hover:text-red-300"
 																						>
 																							<Trash2 className="size-4 text-red-500!" />
@@ -798,7 +796,7 @@ export default function NowPlayingView({
 							animate={{ opacity: 1, scale: 1, y: 0 }}
 							exit={{ opacity: 0, scale: 0.95, y: 10 }}
 							transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-							className="relative flex max-h-[82dvh] w-full max-w-[800px] flex-col overflow-hidden rounded-3xl border border-(--card-border) bg-background text-(--text-0) shadow-2xl p-6"
+							className="relative flex min-h-0 max-h-[82dvh] w-full max-w-[800px] flex-col overflow-hidden rounded-3xl border border-(--card-border) bg-background text-(--text-0) shadow-2xl p-6"
 							onMouseDown={(e) => e.stopPropagation()}
 						>
 							<NotesPanel
@@ -818,11 +816,11 @@ export default function NowPlayingView({
 	return createPortal(
 		<>
 			<motion.section
-				initial={{ opacity: 0, y: 28, scale: 0.975 }}
-				animate={{ opacity: 1, y: 0, scale: 1 }}
-				exit={{ opacity: 0, y: 24, scale: 0.98 }}
-				transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-				className="fixed inset-0 z-[9999] isolate h-[100dvh] w-screen overflow-hidden bg-black text-white shadow-2xl will-change-transform"
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				exit={{ opacity: 0 }}
+				transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+				className="fixed inset-0 z-[9999] isolate h-[100dvh] w-screen overflow-hidden bg-black text-white shadow-2xl"
 				role="dialog"
 				aria-modal="true"
 				aria-label={`Now playing ${currentTrack.title}`}
@@ -835,13 +833,14 @@ export default function NowPlayingView({
 					/>
 				) : (
 					<MotionArtworkFlowBackground
-						assetUrl={activeMobileAsset?.preview_url}
 						coverUrl={coverUrl ?? currentTrack.coverUrl}
+						maxLayers={2}
+						paused={isQueueOpen || isNotesOpen || isCommentsOpen}
 					/>
 				)}
 				<div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.24)_0%,transparent_28%,rgba(0,0,0,0.08)_50%,rgba(0,0,0,0.76)_70%,rgba(0,0,0,0.97)_100%)]" />
 
-				<div className="absolute inset-0 grid grid-rows-[auto_minmax(0,1fr)_auto] px-7 pb-[max(env(safe-area-inset-bottom),2rem)] pt-[max(env(safe-area-inset-top),2rem)]">
+				<div className="absolute inset-0 grid grid-rows-[auto_minmax(0,1fr)_auto] px-7 pb-[max(calc(env(safe-area-inset-bottom)+1rem),2.5rem)] pt-[max(calc(env(safe-area-inset-top)+1rem),4rem)]">
 					<div className="flex items-center justify-between gap-3">
 						<Button
 							type="button"
@@ -1074,7 +1073,7 @@ export default function NowPlayingView({
 							animate={{ opacity: 1, scale: 1, y: 0 }}
 							exit={{ opacity: 0, scale: 0.95, y: 15 }}
 							transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-							className="relative flex max-h-[82dvh] w-full max-w-[800px] flex-col overflow-hidden rounded-3xl border border-(--card-border) bg-background text-(--text-0) shadow-2xl p-6"
+							className="relative flex min-h-0 max-h-[82dvh] w-full max-w-[800px] flex-col overflow-hidden rounded-3xl border border-(--card-border) bg-background text-(--text-0) shadow-2xl p-6"
 							onMouseDown={(e) => e.stopPropagation()}
 						>
 							<NotesPanel

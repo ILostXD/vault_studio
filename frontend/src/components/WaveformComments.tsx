@@ -213,7 +213,8 @@ export default function WaveformComments({
               role="dialog"
               aria-modal="true"
               aria-labelledby="waveform-comments-title"
-              className="w-full max-w-lg max-h-[min(82dvh,680px)] overflow-y-auto rounded-2xl border border-(--card-border) bg-background p-5 text-(--text-0) shadow-2xl"
+              data-testid="comments-scroll-container"
+              className="w-full max-w-lg max-h-[min(82dvh,680px)] overflow-y-auto overscroll-contain touch-pan-y rounded-2xl border border-(--card-border) bg-background p-5 text-(--text-0) shadow-2xl"
               onMouseDown={(event) => event.stopPropagation()}
             >
               <header className="flex items-center justify-between gap-3 mb-4">

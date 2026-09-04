@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
 import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
@@ -7,7 +7,6 @@ import {
   Heading2,
   Heading3,
   Italic,
-  LinkIcon,
   List,
   ListOrdered,
   Quote,
@@ -16,7 +15,7 @@ import {
 } from "lucide-react";
 import type { Editor, JSONContent } from "@tiptap/core";
 import type { NoteContentFormat } from "@/types/api";
-import { parseNoteDocument } from "@/lib/richText";
+import { compactUrlForDisplay, parseNoteDocument } from "@/lib/richText";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -29,7 +28,16 @@ const extensions = [
     heading: { levels: [2, 3] },
     link: false,
   }),
-  Link.configure({ openOnClick: false, defaultProtocol: "https" }),
+  Link.configure({
+    autolink: true,
+    linkOnPaste: true,
+    openOnClick: false,
+    defaultProtocol: "https",
+    HTMLAttributes: {
+      target: "_blank",
+      rel: "noopener noreferrer",
+    },
+  }),
 ];
 
 interface EditorProps {
@@ -123,22 +131,10 @@ function RichTextToolbar({ editor }: { editor: Editor }) {
       bulletList: currentEditor.isActive("bulletList"),
       orderedList: currentEditor.isActive("orderedList"),
       blockquote: currentEditor.isActive("blockquote"),
-      link: currentEditor.isActive("link"),
       canUndo: currentEditor.can().undo(),
       canRedo: currentEditor.can().redo(),
     }),
   });
-
-  const setLink = () => {
-    const previousUrl = editor.getAttributes("link").href as string | undefined;
-    const url = window.prompt("Link URL", previousUrl ?? "https://");
-    if (url === null) return;
-    if (!url.trim()) {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run();
-      return;
-    }
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
-  };
 
   const controls = [
     { label: "Bold", icon: Bold, active: state.bold, action: () => editor.chain().focus().toggleBold().run() },
@@ -148,7 +144,6 @@ function RichTextToolbar({ editor }: { editor: Editor }) {
     { label: "Bullet list", icon: List, active: state.bulletList, action: () => editor.chain().focus().toggleBulletList().run() },
     { label: "Numbered list", icon: ListOrdered, active: state.orderedList, action: () => editor.chain().focus().toggleOrderedList().run() },
     { label: "Blockquote", icon: Quote, active: state.blockquote, action: () => editor.chain().focus().toggleBlockquote().run() },
-    { label: "Link", icon: LinkIcon, active: state.link, action: setLink },
     { label: "Undo", icon: Undo2, active: false, action: () => editor.chain().focus().undo().run(), disabled: !state.canUndo },
     { label: "Redo", icon: Redo2, active: false, action: () => editor.chain().focus().redo().run(), disabled: !state.canRedo },
   ];
@@ -181,18 +176,76 @@ function RichTextToolbar({ editor }: { editor: Editor }) {
 
 export function RichTrackNoteContent({ content }: { content: string }) {
   const document = parseNoteDocument(content, "tiptap_json");
-  return <ReadOnlyEditor document={document} />;
+  return (
+    <div className="rich-note-content text-sm leading-relaxed">
+      {renderNoteChildren(document, "note")}
+    </div>
+  );
 }
 
-function ReadOnlyEditor({ document }: { document: JSONContent }) {
-  const editor = useEditor({
-    extensions,
-    content: document,
-    editable: false,
-    editorProps: {
-      attributes: { class: "rich-note-content text-sm leading-relaxed" },
-    },
-  });
+function renderNoteChildren(node: JSONContent, key: string): ReactNode[] {
+  return (node.content ?? []).map((child, index) =>
+    renderNoteNode(child, `${key}-${index}`),
+  );
+}
 
-  return <EditorContent editor={editor} />;
+function renderNoteNode(node: JSONContent, key: string): ReactNode {
+  const children = renderNoteChildren(node, key);
+
+  switch (node.type) {
+    case "text": {
+      const marks = node.marks ?? [];
+      const linkMark = marks.find((mark) => mark.type === "link");
+      const href = String(linkMark?.attrs?.href ?? "");
+      const sourceText = node.text ?? "";
+      const comparableText = sourceText.replace(/^https?:\/\//i, "").replace(/\/$/, "");
+      const comparableHref = href.replace(/^https?:\/\//i, "").replace(/\/$/, "");
+      let rendered: ReactNode =
+        href && comparableText === comparableHref
+          ? compactUrlForDisplay(href)
+          : sourceText;
+
+      for (const [markIndex, mark] of marks.entries()) {
+        const markKey = `${key}-mark-${markIndex}`;
+        if (mark.type === "bold") rendered = <strong key={markKey}>{rendered}</strong>;
+        if (mark.type === "italic") rendered = <em key={markKey}>{rendered}</em>;
+        if (mark.type === "strike") rendered = <s key={markKey}>{rendered}</s>;
+        if (mark.type === "underline") rendered = <u key={markKey}>{rendered}</u>;
+        if (mark.type === "code") rendered = <code key={markKey}>{rendered}</code>;
+        if (mark.type === "link" && isSafeNoteHref(href)) {
+          rendered = (
+            <a key={markKey} href={href} target="_blank" rel="noopener noreferrer" title={href}>
+              {rendered}
+            </a>
+          );
+			}
+		}
+
+      return rendered;
+    }
+    case "paragraph":
+      return <p key={key}>{children.length > 0 ? children : <br />}</p>;
+    case "heading":
+      return node.attrs?.level === 3 ? <h3 key={key}>{children}</h3> : <h2 key={key}>{children}</h2>;
+    case "bulletList":
+      return <ul key={key}>{children}</ul>;
+    case "orderedList":
+      return <ol key={key} start={Number(node.attrs?.start) || 1}>{children}</ol>;
+    case "listItem":
+      return <li key={key}>{children}</li>;
+    case "blockquote":
+      return <blockquote key={key}>{children}</blockquote>;
+    case "codeBlock":
+      return <pre key={key}><code>{children}</code></pre>;
+    case "horizontalRule":
+      return <hr key={key} />;
+    case "hardBreak":
+      return <br key={key} />;
+    default:
+      return <div key={key}>{children}</div>;
+  }
+}
+
+function isSafeNoteHref(href: string): boolean {
+  return /^(https?:\/\/|mailto:|tel:)/i.test(href);
 }

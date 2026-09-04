@@ -1,5 +1,4 @@
 import { motion, useReducedMotion } from "motion/react";
-import { type RefObject, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 export type MotionArtworkPresentation = "fill" | "apple-portrait" | "square";
@@ -11,27 +10,30 @@ interface MotionArtworkStageProps {
 	className?: string;
 }
 
+interface MotionArtworkFlowBackgroundProps {
+	assetUrl?: string | null;
+	coverUrl?: string | null;
+	className?: string;
+	maxLayers?: number;
+	paused?: boolean;
+}
+
 interface ArtworkSourceProps {
 	assetUrl?: string | null;
 	coverUrl?: string | null;
 	className: string;
-	videoRef?: RefObject<HTMLVideoElement | null>;
-	onSync?: () => void;
 }
 
 function ArtworkSource({
 	assetUrl,
 	coverUrl,
 	className,
-	videoRef,
-	onSync,
 }: ArtworkSourceProps) {
 	return (
 		<>
 			{coverUrl && <img src={coverUrl} alt="" className={className} />}
 			{assetUrl && (
 				<video
-					ref={videoRef}
 					key={assetUrl}
 					src={assetUrl}
 					poster={coverUrl ?? undefined}
@@ -40,11 +42,6 @@ function ArtworkSource({
 					loop
 					playsInline
 					disablePictureInPicture
-					onLoadedMetadata={onSync}
-					onPlay={onSync}
-					onPause={onSync}
-					onSeeked={onSync}
-					onTimeUpdate={onSync}
 					className={cn(className, "motion-reduce:hidden")}
 				/>
 			)}
@@ -95,20 +92,23 @@ export function MotionArtworkFlowBackground({
 	assetUrl,
 	coverUrl,
 	className,
-}: Omit<MotionArtworkStageProps, "presentation">) {
+	maxLayers = FLOW_LAYERS.length,
+	paused = false,
+}: MotionArtworkFlowBackgroundProps) {
 	const shouldReduceMotion = useReducedMotion();
+	const layers = FLOW_LAYERS.slice(0, maxLayers);
 
 	return (
 		<div className={cn("absolute inset-0 overflow-hidden bg-black", className)}>
-			{FLOW_LAYERS.map((layer) => (
+			{layers.map((layer) => (
 				<div
 					key={layer.size}
 					className="absolute inset-0 flex items-center justify-center"
 				>
 					<motion.div
 						animate={
-							shouldReduceMotion
-								? undefined
+							shouldReduceMotion || paused
+								? { rotate: 0, x: 0, y: 0, scale: 1 }
 								: {
 										rotate: layer.rotate,
 										x: layer.x,
@@ -116,11 +116,15 @@ export function MotionArtworkFlowBackground({
 										scale: layer.scale,
 									}
 						}
-						transition={{
-							duration: layer.duration,
-							repeat: Infinity,
-							ease: "linear",
-						}}
+						transition={
+							paused || shouldReduceMotion
+								? { duration: 0.18 }
+								: {
+										duration: layer.duration,
+										repeat: Infinity,
+										ease: "linear",
+									}
+						}
 						className={cn(
 							"relative shrink-0 overflow-hidden blur-[90px] brightness-[0.8] saturate-[1.9] will-change-transform",
 							layer.size,
@@ -146,25 +150,6 @@ export default function MotionArtworkStage({
 	coverUrl,
 	className,
 }: MotionArtworkStageProps) {
-	const foregroundVideoRef = useRef<HTMLVideoElement>(null);
-	const backgroundVideoRef = useRef<HTMLVideoElement>(null);
-
-	const syncBackgroundVideo = () => {
-		const foreground = foregroundVideoRef.current;
-		const background = backgroundVideoRef.current;
-		if (!foreground || !background) return;
-
-		if (Math.abs(background.currentTime - foreground.currentTime) > 0.08) {
-			background.currentTime = foreground.currentTime;
-		}
-
-		if (foreground.paused) {
-			background.pause();
-		} else {
-			void background.play().catch(() => undefined);
-		}
-	};
-
 	if (presentation === "fill") {
 		return (
 			<div
@@ -183,9 +168,8 @@ export default function MotionArtworkStage({
 		<div className={cn("absolute inset-0 overflow-hidden bg-black", className)}>
 			<div className="absolute inset-0 overflow-hidden bg-black">
 				<ArtworkSource
-					assetUrl={assetUrl}
+					assetUrl={coverUrl ? undefined : assetUrl}
 					coverUrl={coverUrl}
-					videoRef={backgroundVideoRef}
 					className="absolute -inset-[14%] size-[128%] scale-110 object-cover blur-[34px] brightness-[0.48] saturate-125"
 				/>
 			</div>
@@ -203,8 +187,6 @@ export default function MotionArtworkStage({
 					<ArtworkSource
 						assetUrl={assetUrl}
 						coverUrl={coverUrl}
-						videoRef={foregroundVideoRef}
-						onSync={syncBackgroundVideo}
 						className="absolute inset-0 size-full object-cover"
 					/>
 				</div>
@@ -213,8 +195,6 @@ export default function MotionArtworkStage({
 					<ArtworkSource
 						assetUrl={assetUrl}
 						coverUrl={coverUrl}
-						videoRef={foregroundVideoRef}
-						onSync={syncBackgroundVideo}
 						className="absolute inset-0 size-full object-cover"
 					/>
 				</div>

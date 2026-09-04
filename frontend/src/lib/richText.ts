@@ -24,3 +24,23 @@ export function parseNoteDocument(
     return plainTextToDocument(content);
   }
 }
+
+export function compactUrlForDisplay(value: string): string {
+  try {
+    const url = new URL(value);
+    const host = url.hostname.replace(/^www\./i, "");
+    const segments = url.pathname.split("/").filter(Boolean);
+
+    if (segments.length === 0) return host;
+
+    const path =
+      segments.length <= 2 ? segments.join("/") : `\u2026/${segments.at(-1)}`;
+    const display = `${host}/${path}`;
+
+    return display.length <= 56
+      ? display
+      : `${host}/\u2026/${segments.at(-1)?.slice(0, 24)}`;
+  } catch {
+    return value;
+  }
+}

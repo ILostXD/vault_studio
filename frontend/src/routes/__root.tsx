@@ -203,6 +203,8 @@ function RootComponent() {
   const { effectiveTheme } = usePreferences();
   const { isNowPlayingOpen, closeNowPlaying } = useAudioPlayer();
   const navigate = useNavigate();
+  const [useDarkSystemBars, setUseDarkSystemBars] = useState(false);
+  const [systemBarsRevision, setSystemBarsRevision] = useState(0);
   const [hasCheckedUsers, setHasCheckedUsers] = useState(false);
   const [isCheckingUsers, setIsCheckingUsers] = useState(false);
   const currentPathRef = useRef(routerState.location.pathname);
@@ -212,22 +214,44 @@ function RootComponent() {
   }, [routerState.location.pathname]);
 
   useEffect(() => {
+    const handleDarkSystemBars = (event: Event) => {
+      setUseDarkSystemBars(Boolean((event as CustomEvent<boolean>).detail));
+      setSystemBarsRevision((revision) => revision + 1);
+    };
+    const refreshSystemBars = () =>
+      setSystemBarsRevision((revision) => revision + 1);
+    window.addEventListener("vault-system-bars-dark", handleDarkSystemBars);
+    window.addEventListener("vault-system-bars-refresh", refreshSystemBars);
+    return () => {
+      window.removeEventListener("vault-system-bars-dark", handleDarkSystemBars);
+      window.removeEventListener("vault-system-bars-refresh", refreshSystemBars);
+    };
+  }, []);
+
+  useEffect(() => {
     if (Capacitor.getPlatform() !== "android") return;
 
-    const { color, style } = getAndroidSystemBarColor(effectiveTheme);
+    const { color, style } = useDarkSystemBars
+      ? { color: "#080808", style: SystemBarsStyle.Dark }
+      : getAndroidSystemBarColor(effectiveTheme);
+    const statusBarColor = useDarkSystemBars ? "#00000000" : color;
 
-    EdgeToEdge.enable()
+    const updateInsets = useDarkSystemBars
+      ? EdgeToEdge.disable()
+      : EdgeToEdge.enable();
+
+    updateInsets
       .then(() =>
         Promise.all([
           SystemBars.setStyle({ style }),
-          EdgeToEdge.setStatusBarColor({ color }),
+          EdgeToEdge.setStatusBarColor({ color: statusBarColor }),
           EdgeToEdge.setNavigationBarColor({ color }),
         ]),
       )
       .catch((error) => {
         console.warn("Failed to apply Android system bar styling:", error);
       });
-  }, [effectiveTheme]);
+  }, [effectiveTheme, useDarkSystemBars, systemBarsRevision]);
 
   useEffect(() => {
     if (Capacitor.getPlatform() !== "android") return;

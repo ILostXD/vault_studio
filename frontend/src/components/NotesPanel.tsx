@@ -147,7 +147,8 @@ export default function NotesPanel(props: NotesPanelProps) {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="flex flex-col h-full"
+      data-testid="notes-panel-root"
+      className="flex min-h-0 h-full flex-col"
     >
       <div className="flex items-center justify-between mb-6">
         <div className="min-w-0 flex-1">
@@ -166,7 +167,10 @@ export default function NotesPanel(props: NotesPanelProps) {
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-6">
+      <div
+        data-testid="notes-scroll-container"
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain touch-pan-y space-y-6"
+      >
         {!isLoading && user?.username && currentId && (
           <RichTrackNoteEditor
             key={currentId}

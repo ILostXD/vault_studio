@@ -932,7 +932,11 @@ export default function MusicPlayer({
                         width={WAVEFORM_BAR_WIDTH}
                         height={scaledHeight}
                         rx={WAVEFORM_BAR_RADIUS}
-                        fill={isPassed ? "#FFFFFF" : "#3F3F46"}
+                        fill={
+                          isPassed
+                            ? "var(--waveform-played)"
+                            : "var(--waveform-unplayed)"
+                        }
                         style={{
                           transition: `y 400ms cubic-bezier(0.4, 0, 0.2, 1) ${delay}ms, height 400ms cubic-bezier(0.4, 0, 0.2, 1) ${delay}ms`,
                           willChange: "y, height",

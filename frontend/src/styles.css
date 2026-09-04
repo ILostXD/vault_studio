@@ -78,6 +78,8 @@ code,
   --surface-overlay-from: #151515;
   --surface-overlay-to: #1d1d1d;
   --waveform-bg: #171717;
+  --waveform-played: #ffffff;
+  --waveform-unplayed: #3f3f46;
   --overlay-backdrop: rgba(0, 0, 0, 0.8);
   --control-bg: #242323;
   --control-bg-hover: #2b2a2a;
@@ -142,6 +144,8 @@ code,
   --surface-overlay-from: #151515;
   --surface-overlay-to: #1d1d1d;
   --waveform-bg: #171717;
+  --waveform-played: #ffffff;
+  --waveform-unplayed: #3f3f46;
   --overlay-backdrop: rgba(0, 0, 0, 0.8);
   --control-bg: #242323;
   --control-bg-hover: #2b2a2a;
@@ -206,6 +210,8 @@ code,
   --surface-overlay-from: #050505;
   --surface-overlay-to: #0b0b0b;
   --waveform-bg: #030303;
+  --waveform-played: #ffffff;
+  --waveform-unplayed: #3f3f46;
   --overlay-backdrop: rgba(0, 0, 0, 0.86);
   --control-bg: rgba(255, 255, 255, 0.06);
   --control-bg-hover: rgba(255, 255, 255, 0.1);
@@ -270,6 +276,8 @@ code,
   --surface-overlay-from: #ffffff;
   --surface-overlay-to: #f8fafc;
   --waveform-bg: #ffffff;
+  --waveform-played: #18181b;
+  --waveform-unplayed: #a1a1aa;
   --overlay-backdrop: rgba(24, 24, 27, 0.38);
   --control-bg: rgba(244, 244, 245, 0.9);
   --control-bg-hover: rgba(228, 228, 231, 0.95);
@@ -465,6 +473,35 @@ code,
   color: var(--text-0) !important;
 }
 
+@media (max-width: 767px) {
+  .mobile-project-motion-page {
+    background: #080808 !important;
+  }
+
+  .mobile-project-motion-surface,
+  .mobile-project-motion-header {
+    --bg-0: #080808;
+    --bg-1: rgba(18, 18, 18, 0.92);
+    --bg-2: rgba(24, 24, 24, 0.72);
+    --bg-3: rgba(255, 255, 255, 0.12);
+    --text-0: #ffffff;
+    --text-1: rgba(255, 255, 255, 0.65);
+    --text-2: rgba(255, 255, 255, 0.48);
+    --border-0: rgba(255, 255, 255, 0.14);
+    --project-control-bg: rgba(255, 255, 255, 0.1);
+    --project-control-bg-hover: rgba(255, 255, 255, 0.16);
+    --project-control-border: rgba(255, 255, 255, 0.14);
+    --button-gradient-from: rgba(34, 34, 34, 0.88);
+    --button-gradient-to: rgba(12, 12, 12, 0.82);
+    --button-border: rgba(255, 255, 255, 0.12);
+  }
+
+  .mobile-project-motion-header {
+    background: linear-gradient(to bottom, rgb(0 0 0 / 0.48), transparent) !important;
+    padding-top: max(calc(env(safe-area-inset-top) + 1.5rem), 4rem) !important;
+  }
+}
+
 .status-good-bg {
   border-radius: 28px;
   background: var(--success-1);
@@ -554,8 +591,10 @@ code,
 
 .rich-note-content a {
   color: var(--accent-color);
+  cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 3px;
+  overflow-wrap: anywhere;
 }
 
 .rich-note-content p.is-editor-empty:first-child::before {

@@ -213,7 +213,7 @@ export default function QueuePanel({
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            className="relative flex items-center justify-between gap-3 rounded-2xl p-3 bg-(--bg-2) shadow-2xl ring-1 ring-(--control-border) text-(--text-0) cursor-grabbing"
+                            className="relative flex items-center justify-between gap-3 rounded-2xl p-3 bg-(--bg-2)/75 shadow-2xl ring-1 ring-(--control-border) text-(--text-0) backdrop-blur-xl cursor-grabbing"
                             style={{
                               ...provided.draggableProps.style,
                               width: queueContentRef.current
@@ -267,7 +267,7 @@ export default function QueuePanel({
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
                                   className={cn(
-                                    "relative flex w-full items-center justify-between gap-3 rounded-2xl p-3 mb-1 bg-white/5 hover:bg-white/10 transition-colors group",
+                                    "relative flex w-full items-center justify-between gap-3 rounded-2xl p-3 mb-1 bg-(--action-bg) hover:bg-(--action-bg-hover) transition-colors group",
                                     snapshot.isDragging && "opacity-50 z-50",
                                   )}
                                   style={provided.draggableProps.style}

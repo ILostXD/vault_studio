@@ -23,6 +23,7 @@ import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePreferences } from "@/contexts/PreferencesContext";
 import { useFileDragUpload } from "@/hooks/useFileDragUpload";
+import { useColorExtractor } from "@/hooks/useColorExtractor";
 import { usePlayButtonAnimation } from "@/hooks/usePlayButtonAnimation";
 import { useProjectCoverImage } from "@/hooks/useProjectCoverImage";
 import { useProjectEditing } from "@/hooks/useProjectEditing";
@@ -93,6 +94,20 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 		project,
 		"large",
 	);
+	const mobileArtworkColors = useColorExtractor(projectCoverImage || undefined);
+	const mobileArtworkBackground = useMemo<React.CSSProperties>(() => {
+		const [primary = "#241018", secondary = "#161018", tertiary = "#101014"] =
+			mobileArtworkColors;
+
+		return {
+			background: [
+				`radial-gradient(ellipse at 12% 8%, color-mix(in srgb, ${primary} 35%, black) 0%, transparent 58%)`,
+				`radial-gradient(ellipse at 92% 42%, color-mix(in srgb, ${secondary} 28%, black) 0%, transparent 64%)`,
+				`radial-gradient(ellipse at 40% 82%, color-mix(in srgb, ${tertiary} 22%, black) 0%, transparent 62%)`,
+				"#080808",
+			].join(", "),
+		};
+	}, [mobileArtworkColors]);
 	const { data: motionAssets = [] } = useProjectMotionAssets(
 		project?.public_id,
 	);
@@ -140,6 +155,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 
 	const coverInputRef = useRef<HTMLInputElement>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
+	const portraitMotionVideoRef = useRef<HTMLVideoElement>(null);
 	const {
 		play,
 		pause,
@@ -198,6 +214,44 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 	const [isNotesOpen, setIsNotesOpen] = useState(false);
 	const [notesTrack, setNotesTrack] = useState<Track | null>(null);
 	const [_isDragging, setIsDragging] = useState(false);
+
+	useEffect(() => {
+		const video = portraitMotionVideoRef.current;
+		if (!video || !isMobilePortrait) return;
+
+		if (
+			isModalOpen ||
+			isCoverModalOpen ||
+			isMotionArtworkOpen ||
+			isVersionsModalOpen ||
+			isNotesOpen
+		) {
+			video.pause();
+			return;
+		}
+
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (entry?.isIntersecting && entry.intersectionRatio > 0.05) {
+					void video.play().catch(() => undefined);
+				} else {
+					video.pause();
+				}
+			},
+			{ threshold: [0, 0.05] },
+		);
+		observer.observe(video);
+
+		return () => observer.disconnect();
+	}, [
+		isCoverModalOpen,
+		isMobilePortrait,
+		isModalOpen,
+		isMotionArtworkOpen,
+		isNotesOpen,
+		isVersionsModalOpen,
+		portraitMotionUrl,
+	]);
 
 	const handleTrackClickRef = useRef<(track: Track) => void>(() => {});
 
@@ -552,6 +606,20 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 	}, []);
 
 	useEffect(() => {
+		window.dispatchEvent(
+			new CustomEvent("vault-system-bars-dark", {
+				detail: isMobilePortrait,
+			}),
+		);
+
+		return () => {
+			window.dispatchEvent(
+				new CustomEvent("vault-system-bars-dark", { detail: false }),
+			);
+		};
+	}, [isMobilePortrait]);
+
+	useEffect(() => {
 		if (!notesTrack) return;
 		const trackIndex = tracks.findIndex(
 			(t) => t.public_id === notesTrack.public_id,
@@ -649,8 +717,23 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 
 	return (
 		<>
+			{isMobilePortrait && (
+				<div
+					className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-black sm:hidden"
+					aria-hidden="true"
+				>
+					<div
+						className="absolute -inset-[8%] transition-[background] duration-700"
+						style={mobileArtworkBackground}
+					/>
+					<div className="absolute inset-0 bg-linear-to-b from-black/12 via-black/24 via-55% to-[#080808] to-88%" />
+				</div>
+			)}
 			<div
-				className="mx-auto max-w-7xl px-6 pt-24 md:pt-30 pb-40 relative"
+				className={cn(
+					"mx-auto max-w-7xl px-6 pt-24 md:pt-30 pb-40 relative",
+					isMobilePortrait && "mobile-project-motion-surface",
+				)}
 				onDragEnter={fileDrag.handlePageDragEnter}
 				onDragLeave={fileDrag.handlePageDragLeave}
 				onDragOver={fileDrag.handlePageDragOver}
@@ -683,9 +766,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 					</div>
 				</div>
 
-				<div
-					className="grid grid-cols-1 gap-5 relative z-10 md:grid-cols-2"
-				>
+				<div className="grid grid-cols-1 gap-5 relative z-10 md:grid-cols-2">
 					<motion.div
 						initial={false}
 						animate={{
@@ -716,34 +797,42 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 									animate={{ opacity: 1 }}
 									exit={{ opacity: 0 }}
 									transition={{ duration: 0.3 }}
-									className="relative -mx-6 -mt-10 sm:mx-0 sm:mt-0 w-[calc(100%+3rem)] sm:w-full h-[52dvh] min-h-[380px] max-h-[480px] overflow-hidden select-none"
+									className="relative -mx-6 -mt-24 sm:mx-0 sm:mt-0 w-[calc(100%+3rem)] sm:w-full h-[47dvh] min-h-[350px] max-h-[430px] overflow-hidden select-none"
 									onClick={
 										canEditProject ? () => setIsCoverModalOpen(true) : undefined
 									}
 								>
-									{projectCoverImage && (
-										<img
-											src={projectCoverImage}
-											alt={String(project.name)}
-											className="absolute inset-0 size-full object-cover object-top"
-											onLoad={() => setCoverColorsReady(true)}
-										/>
-									)}
-									<video
-										key={portraitMotionUrl}
-										src={portraitMotionUrl}
-										poster={projectCoverImage || undefined}
-										autoPlay
-										muted
-										loop
-										playsInline
-										disablePictureInPicture
-										aria-label={`${project.name} animated cover`}
-										className="absolute inset-0 size-full object-cover object-top motion-reduce:hidden"
-									/>
 									<div
-										className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/60 to-transparent"
-									/>
+										className="absolute inset-x-0 top-[10px] bottom-0"
+										style={{
+											WebkitMaskImage:
+												"linear-gradient(to bottom, black 0%, black 74%, transparent 100%)",
+											maskImage:
+												"linear-gradient(to bottom, black 0%, black 74%, transparent 100%)",
+										}}
+									>
+										{projectCoverImage && (
+											<img
+												src={projectCoverImage}
+												alt={String(project.name)}
+												className="absolute inset-0 size-full object-cover object-top"
+												onLoad={() => setCoverColorsReady(true)}
+											/>
+										)}
+										<video
+											ref={portraitMotionVideoRef}
+											key={portraitMotionUrl}
+											src={portraitMotionUrl}
+											poster={projectCoverImage || undefined}
+											autoPlay
+											muted
+											loop
+											playsInline
+											disablePictureInPicture
+											aria-label={`${project.name} animated cover`}
+											className="absolute inset-0 size-full object-cover object-top motion-reduce:hidden"
+										/>
+									</div>
 									{canEditProject && (
 										<div className="absolute inset-0 bg-black/35 opacity-0 hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
 											<span className="text-(--text-0) text-sm font-medium bg-black/60 px-3.5 py-1.5 rounded-full backdrop-blur-md">
@@ -1051,7 +1140,10 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 			</div>
 
 			<div
-				className="fixed bottom-0 left-0 right-0 h-[120px] z-100 pointer-events-none"
+				className={cn(
+					"fixed bottom-0 left-0 right-0 h-[120px] z-100 pointer-events-none",
+					isMobilePortrait && "hidden",
+				)}
 				style={{
 					background:
 						"linear-gradient(to top, color-mix(in srgb, var(--bg-0) 100%, transparent) 20%, color-mix(in srgb, var(--bg-0) 95%, transparent) 25%, color-mix(in srgb, var(--bg-0) 85%, transparent) 30%, color-mix(in srgb, var(--bg-0) 70%, transparent) 45%, color-mix(in srgb, var(--bg-0) 50%, transparent) 60%, color-mix(in srgb, var(--bg-0) 30%, transparent) 75%, color-mix(in srgb, var(--bg-0) 10%, transparent) 90%, transparent 100%)",
