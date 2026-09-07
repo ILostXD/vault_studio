@@ -37,6 +37,7 @@ import {
 import { useScrollToTrack } from "@/hooks/useScrollToTrack";
 import { trackKeys, useTracks } from "@/hooks/useTracks";
 import { formatDurationLong, formatTrackDuration } from "@/lib/duration";
+import { createShuffledPlaylist } from "@/lib/optimalShuffle";
 import { cn } from "@/lib/utils";
 import {
 	type ProjectPageArtworkMode,
@@ -557,15 +558,20 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 			return;
 		}
 
-		const trackToPlay =
-			(currentTrack && tracks.find((t) => t.public_id === currentTrack.id)) ||
-			tracks[0];
+		const playbackTracks =
+			isShuffled && !currentTrackExists
+				? createShuffledPlaylist(tracks)
+				: tracks;
+		const trackToPlay = currentTrackExists
+			? tracks.find((t) => t.public_id === currentTrack.id)
+			: playbackTracks[0];
 
 		if (trackToPlay) {
-			const trackIndex = tracks.findIndex(
+			const trackIndex = playbackTracks.findIndex(
 				(t) => t.public_id === trackToPlay.public_id,
 			);
-			const tracksAfter = trackIndex >= 0 ? tracks.slice(trackIndex + 1) : [];
+			const tracksAfter =
+				trackIndex >= 0 ? playbackTracks.slice(trackIndex + 1) : [];
 
 			play(
 				mapTrackToPlayerTrack(trackToPlay, project, projectCoverImage),

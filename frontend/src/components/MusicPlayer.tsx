@@ -199,7 +199,7 @@ export default function MusicPlayer({
     }
   }, [isPlaying, pause, resume, currentTrack, queue.length, playFromQueue]);
 
-  const handleTrackTitleClick = useCallback(async () => {
+  const handleTrackTitleClick = useCallback(() => {
     if (!currentTrack?.id) return;
 
     if (currentTrack.isSharedTrack) {
@@ -214,23 +214,59 @@ export default function MusicPlayer({
       const currentPath = routerState.location.pathname;
       const targetPath = `/project/${currentTrack.projectId}`;
 
-      if (currentPath !== targetPath && currentPath !== `${targetPath}/`) {
-        await navigate({
+      if (currentPath === targetPath || currentPath === `${targetPath}/`) {
+        window.dispatchEvent(
+          new CustomEvent("scroll-to-track", {
+            detail: { trackId: currentTrack.id },
+          }),
+        );
+      } else {
+        sessionStorage.setItem("scrollToTrack", currentTrack.id);
+        void navigate({
           to: "/project/$projectId",
           params: { projectId: currentTrack.projectId },
         });
       }
       setIsQueueOpen(false);
-      openNowPlaying();
+      setIsCommentsOpen(false);
     }
   }, [
     currentTrack?.id,
     currentTrack?.projectId,
     currentTrack?.isSharedTrack,
     navigate,
-    openNowPlaying,
     routerState.location.pathname,
   ]);
+
+  const handleProjectTitleClick = useCallback(() => {
+    if (!currentTrack?.projectId) return;
+
+    const currentPath = routerState.location.pathname;
+    const targetPath = `/project/${currentTrack.projectId}`;
+    if (currentPath !== targetPath && currentPath !== `${targetPath}/`) {
+      void navigate({
+        to: "/project/$projectId",
+        params: { projectId: currentTrack.projectId },
+      });
+    }
+    setIsQueueOpen(false);
+    setIsCommentsOpen(false);
+  }, [currentTrack?.projectId, navigate, routerState.location.pathname]);
+
+  const handleMiniPlayerSurfaceClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      const target = event.target as HTMLElement;
+      if (
+        target.closest(
+          "button, a, input, textarea, [role='slider'], [data-mini-player-interactive]",
+        )
+      ) {
+        return;
+      }
+      openNowPlaying();
+    },
+    [openNowPlaying],
+  );
 
   const toggleMute = useCallback(() => {
     if (volumePercentage > 0) {
@@ -844,6 +880,7 @@ export default function MusicPlayer({
         ? fallbackTrack.artist
         : fallbackTrack.projectName || "Unknown Artist"
       : fallbackTrack?.projectName || "Unknown Artist";
+  const playerProject = fallbackTrack?.projectName || playerArtist;
 
   if (!currentTrack && queue.length === 0) {
     return null;
@@ -965,21 +1002,14 @@ export default function MusicPlayer({
 
           <div
             className="relative h-[50px] sm:h-[55px] grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-4 border border-(--card-border) border-t-0 rounded-b-[22px] shadow-md"
+            onClick={handleMiniPlayerSurfaceClick}
             style={{
               background:
                 "linear-gradient(0deg, var(--surface-overlay-from) 0%, var(--surface-overlay-to) 100%)",
             }}
           >
-            <button
-              type="button"
-              className="flex items-center gap-2 sm:gap-3 min-w-0 z-10 ml-1.5 sm:ml-2 text-left"
-              onClick={currentTrack ? handleTrackTitleClick : undefined}
-              disabled={!currentTrack}
-              aria-label={
-                currentTrack ? `Open Now Playing for ${playerTitle}` : undefined
-              }
-            >
-              <div className="size-9 sm:size-10 bg-[#333333] border border-[rgba(53,51,51,0.2)] rounded-tl-[9px] rounded-tr-[9px] rounded-br-[9px] rounded-bl-[13px] shrink-0 overflow-hidden">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 z-10 ml-1.5 sm:ml-2 text-left">
+              <div className="size-9 sm:size-10 cursor-pointer bg-[#333333] border border-[rgba(53,51,51,0.2)] rounded-tl-[9px] rounded-tr-[9px] rounded-br-[9px] rounded-bl-[13px] shrink-0 overflow-hidden">
                 {currentTrack && coverUrl && (
                   <img
                     src={coverUrl}
@@ -998,19 +1028,43 @@ export default function MusicPlayer({
                 )}
               </div>
 
-              <div className="min-w-0 w-full cursor-pointer">
-                <ScrollingText
-                  text={playerTitle}
-                  className="text-(--text-0) font-medium text-sm sm:text-base leading-tight hover:opacity-80 transition-opacity"
-                  gradientColor="#000000"
-                />
-                <ScrollingText
-                  text={playerArtist}
-                  className="text-[#858585] text-xs sm:text-sm leading-tight hover:opacity-80 transition-opacity"
-                  gradientColor="#000000"
-                />
+              <div className="min-w-0 w-full">
+                <button
+                  type="button"
+                  className="block w-full min-w-0 text-left"
+                  onClick={currentTrack ? handleTrackTitleClick : undefined}
+                  disabled={!currentTrack}
+                  aria-label={
+                    currentTrack ? `Show ${playerTitle} in its album` : undefined
+                  }
+                >
+                  <ScrollingText
+                    text={playerTitle}
+                    className="text-(--text-0) font-medium text-sm sm:text-base leading-tight hover:opacity-80 transition-opacity"
+                    gradientColor="#000000"
+                  />
+                </button>
+                <button
+                  type="button"
+                  className="block w-full min-w-0 text-left"
+                  onClick={
+                    currentTrack?.projectId ? handleProjectTitleClick : undefined
+                  }
+                  disabled={!currentTrack?.projectId}
+                  aria-label={
+                    currentTrack?.projectId
+                      ? `Open album ${playerProject}`
+                      : undefined
+                  }
+                >
+                  <ScrollingText
+                    text={playerProject}
+                    className="text-[#858585] text-xs sm:text-sm leading-tight hover:opacity-80 transition-opacity"
+                    gradientColor="#000000"
+                  />
+                </button>
               </div>
-            </button>
+            </div>
 
             <div className="flex items-center gap-4 sm:gap-6 justify-self-center z-20">
               <div
@@ -1233,6 +1287,7 @@ export default function MusicPlayer({
 
               <div
                 ref={volumeControlRef}
+                data-mini-player-interactive
                 className="hidden sm:flex order-1 sm:order-none relative items-center"
                 onPointerEnter={() =>
                   !isMobileScreen && setIsVolumeHovered(true)
