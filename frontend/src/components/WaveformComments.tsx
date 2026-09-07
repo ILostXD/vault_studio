@@ -1,6 +1,6 @@
 import {
 	Check,
-	MessageSquarePlus,
+	MessageSquare,
 	Pencil,
 	Send,
 	Trash2,
@@ -221,7 +221,7 @@ export default function WaveformComments({
 						setIsOpen(true);
 					}}
 				>
-					<MessageSquarePlus className="size-4" />
+					<MessageSquare className="size-4" />
 					{comments.length > 0 && (
 						<span className="absolute -right-1 -top-1 min-w-4 h-4 px-1 rounded-full bg-accent-blue text-[10px] font-bold leading-4 text-black">
 							{comments.length}

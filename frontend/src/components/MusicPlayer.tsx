@@ -4,7 +4,8 @@ import {
   Volume2Icon,
   Volume1Icon,
   VolumeXIcon,
-  ListIcon,
+  ListMusic,
+  MessageSquare,
   ShuffleIcon,
   RepeatIcon,
   Repeat1Icon,
@@ -107,6 +108,7 @@ export default function MusicPlayer({
   const [isDragging, setIsDragging] = useState(false);
   const [isVolumeDragging, setIsVolumeDragging] = useState(false);
   const [isQueueOpen, setIsQueueOpen] = useState(false);
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
   const [, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -877,6 +879,9 @@ export default function MusicPlayer({
               shareToken={shareToken}
               sharePassword={sharePassword}
               placement="miniPlayer"
+              isOpen={isCommentsOpen}
+              onOpenChange={setIsCommentsOpen}
+              showButton={false}
               onSeek={(time) => {
                 if (audioRef.current) audioRef.current.currentTime = time;
                 setPreviewProgress(time);
@@ -1143,7 +1148,29 @@ export default function MusicPlayer({
               </div>
             </div>
 
-            <div className="flex items-center gap-5 sm:gap-6 justify-self-end z-40 pr-3 sm:pr-4">
+            <div className="flex items-center gap-3 sm:gap-6 justify-self-end z-40 pr-3 sm:pr-4">
+              {preferences?.comments_enabled !== false &&
+                currentTrack?.versionId &&
+                duration > 0 && (
+                  <button
+                    type="button"
+                    className={`cursor-pointer transition-colors ${isCommentsOpen ? "text-accent-blue" : "text-(--text-0) hover:text-gray-300"}`}
+                    aria-label={
+                      isCommentsOpen ? "Hide comments" : "Show comments"
+                    }
+                    aria-pressed={isCommentsOpen}
+                    onClick={(e) => {
+                      setIsCommentsOpen(!isCommentsOpen);
+                      setIsQueueOpen(false);
+                      haptic.trigger("selection");
+                      blurOnClick(e);
+                    }}
+                    onKeyDown={preventSpacebarDefault}
+                  >
+                    <MessageSquare className="size-5.5 sm:size-5" />
+                  </button>
+                )}
+
               <button
                 type="button"
                 className={`cursor-pointer transition-colors ${loopMode !== "off" ? "text-accent-blue" : "text-(--text-0) hover:text-gray-300"}`}
@@ -1190,12 +1217,13 @@ export default function MusicPlayer({
                 aria-label="Queue"
                 onClick={(e) => {
                   setIsQueueOpen(!isQueueOpen);
+                  setIsCommentsOpen(false);
                   haptic.trigger("selection");
                   blurOnClick(e);
                 }}
                 onKeyDown={preventSpacebarDefault}
               >
-                <ListIcon className="size-5.5 sm:size-5" />
+                <ListMusic className="size-5.5 sm:size-5" />
                 {SHOW_QUEUE_BADGE && queue.length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-accent-blue text-black text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center pointer-events-none">
                     {queue.length}
