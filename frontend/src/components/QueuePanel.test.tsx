@@ -62,4 +62,22 @@ describe("QueuePanel touch scrolling & reorder", () => {
 		expect(reorderHandles.length).toBe(2);
 		expect(reorderHandles[0]?.className).toContain("touch-none");
 	});
+
+	it("renders inside the fullscreen panel without a sheet backdrop", () => {
+		const panelTarget = document.createElement("div");
+		document.body.append(panelTarget);
+
+		render(
+			<QueuePanel
+				isOpen={true}
+				onClose={vi.fn()}
+				embedded
+				panelTarget={panelTarget}
+			/>,
+		);
+
+		expect(panelTarget.textContent).toContain("First Track");
+		expect(document.querySelector(".overlay-backdrop")).toBeNull();
+		panelTarget.remove();
+	});
 });

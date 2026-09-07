@@ -13,6 +13,11 @@ data/
 .env
 frontend/dist/
 frontend/node_modules/
+*.apk
+
+/.codex-remote-attachments/
+/docs/ISSUES/
+/scratch/
 
 .vscode/
 .idea/

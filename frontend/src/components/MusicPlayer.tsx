@@ -1146,7 +1146,7 @@ export default function MusicPlayer({
             <div className="flex items-center gap-5 sm:gap-6 justify-self-end z-40 pr-3 sm:pr-4">
               <button
                 type="button"
-                className={`transition-colors ${loopMode !== "off" ? "text-accent-blue" : "text-(--text-0) hover:text-gray-300"}`}
+                className={`cursor-pointer transition-colors ${loopMode !== "off" ? "text-accent-blue" : "text-(--text-0) hover:text-gray-300"}`}
                 aria-label={
                   loopMode === "off"
                     ? "Loop off"
@@ -1171,7 +1171,7 @@ export default function MusicPlayer({
 
               <button
                 type="button"
-                className={`transition-colors ${isShuffled ? "text-accent-blue" : "text-(--text-0) hover:text-gray-300"}`}
+                className={`cursor-pointer transition-colors ${isShuffled ? "text-accent-blue" : "text-(--text-0) hover:text-gray-300"}`}
                 aria-label="Shuffle"
                 aria-pressed={isShuffled}
                 onClick={(e) => {
@@ -1186,7 +1186,7 @@ export default function MusicPlayer({
 
               <button
                 type="button"
-                className={`order-2 sm:order-none transition-colors relative ${isQueueOpen ? "text-accent-blue" : "text-(--text-0) hover:text-gray-300"}`}
+                className={`relative order-2 cursor-pointer transition-colors sm:order-none ${isQueueOpen ? "text-accent-blue" : "text-(--text-0) hover:text-gray-300"}`}
                 aria-label="Queue"
                 onClick={(e) => {
                   setIsQueueOpen(!isQueueOpen);

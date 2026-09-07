@@ -9,7 +9,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build:
@@ -18,10 +17,32 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: linux/arm64
+          - component: server
+            image: ${{ github.repository }}
+            context: .
+            dockerfile: ./Dockerfile
+            platform: linux/arm64
             runner: ubuntu-24.04-arm
             suffix: arm64
-          - platform: linux/amd64
+          - component: server
+            image: ${{ github.repository }}
+            context: .
+            dockerfile: ./Dockerfile
+            platform: linux/amd64
+            runner: ubuntu-latest
+            suffix: amd64
+          - component: audio
+            image: ${{ github.repository }}-audio-analysis
+            context: ./audio-analysis
+            dockerfile: ./audio-analysis/Dockerfile
+            platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            suffix: arm64
+          - component: audio
+            image: ${{ github.repository }}-audio-analysis
+            context: ./audio-analysis
+            dockerfile: ./audio-analysis/Dockerfile
+            platform: linux/amd64
             runner: ubuntu-latest
             suffix: amd64
     permissions:
@@ -46,25 +67,26 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ matrix.image }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
             type=sha,format=short
 
       - name: Build and push by digest
         id: build
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./Dockerfile
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ matrix.suffix }}
-          cache-to: type=gha,scope=${{ matrix.suffix }},mode=max
-          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=${{ github.event_name != 'pull_request' }}
+          cache-from: type=gha,scope=${{ matrix.component }}-${{ matrix.suffix }}
+          cache-to: type=gha,scope=${{ matrix.component }}-${{ matrix.suffix }},mode=max
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ matrix.image }},push-by-digest=true,name-canonical=true,push=${{ github.event_name != 'pull_request' }}
           build-args: |
             GIT_COMMIT=${{ github.sha }}
             GIT_VERSION=${{ github.ref_name }}
@@ -82,7 +104,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          name: digests-${{ matrix.suffix }}
+          name: digests-${{ matrix.component }}-${{ matrix.suffix }}
           path: /tmp/digests/*
           if-no-files-found: error
           retention-days: 1
@@ -91,6 +113,13 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     needs: build
+    strategy:
+      matrix:
+        include:
+          - component: server
+            image: ${{ github.repository }}
+          - component: audio
+            image: ${{ github.repository }}-audio-analysis
     permissions:
       contents: read
       packages: write
@@ -100,7 +129,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: /tmp/digests
-          pattern: digests-*
+          pattern: digests-${{ matrix.component }}-*
           merge-multiple: true
 
       - name: Set up Docker Buildx
@@ -117,20 +146,22 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ matrix.image }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
             type=sha,format=short
 
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
+          # shellcheck disable=SC2046
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
+            $(printf '${{ env.REGISTRY }}/${{ matrix.image }}@sha256:%s ' *)
 
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ matrix.image }}:${{ steps.meta.outputs.version }}

@@ -53,4 +53,28 @@ describe("WaveformComments mobile scrolling", () => {
       expect(scrollClasses).toContain(className);
     }
   });
+
+  it("renders inside the fullscreen panel without a modal backdrop", () => {
+    const panelTarget = document.createElement("div");
+    document.body.append(panelTarget);
+
+    render(
+      <WaveformComments
+        versionId={42}
+        duration={120}
+        currentTime={10}
+        onSeek={vi.fn()}
+        placement="fullscreen"
+        isOpen={true}
+        onOpenChange={vi.fn()}
+        showButton={false}
+        embedded
+        panelTarget={panelTarget}
+      />,
+    );
+
+    expect(panelTarget.querySelector('[role="dialog"]')).toBeTruthy();
+    expect(panelTarget.querySelector(".fixed.inset-0")).toBeNull();
+    panelTarget.remove();
+  });
 });

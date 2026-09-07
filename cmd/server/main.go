@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -12,6 +14,7 @@ import (
 
 	"bungleware/vault/internal/auth"
 	"bungleware/vault/internal/db"
+	"bungleware/vault/internal/distribution"
 	"bungleware/vault/internal/handlers"
 	"bungleware/vault/internal/handlers/projects"
 	"bungleware/vault/internal/handlers/sharing"
@@ -34,6 +37,8 @@ type Config struct {
 	DataDir            string
 	AuthConfig         auth.Config
 	CORSAllowedOrigins []string
+	TooLost            handlers.TooLostConfig
+	Updates            handlers.UpdateConfig
 }
 
 func loadConfig() Config {
@@ -77,6 +82,12 @@ func loadConfig() Config {
 		slog.Warn("TOKEN_PEPPER is not set; refresh/reset tokens are hashed without a pepper")
 	}
 
+	providerTokenKey := os.Getenv("PROVIDER_TOKEN_ENCRYPTION_KEY")
+	if providerTokenKey == "" {
+		sum := sha256.Sum256([]byte("vault-studio/provider-tokens/v1:" + jwtSecret))
+		providerTokenKey = base64.StdEncoding.EncodeToString(sum[:])
+	}
+
 	return Config{
 		Port:    port,
 		DataDir: dataDir,
@@ -96,6 +107,19 @@ func loadConfig() Config {
 			"https://localhost",
 			"capacitor://localhost",
 		),
+		TooLost: handlers.TooLostConfig{
+			ClientID:            os.Getenv("TOOLOST_CLIENT_ID"),
+			ClientSecret:        os.Getenv("TOOLOST_CLIENT_SECRET"),
+			PublicBaseURL:       os.Getenv("PUBLIC_BASE_URL"),
+			Environment:         os.Getenv("TOOLOST_ENVIRONMENT"),
+			TokenEncryptionKey:  providerTokenKey,
+			SignedURLSecret:     signedURLSecret,
+			SignedURLExpiration: signedURLTTL,
+		},
+		Updates: handlers.UpdateConfig{
+			Endpoint: os.Getenv("VAULT_UPDATE_URL"),
+			Token:    os.Getenv("VAULT_UPDATE_TOKEN"),
+		},
 	}
 }
 
@@ -249,6 +273,10 @@ func main() {
 	collaborationHandler := handlers.NewCollaborationWebSocketHandler(collaborationHub)
 	notesHandler := handlers.NewNotesHandler(database)
 	organizationHandler := handlers.NewOrganizationHandler(database)
+	distributionService := distribution.NewService(database.Queries, config.DataDir)
+	distributionHandler := handlers.NewDistributionHandler(distributionService)
+	tooLostHandler := handlers.NewTooLostHandler(database.Queries, distributionService, config.TooLost)
+	updateHandler := handlers.NewUpdateHandler(database, Version, config.Updates)
 
 	mux := http.NewServeMux()
 
@@ -280,6 +308,7 @@ func main() {
 	mux.HandleFunc("GET /api/share/{token}/versions/{versionId}/comments", shareRL.RateLimit(httputil.Wrap(sharingHandler.ListSharedWaveformComments)))
 	mux.HandleFunc("POST /api/share/{token}/versions/{versionId}/comments", shareRL.RateLimit(httputil.Wrap(sharingHandler.CreateSharedWaveformComment)))
 	mux.HandleFunc("GET /api/instance/version", publicRL.RateLimit(httputil.Wrap(statsHandler.GetInstanceVersion)))
+	mux.HandleFunc("GET /api/integrations/toolost/callback", httputil.Wrap(tooLostHandler.Callback))
 
 	mux.HandleFunc("GET /api/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -327,6 +356,16 @@ func main() {
 
 	mux.Handle("GET /api/preferences", authMW(httputil.Wrap(prefsHandler.GetPreferences)))
 	mux.Handle("PUT /api/preferences", authMW(httputil.Wrap(prefsHandler.UpdatePreferences)))
+	mux.Handle("GET /api/artist-profile", authMW(httputil.Wrap(distributionHandler.GetArtistProfile)))
+	mux.Handle("PUT /api/artist-profile", authMW(httputil.Wrap(distributionHandler.SaveArtistProfile)))
+	mux.Handle("GET /api/integrations/toolost", authMW(httputil.Wrap(tooLostHandler.Status)))
+	mux.Handle("GET /api/integrations/toolost/lookups", authMW(httputil.Wrap(tooLostHandler.Lookups)))
+	mux.Handle("POST /api/integrations/toolost/connect", authMW(httputil.Wrap(tooLostHandler.Connect)))
+	mux.Handle("DELETE /api/integrations/toolost", authMW(httputil.Wrap(tooLostHandler.Disconnect)))
+	mux.Handle("GET /api/admin/integrations/toolost", authMW(httputil.Wrap(tooLostHandler.GetConfiguration)))
+	mux.Handle("PUT /api/admin/integrations/toolost", authMW(httputil.Wrap(tooLostHandler.SaveConfiguration)))
+	mux.Handle("GET /api/admin/update", authMW(httputil.Wrap(updateHandler.Status)))
+	mux.Handle("POST /api/admin/update", authMW(httputil.Wrap(updateHandler.Install)))
 
 	mux.Handle("GET /api/stats/storage", authMW(httputil.Wrap(statsHandler.GetStorageStats)))
 	mux.Handle("GET /api/stats/storage/global", authMW(httputil.Wrap(statsHandler.GetGlobalStorageStats)))
@@ -349,6 +388,12 @@ func main() {
 	mux.Handle("GET /api/projects/{id}/motion-art/{kind}/preview", optionalAuthMW(signedURLMW(httputil.Wrap(projectsHandler.StreamProjectMotionAsset))))
 	mux.Handle("POST /api/projects/{id}/duplicate", authMW(httputil.Wrap(projectsHandler.DuplicateProject)))
 	mux.Handle("GET /api/projects/{id}/export", authMW(httputil.Wrap(projectsHandler.ExportProject)))
+	mux.Handle("GET /api/projects/{id}/release-preparation", authMW(httputil.Wrap(distributionHandler.GetPreparation)))
+	mux.Handle("PUT /api/projects/{id}/release-preparation", authMW(httputil.Wrap(distributionHandler.SavePreparation)))
+	mux.Handle("POST /api/projects/{id}/release-package", authMW(httputil.Wrap(distributionHandler.ExportPackage)))
+	mux.Handle("GET /api/projects/{id}/distribution-history", authMW(httputil.Wrap(distributionHandler.History)))
+	mux.Handle("POST /api/projects/{id}/distribution/toolost", authMW(httputil.Wrap(tooLostHandler.CreateDraft)))
+	mux.Handle("POST /api/projects/{id}/distribution-history/{historyId}/refresh", authMW(httputil.Wrap(tooLostHandler.RefreshStatus)))
 
 	mux.Handle("POST /api/folders", authMW(httputil.Wrap(foldersHandler.CreateFolder)))
 	mux.Handle("GET /api/folders", authMW(httputil.Wrap(foldersHandler.ListFolders)))

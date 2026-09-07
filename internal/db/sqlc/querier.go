@@ -14,10 +14,12 @@ type Querier interface {
 	ClearAllTracksAnalysis(ctx context.Context) error
 	ClearProjectCover(ctx context.Context, id int64) (Project, error)
 	ClearTrackAnalysis(ctx context.Context, id int64) error
+	ConsumeProviderOAuthState(ctx context.Context, arg ConsumeProviderOAuthStateParams) (ProviderOauthState, error)
 	CountProjectsInFolder(ctx context.Context, folderID sql.NullInt64) (int64, error)
 	CountSubfoldersInFolder(ctx context.Context, parentID sql.NullInt64) (int64, error)
 	CountTrackVersions(ctx context.Context, trackID int64) (int64, error)
 	CountUsers(ctx context.Context) (int64, error)
+	CreateDistributionHistory(ctx context.Context, arg CreateDistributionHistoryParams) (DistributionHistory, error)
 	// FEDERATION TOKENS
 	CreateFederationToken(ctx context.Context, arg CreateFederationTokenParams) (FederationToken, error)
 	CreateFolder(ctx context.Context, arg CreateFolderParams) (Folder, error)
@@ -61,6 +63,8 @@ type Querier interface {
 	DeleteProjectMotionAsset(ctx context.Context, arg DeleteProjectMotionAssetParams) error
 	DeleteProjectShareToken(ctx context.Context, arg DeleteProjectShareTokenParams) error
 	DeleteProjectShareTokenByProject(ctx context.Context, arg DeleteProjectShareTokenByProjectParams) error
+	DeleteProviderConnection(ctx context.Context, arg DeleteProviderConnectionParams) error
+	DeleteProviderOAuthStates(ctx context.Context, arg DeleteProviderOAuthStatesParams) error
 	DeleteRemoteTrack(ctx context.Context, arg DeleteRemoteTrackParams) error
 	DeleteShareAccess(ctx context.Context, arg DeleteShareAccessParams) error
 	DeleteShareAccessByShare(ctx context.Context, arg DeleteShareAccessByShareParams) error
@@ -82,8 +86,12 @@ type Querier interface {
 	DeleteUserTrackShareByShareID(ctx context.Context, id int64) error
 	DeleteWaveformComment(ctx context.Context, arg DeleteWaveformCommentParams) (int64, error)
 	DeleteWebSocketSession(ctx context.Context, sessionID string) error
+	ExpireProviderOAuthStates(ctx context.Context, expiresAt int64) error
 	FindFileByContentHash(ctx context.Context, contentHash sql.NullString) (TrackFile, error)
 	GetCompletedTrackFile(ctx context.Context, arg GetCompletedTrackFileParams) (TrackFile, error)
+	GetDistributionHistory(ctx context.Context, arg GetDistributionHistoryParams) (DistributionHistory, error)
+	GetDistributionPreparation(ctx context.Context, arg GetDistributionPreparationParams) (DistributionPreparation, error)
+	GetDistributionProfile(ctx context.Context, userID int64) (DistributionArtistProfile, error)
 	GetFederationToken(ctx context.Context, token string) (FederationToken, error)
 	GetFederationTokenByID(ctx context.Context, id int64) (FederationToken, error)
 	GetFolder(ctx context.Context, arg GetFolderParams) (Folder, error)
@@ -114,6 +122,8 @@ type Querier interface {
 	GetProjectShareToken(ctx context.Context, token string) (ProjectShareToken, error)
 	GetProjectShareTokenByID(ctx context.Context, arg GetProjectShareTokenByIDParams) (ProjectShareToken, error)
 	GetProjectShareTokenByProject(ctx context.Context, arg GetProjectShareTokenByProjectParams) (ProjectShareToken, error)
+	GetProviderConnection(ctx context.Context, arg GetProviderConnectionParams) (ProviderConnection, error)
+	GetProviderSetting(ctx context.Context, provider string) (ProviderSetting, error)
 	GetPublicProjects(ctx context.Context, arg GetPublicProjectsParams) ([]Project, error)
 	GetPublicTracks(ctx context.Context, arg GetPublicTracksParams) ([]Track, error)
 	GetRefreshTokenByHash(ctx context.Context, tokenHash string) (RefreshToken, error)
@@ -153,6 +163,8 @@ type Querier interface {
 	ListAllFoldersByUser(ctx context.Context, userID int64) ([]Folder, error)
 	ListAllTrackFiles(ctx context.Context) ([]TrackFile, error)
 	ListAllUsers(ctx context.Context) ([]User, error)
+	ListDistributionHistory(ctx context.Context, arg ListDistributionHistoryParams) ([]DistributionHistory, error)
+	ListDistributionTracks(ctx context.Context, arg ListDistributionTracksParams) ([]ListDistributionTracksRow, error)
 	ListFederationTokensByOrigin(ctx context.Context, arg ListFederationTokensByOriginParams) ([]FederationToken, error)
 	ListFederationTokensByUser(ctx context.Context, localUserID int64) ([]FederationToken, error)
 	ListFoldersByParent(ctx context.Context, arg ListFoldersByParentParams) ([]Folder, error)
@@ -201,8 +213,15 @@ type Querier interface {
 	MarkTokenAsUsed(ctx context.Context, id int64) (InviteToken, error)
 	RevokeRefreshToken(ctx context.Context, id int64) error
 	RevokeRefreshTokensByUser(ctx context.Context, userID int64) error
+	SaveDistributionPreparation(ctx context.Context, arg SaveDistributionPreparationParams) (int64, error)
+	SaveDistributionProfile(ctx context.Context, arg SaveDistributionProfileParams) error
+	SaveProviderConnection(ctx context.Context, arg SaveProviderConnectionParams) error
+	SaveProviderOAuthState(ctx context.Context, arg SaveProviderOAuthStateParams) error
+	SaveProviderSetting(ctx context.Context, arg SaveProviderSettingParams) error
 	SearchTracksAccessibleByUser(ctx context.Context, arg SearchTracksAccessibleByUserParams) ([]SearchTracksAccessibleByUserRow, error)
 	SetActiveVersion(ctx context.Context, arg SetActiveVersionParams) error
+	UpdateDistributionHistory(ctx context.Context, arg UpdateDistributionHistoryParams) (DistributionHistory, error)
+	UpdateDistributionRemoteStatus(ctx context.Context, arg UpdateDistributionRemoteStatusParams) (DistributionHistory, error)
 	UpdateFederationTokenLastUsed(ctx context.Context, id int64) error
 	UpdateFolder(ctx context.Context, arg UpdateFolderParams) (Folder, error)
 	UpdateFolderName(ctx context.Context, arg UpdateFolderNameParams) (Folder, error)

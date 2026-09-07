@@ -9,6 +9,34 @@ import (
 	"time"
 )
 
+type DistributionArtistProfile struct {
+	UserID      int64     `json:"user_id"`
+	ProfileJson string    `json:"profile_json"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type DistributionHistory struct {
+	ID             int64     `json:"id"`
+	ProjectID      int64     `json:"project_id"`
+	UserID         int64     `json:"user_id"`
+	Kind           string    `json:"kind"`
+	Provider       string    `json:"provider"`
+	Environment    string    `json:"environment"`
+	Status         string    `json:"status"`
+	ProviderStatus string    `json:"provider_status"`
+	RemoteID       string    `json:"remote_id"`
+	Message        string    `json:"message"`
+	SnapshotJson   string    `json:"snapshot_json"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+type DistributionPreparation struct {
+	ProjectID       int64     `json:"project_id"`
+	PreparationJson string    `json:"preparation_json"`
+	UpdatedAt       time.Time `json:"updated_at"`
+}
+
 type FederationToken struct {
 	ID                int64          `json:"id"`
 	Token             string         `json:"token"`
@@ -146,6 +174,30 @@ type ProjectShareToken struct {
 	CreatedAt          sql.NullTime   `json:"created_at"`
 	UpdatedAt          sql.NullTime   `json:"updated_at"`
 	FeedbackQuestion   sql.NullString `json:"feedback_question"`
+}
+
+type ProviderConnection struct {
+	UserID         int64     `json:"user_id"`
+	Provider       string    `json:"provider"`
+	Environment    string    `json:"environment"`
+	EncryptedToken []byte    `json:"encrypted_token"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+type ProviderOauthState struct {
+	StateHash         string `json:"state_hash"`
+	UserID            int64  `json:"user_id"`
+	Provider          string `json:"provider"`
+	Environment       string `json:"environment"`
+	EncryptedVerifier []byte `json:"encrypted_verifier"`
+	ExpiresAt         int64  `json:"expires_at"`
+}
+
+type ProviderSetting struct {
+	Provider        string    `json:"provider"`
+	EncryptedConfig []byte    `json:"encrypted_config"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
 }
 
 type RefreshToken struct {

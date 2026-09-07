@@ -19,8 +19,7 @@ function Switch({
   disabled,
   ...props
 }: React.ComponentProps<typeof SwitchPrimitive.Root>) {
-  const { preferences } = usePreferences();
-  const activeColor = preferences?.accent_color || "#ffba00";
+  const { accentColor } = usePreferences();
 
   // CONSTANTS (layout + optics)
   const sliderHeight = 20;
@@ -120,7 +119,7 @@ function Switch({
   const backgroundColor = useTransform(
     // @ts-ignore - Type mismatch between useSpring/useTransform and mix function
     useSpring(considerChecked, { damping: 75, stiffness: 1200 }),
-    mix("#94949F77", activeColor),
+    mix("#94949F77", accentColor),
   );
 
   const handleMove = (clientX: number) => {

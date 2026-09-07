@@ -1,35 +1,34 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useRef, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import CDDiscBadge from "@/components/CDDiscBadge";
-import ColorPicker, { hexToHsl } from "@/components/ui/ColorPicker";
-import DotPattern from "@/components/ui/DotPattern";
-import { cn } from "@/lib/utils";
-// import { LinearBlur } from "progressive-blur";
-import { Button } from "@/components/ui/button";
+import { createFileRoute } from "@tanstack/react-router";
 import { Pencil, Users } from "lucide-react";
 import { motion } from "motion/react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  getStorageStats,
   getGlobalStorageStats,
   getInstanceInfo,
+  getStorageStats,
   updateInstanceName,
 } from "@/api/stats";
-import { usePreferences } from "@/contexts/PreferencesContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/routes/__root";
+import CDDiscBadge from "@/components/CDDiscBadge";
+import { ArtistProfileSection } from "@/components/distribution/ArtistProfileSection";
+import { TooLostSettingsSection } from "@/components/distribution/TooLostSettingsSection";
 import EditProfileModal from "@/components/modals/EditProfileModal";
-import { UserManagementModal } from "@/components/modals/UserManagementModal";
 import ExportInstanceModal from "@/components/modals/ExportInstanceModal";
 import ImportInstanceModal from "@/components/modals/ImportInstanceModal";
 import ResetInstanceModal from "@/components/modals/ResetInstanceModal";
-import type {
-  StorageStats,
-  InstanceInfo,
-  Quality,
-} from "@/types/api";
-import { ToggleGroup } from "@/components/ui/toggle-group";
+import { UserManagementModal } from "@/components/modals/UserManagementModal";
+import { SoftwareUpdateSection } from "@/components/SoftwareUpdateSection";
+// import { LinearBlur } from "progressive-blur";
+import { Button } from "@/components/ui/button";
+import ColorPicker, { hexToHsl } from "@/components/ui/ColorPicker";
+import DotPattern from "@/components/ui/DotPattern";
 import { Switch } from "@/components/ui/switch";
+import { ToggleGroup } from "@/components/ui/toggle-group";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePreferences } from "@/contexts/PreferencesContext";
+import { cn } from "@/lib/utils";
+import { toast } from "@/routes/__root";
+import type { InstanceInfo, Quality, StorageStats } from "@/types/api";
 
 export const Route = createFileRoute("/profile/")({
   component: ProfilePage,
@@ -37,7 +36,12 @@ export const Route = createFileRoute("/profile/")({
 
 function ProfilePage() {
   const { user, updateUsername } = useAuth();
-  const { preferences, isLoading: isPrefsLoading, updatePreferences, refreshPreferences } = usePreferences();
+  const {
+    preferences,
+    isLoading: isPrefsLoading,
+    updatePreferences,
+    refreshPreferences,
+  } = usePreferences();
   const queryClient = useQueryClient();
   const [storageStats, setStorageStats] = useState<StorageStats | null>(null);
   const [globalStorageStats, setGlobalStorageStats] =
@@ -70,8 +74,6 @@ function ProfilePage() {
   }, [preferences?.accent_color, pickerRadius]);
 
   const isColorPickerMountedRef = useRef(false);
-
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -179,8 +181,9 @@ function ProfilePage() {
         <div className="flex justify-center">
           <div className="grid grid-cols-1 lg:grid-cols-[305px_505px] gap-8 lg:gap-12 w-full lg:w-auto">
             <div
-              className={`flex flex-col items-center lg:sticky lg:top-32 lg:self-start z-20 transition-opacity duration-300 ${showContent ? "opacity-100" : "opacity-0"
-                }`}
+              className={`flex flex-col items-center lg:sticky lg:top-32 lg:self-start z-20 transition-opacity duration-300 ${
+                showContent ? "opacity-100" : "opacity-0"
+              }`}
               aria-busy={isLoading}
             >
               <motion.div
@@ -196,16 +199,20 @@ function ProfilePage() {
                     sublabel={
                       user?.created_at
                         ? `Created ${new Date(
-                          user.created_at,
-                        ).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}`
+                            user.created_at,
+                          ).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}`
                         : "{ vault.studio }"
                     }
                     colors={preferences.disc_colors}
-                    colorSpread={preferences.disc_colors?.length ? preferences.color_spread : undefined}
+                    colorSpread={
+                      preferences.disc_colors?.length
+                        ? preferences.color_spread
+                        : undefined
+                    }
                   />
                 ) : (
                   <div className="w-[305px] h-[375px]" />
@@ -221,11 +228,25 @@ function ProfilePage() {
               </motion.button>
             </div>
 
-            <div
-              className={`space-y-6 w-full transition-opacity duration-300 ${showContent ? "opacity-100" : "opacity-0"
-                }`}
+            <motion.div
+              initial={false}
+              animate={{
+                opacity: showContent ? 1 : 0,
+                y: showContent ? 0 : 12,
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 320,
+                damping: 32,
+                delay: 0.04,
+              }}
+              className="space-y-6 w-full"
               aria-busy={isLoading}
             >
+              <div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-3xl p-6">
+                <ArtistProfileSection />
+              </div>
+
               <div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-3xl p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-medium text-(--text-0)">
@@ -247,10 +268,15 @@ function ProfilePage() {
                           {utilizedPercent}% utilized
                         </p>
                         <div className="bg-[#383838] border border-(--card-border) h-[5.345px] rounded-[21px] overflow-hidden">
-                          <div
+                          <motion.div
                             className="bg-accent-blue h-full rounded-[21px]"
-                            style={{
-                              width: `${utilizedPercent}%`,
+                            initial={{ width: 0 }}
+                            animate={{ width: `${utilizedPercent}%` }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 120,
+                              damping: 24,
+                              delay: 0.15,
                             }}
                           />
                         </div>
@@ -410,7 +436,11 @@ function ProfilePage() {
                           { label: "Black", value: "black" },
                           { label: "System", value: "system" },
                         ]}
-                        value={preferences?.theme === "oled" ? "black" : preferences?.theme || "default"}
+                        value={
+                          preferences?.theme === "oled"
+                            ? "black"
+                            : preferences?.theme || "default"
+                        }
                         onValueChange={async (val) => {
                           try {
                             await updatePreferences({ theme: val });
@@ -463,26 +493,38 @@ function ProfilePage() {
                       checked={preferences?.comments_enabled !== false}
                       onCheckedChange={async (checked) => {
                         try {
-                          await updatePreferences({ comments_enabled: checked });
+                          await updatePreferences({
+                            comments_enabled: checked,
+                          });
                         } catch (error) {
-                          console.error("Failed to update comments setting:", error);
+                          console.error(
+                            "Failed to update comments setting:",
+                            error,
+                          );
                         }
                       }}
                       aria-label="Show waveform comments"
                     />
                   </div>
 
+                  <TooLostSettingsSection />
+
                   <div className="flex flex-col gap-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-(--text-0) text-base">Accent Color</p>
+                        <p className="text-(--text-0) text-base">
+                          Accent Color
+                        </p>
                         <p className="text-(--text-2) text-sm">
                           Choose your preferred app accent color
                         </p>
                       </div>
                       <div
                         className="w-10 h-10 rounded-lg border border-(--card-border) shadow-inner transition-colors duration-200"
-                        style={{ backgroundColor: preferences?.accent_color || "#ffba00" }}
+                        style={{
+                          backgroundColor:
+                            preferences?.accent_color || "#ffba00",
+                        }}
                       />
                     </div>
                     <div className="bg-(--inner-card-bg) border border-(--card-border) rounded-[12px] p-4 flex justify-center relative overflow-hidden select-none">
@@ -508,11 +550,19 @@ function ProfilePage() {
                               isColorPickerMountedRef.current = true;
                               return;
                             }
-                            if (newColor && newColor !== preferences?.accent_color) {
+                            if (
+                              newColor &&
+                              newColor !== preferences?.accent_color
+                            ) {
                               try {
-                                await updatePreferences({ accent_color: newColor });
+                                await updatePreferences({
+                                  accent_color: newColor,
+                                });
                               } catch (error) {
-                                console.error("Failed to update accent color:", error);
+                                console.error(
+                                  "Failed to update accent color:",
+                                  error,
+                                );
                               }
                             }
                           }}
@@ -524,7 +574,9 @@ function ProfilePage() {
                   <div className="hidden">
                     <div className="flex items-center justify-between border-b border-(--card-border) pb-4">
                       <div>
-                        <p className="text-(--text-0) text-base">Stem Separation</p>
+                        <p className="text-(--text-0) text-base">
+                          Stem Separation
+                        </p>
                         <p className="text-(--text-2) text-sm">
                           Enable local AI stem separation
                         </p>
@@ -533,7 +585,9 @@ function ProfilePage() {
 
                     <div className="flex items-center justify-between border-b border-(--card-border) pb-4">
                       <div>
-                        <p className="text-(--text-0) text-base">Public Sharing</p>
+                        <p className="text-(--text-0) text-base">
+                          Public Sharing
+                        </p>
                         <p className="text-(--text-2) text-sm">
                           Allow tracks to be shared publicly
                         </p>
@@ -602,6 +656,8 @@ function ProfilePage() {
                     </p>
                   </div>
 
+                  {user?.is_admin && <SoftwareUpdateSection />}
+
                   {instanceInfo?.created_at && (
                     <div className="flex items-center justify-between">
                       <p className="text-(--text-1) text-base">Created</p>
@@ -659,7 +715,9 @@ function ProfilePage() {
 
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-(--text-0) text-base">Reset Instance</p>
+                        <p className="text-(--text-0) text-base">
+                          Reset Instance
+                        </p>
                         <p className="text-(--text-2) text-sm">
                           Clear all data and restore to default settings
                         </p>
@@ -675,7 +733,7 @@ function ProfilePage() {
                   </div>
                 </div>
               )}
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>

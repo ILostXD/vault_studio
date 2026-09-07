@@ -1,0 +1,27 @@
+services:
+  vault-server:
+    environment:
+      - VAULT_UPDATE_URL=http://vault-updater:8080/v1/update
+      - VAULT_UPDATE_TOKEN=${JWT_SECRET}
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+      - com.centurylinklabs.watchtower.scope=vault-studio
+
+  audio-analysis:
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+      - com.centurylinklabs.watchtower.scope=vault-studio
+
+  vault-updater:
+    image: containrrr/watchtower:1.7.1
+    container_name: vault-updater
+    restart: unless-stopped
+    command: --http-api-update --label-enable --scope vault-studio --cleanup --no-startup-message
+    environment:
+      - WATCHTOWER_HTTP_API_TOKEN=${JWT_SECRET}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - vault-network
+    labels:
+      - com.centurylinklabs.watchtower.enable=false

@@ -24,11 +24,7 @@ interface ArtworkSourceProps {
 	className: string;
 }
 
-function ArtworkSource({
-	assetUrl,
-	coverUrl,
-	className,
-}: ArtworkSourceProps) {
+function ArtworkSource({ assetUrl, coverUrl, className }: ArtworkSourceProps) {
 	return (
 		<>
 			{coverUrl && <img src={coverUrl} alt="" className={className} />}

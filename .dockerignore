@@ -14,12 +14,12 @@ README.md
 
 bin/
 dist/
+.cache/
 *.exe
 *.dll
 *.so
 *.dylib
 
-*_test.go
 test/
 tests/
 
@@ -30,6 +30,7 @@ tests/
 frontend/node_modules/
 frontend/.next/
 frontend/dist/
+frontend/android/
 
 __pycache__/
 *.py[cod]
@@ -45,9 +46,12 @@ ENV/
 logs/
 service.log
 
-data/*.db
-data/*.db-shm
-data/*.db-wal
+data/
+
+.codex-remote-attachments/
+scratch/
+android/
+*.apk
 
 tmp/
 temp/

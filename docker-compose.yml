@@ -1,5 +1,6 @@
 services:
   vault-server:
+    image: ghcr.io/ilostxd/vault_studio:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -19,6 +20,11 @@ services:
       - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost,http://192.168.1.253}
       - LOG_LEVEL=${LOG_LEVEL:-warn}
       - AUDIO_ANALYSIS_URL=http://audio-analysis:8001
+      - TOOLOST_CLIENT_ID=${TOOLOST_CLIENT_ID:-}
+      - TOOLOST_CLIENT_SECRET=${TOOLOST_CLIENT_SECRET:-}
+      - TOOLOST_ENVIRONMENT=${TOOLOST_ENVIRONMENT:-sandbox}
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-}
+      - PROVIDER_TOKEN_ENCRYPTION_KEY=${PROVIDER_TOKEN_ENCRYPTION_KEY:-}
     volumes:
       - ./data:/app/data
     healthcheck:
@@ -42,6 +48,7 @@ services:
         condition: service_healthy
 
   audio-analysis:
+    image: ghcr.io/ilostxd/vault_studio-audio-analysis:latest
     build:
       context: ./audio-analysis
     container_name: vault-audio-analysis

@@ -12,6 +12,7 @@ import {
   ListPlus,
   Trash2,
   Film,
+  PackageCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,6 +52,7 @@ import DeleteProjectModal from "@/components/modals/DeleteProjectModal";
 import LeaveProjectModal from "@/components/modals/LeaveProjectModal";
 import MoveProjectModal from "@/components/modals/MoveProjectModal";
 import ShareModal from "@/components/modals/ShareModal";
+import { PrepareReleaseModal } from "@/components/distribution/PrepareReleaseModal";
 import { toast } from "@/routes/__root";
 import * as sharingApi from "@/api/sharing";
 import { LogOut } from "lucide-react";
@@ -81,6 +83,7 @@ function ProjectLayout() {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showPrepareRelease, setShowPrepareRelease] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
   const projectArtist =
     project?.author_override || project?.owner_username || user?.username;
@@ -346,6 +349,12 @@ function ProjectLayout() {
                   <FileText className="ml-1 mr-1.5 size-4.5" />
                   Notes
                 </DropdownMenuItem>
+                {isProjectOwned && (
+                  <DropdownMenuItem onSelect={() => setShowPrepareRelease(true)}>
+                    <PackageCheck className="ml-1 mr-1.5 size-4.5" />
+                    Prepare release
+                  </DropdownMenuItem>
+                )}
                 {canDownloadProject && (
                   <DropdownMenuItem onSelect={handleExportProject}>
                     <Download className="ml-1 mr-1.5 size-4.5" />
@@ -433,6 +442,14 @@ function ProjectLayout() {
           }}
           showBackdrop={true}
           isOwned={isProjectOwned}
+        />
+      )}
+
+      {project && isProjectOwned && (
+        <PrepareReleaseModal
+          isOpen={showPrepareRelease}
+          onClose={() => setShowPrepareRelease(false)}
+          projectId={project.id}
         />
       )}
     </>

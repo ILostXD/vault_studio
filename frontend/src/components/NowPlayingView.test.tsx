@@ -2,11 +2,11 @@
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import NowPlayingView from "./NowPlayingView";
 import {
 	FULLSCREEN_DESKTOP_QUEUE_KEY,
 	getFullscreenDesktopQueueOpen,
 } from "@/lib/fullscreenQueue";
+import NowPlayingView, { shouldDismissNowPlaying } from "./NowPlayingView";
 
 function createStorage(): Storage {
 	const values = new Map<string, string>();
@@ -93,24 +93,33 @@ vi.mock("motion/react", async (importOriginal) => {
 
 vi.mock("@/components/motion/MotionArtworkStage", () => ({
 	default: () => <div data-testid="motion-artwork-stage" />,
-	MotionArtworkFlowBackground: () => <div data-testid="motion-artwork-bg" />,
-}));
-
-vi.mock("@/components/QueuePanel", () => ({
-	default: ({ isOpen, onClose }: any) => (
-		isOpen ? (
-			<div data-testid="mobile-queue-panel">
-				<button type="button" onClick={onClose} data-testid="close-mobile-queue-btn">
-					Close Mobile Queue
-				</button>
-			</div>
-		) : null
+	MotionArtworkFlowBackground: ({ coverUrl, maxLayers }: any) => (
+		<div
+			data-testid="motion-artwork-bg"
+			data-cover-url={coverUrl}
+			data-max-layers={maxLayers}
+		/>
 	),
 }));
 
+vi.mock("@/components/QueuePanel", () => ({
+	default: ({ isOpen, onClose, embedded }: any) =>
+		isOpen ? (
+			<div data-testid="mobile-queue-panel" data-embedded={embedded}>
+				<button
+					type="button"
+					onClick={onClose}
+					data-testid="close-mobile-queue-btn"
+				>
+					Close Mobile Queue
+				</button>
+			</div>
+		) : null,
+}));
+
 vi.mock("@/components/NotesPanel", () => ({
-	default: ({ selectedTrack, onClose }: any) => (
-		<div data-testid="notes-panel">
+	default: ({ selectedTrack, onClose, embedded }: any) => (
+		<div data-testid="notes-panel" data-embedded={embedded}>
 			<span>Notes for {selectedTrack?.title}</span>
 			<button type="button" onClick={onClose} data-testid="close-notes-btn">
 				Close Notes
@@ -120,8 +129,19 @@ vi.mock("@/components/NotesPanel", () => ({
 }));
 
 vi.mock("@/components/WaveformComments", () => ({
-	default: ({ placement, versionId, isOpen, onOpenChange }: any) => (
-		<div data-testid="waveform-comments" data-placement={placement} data-version={versionId}>
+	default: ({
+		placement,
+		versionId,
+		isOpen,
+		onOpenChange,
+		fillEmbedded,
+	}: any) => (
+		<div
+			data-testid="waveform-comments"
+			data-placement={placement}
+			data-version={versionId}
+			data-fill-embedded={String(fillEmbedded)}
+		>
 			<button
 				type="button"
 				onClick={() => onOpenChange?.(!isOpen)}
@@ -132,7 +152,9 @@ vi.mock("@/components/WaveformComments", () => ({
 		</div>
 	),
 	getCommentPosition: (timestamp: number, duration: number) =>
-		duration <= 0 ? 0 : Math.max(0, Math.min(100, (timestamp / duration) * 100)),
+		duration <= 0
+			? 0
+			: Math.max(0, Math.min(100, (timestamp / duration) * 100)),
 }));
 
 describe("NowPlayingView Fullscreen QoL", () => {
@@ -208,7 +230,9 @@ describe("NowPlayingView Fullscreen QoL", () => {
 			const hideQueueBtn = screen.getByRole("button", { name: "Hide queue" });
 			fireEvent.click(hideQueueBtn);
 
-			expect(window.localStorage.getItem(FULLSCREEN_DESKTOP_QUEUE_KEY)).toBe("false");
+			expect(window.localStorage.getItem(FULLSCREEN_DESKTOP_QUEUE_KEY)).toBe(
+				"false",
+			);
 			expect(getFullscreenDesktopQueueOpen()).toBe(false);
 			expect(screen.queryByText("Playing next")).toBeNull();
 		});
@@ -227,7 +251,9 @@ describe("NowPlayingView Fullscreen QoL", () => {
 			const showQueueBtn = screen.getByRole("button", { name: "Show queue" });
 			fireEvent.click(showQueueBtn);
 
-			expect(window.localStorage.getItem(FULLSCREEN_DESKTOP_QUEUE_KEY)).toBe("true");
+			expect(window.localStorage.getItem(FULLSCREEN_DESKTOP_QUEUE_KEY)).toBe(
+				"true",
+			);
 			expect(getFullscreenDesktopQueueOpen()).toBe(true);
 			expect(screen.getByText("Playing next")).toBeDefined();
 		});
@@ -243,7 +269,9 @@ describe("NowPlayingView Fullscreen QoL", () => {
 			);
 
 			fireEvent.click(screen.getByRole("button", { name: "Hide queue" }));
-			expect(window.localStorage.getItem(FULLSCREEN_DESKTOP_QUEUE_KEY)).toBe("false");
+			expect(window.localStorage.getItem(FULLSCREEN_DESKTOP_QUEUE_KEY)).toBe(
+				"false",
+			);
 			unmount();
 
 			// Session 2: User opens fullscreen in a new session / track
@@ -299,11 +327,14 @@ describe("NowPlayingView Fullscreen QoL", () => {
 
 			// Waveform comments mounted
 			const waveformComments = screen.getByTestId("waveform-comments");
-			expect(waveformComments.getAttribute("data-placement")).toBe("fullscreen");
+			expect(waveformComments.getAttribute("data-placement")).toBe(
+				"fullscreen",
+			);
 			expect(waveformComments.getAttribute("data-version")).toBe("42");
+			expect(waveformComments.getAttribute("data-fill-embedded")).toBe("false");
 		});
 
-		it("9. handles layered Escape key navigation: notes -> queue -> exit", () => {
+		it("9. closes the active panel before collapsing fullscreen", () => {
 			render(
 				<NowPlayingView
 					projectId="proj_abc"
@@ -320,16 +351,10 @@ describe("NowPlayingView Fullscreen QoL", () => {
 			fireEvent.keyDown(window, { key: "Escape" });
 			expect(screen.queryByTestId("notes-panel")).toBeNull();
 
-			// Queue is still open
-			expect(screen.getByText("Playing next")).toBeDefined();
-
-			// Next Escape closes queue and persists preference to false
-			fireEvent.keyDown(window, { key: "Escape" });
+			// Integrated panels are mutually exclusive, so Notes replaced Queue.
 			expect(screen.queryByText("Playing next")).toBeNull();
-			expect(window.localStorage.getItem(FULLSCREEN_DESKTOP_QUEUE_KEY)).toBe("false");
-			expect(mockCloseNowPlaying).not.toHaveBeenCalled();
 
-			// Next Escape exits fullscreen
+			// Next Escape collapses fullscreen.
 			fireEvent.keyDown(window, { key: "Escape" });
 			expect(mockCloseNowPlaying).toHaveBeenCalledTimes(1);
 		});
@@ -347,18 +372,62 @@ describe("NowPlayingView Fullscreen QoL", () => {
 			const commentsBtn = screen.getByRole("button", { name: "Comments" });
 			const notesBtn = screen.getByRole("button", { name: "Notes" });
 			const queueBtn = screen.getByRole("button", { name: "Open queue" });
+			const waveform = screen.getByTestId("mobile-playback-waveform");
+			const transports = screen.getByTestId("mobile-transport-controls");
+			const panelControls = screen.getByTestId("mobile-panel-controls");
 
 			expect(commentsBtn).toBeDefined();
 			expect(notesBtn).toBeDefined();
 			expect(queueBtn).toBeDefined();
+			expect(
+				screen.getByRole("button", { name: "Toggle shuffle" }),
+			).toBeDefined();
+			expect(
+				screen.getByRole("button", { name: "Change repeat mode" }),
+			).toBeDefined();
 
 			// Tapping Notes on mobile opens NotesPanel
 			fireEvent.click(notesBtn);
 			expect(screen.getByTestId("notes-panel")).toBeDefined();
 			expect(screen.getByText("Notes for Cosmic Odyssey")).toBeDefined();
+			expect(screen.getByTestId("mobile-active-panel")).toBeDefined();
+			expect(
+				screen.getByTestId("mobile-artwork-region").firstElementChild,
+			).toBe(screen.getByTestId("mobile-active-panel"));
+			expect(screen.getByTestId("mobile-artwork-card").className).toContain(
+				"size-14",
+			);
+			expect(
+				screen
+					.getByTestId("mobile-header-artwork-slot")
+					.contains(screen.getByTestId("mobile-artwork-card")),
+			).toBe(true);
+			const headerDetails = screen.getByTestId("mobile-header-track-details");
+			expect(screen.queryByTestId("mobile-track-details")).toBeNull();
+			expect(headerDetails.textContent).toContain("Cosmic Odyssey");
+			expect(headerDetails.textContent).toContain("Astro Beats");
+			expect(screen.getByTestId("mobile-playback-waveform")).toBe(waveform);
+			expect(screen.getByTestId("mobile-transport-controls")).toBe(transports);
+			expect(screen.getByTestId("mobile-panel-controls")).toBe(panelControls);
+			expect(screen.getByTestId("motion-artwork-bg")).toBeDefined();
+			expect(
+				screen.getByTestId("motion-artwork-bg").getAttribute("data-max-layers"),
+			).toBe("1");
+
+			fireEvent.click(commentsBtn);
+			expect(screen.queryByTestId("notes-panel")).toBeNull();
+			expect(screen.getByTestId("mobile-header-track-details")).toBe(
+				headerDetails,
+			);
+			expect(screen.getByTestId("mobile-playback-waveform")).toBe(waveform);
+			expect(screen.getByTestId("mobile-transport-controls")).toBe(transports);
+
+			fireEvent.click(queueBtn);
+			expect(screen.getByTestId("mobile-queue-panel")).toBeDefined();
+			expect(screen.getByTestId("mobile-panel-controls")).toBe(panelControls);
 		});
 
-		it("11. positions comments and notes on the left and queue on the right in desktop mode", () => {
+		it("11. uses one integrated right rail for queue, notes, and comments", () => {
 			render(
 				<NowPlayingView
 					projectId="proj_abc"
@@ -367,14 +436,18 @@ describe("NowPlayingView Fullscreen QoL", () => {
 				/>,
 			);
 
-			const leftContainer = document.querySelector(".absolute.left-0");
-			expect(leftContainer).toBeTruthy();
-			expect(leftContainer?.querySelector('button[aria-label="Comments"]')).toBeTruthy();
-			expect(leftContainer?.querySelector('button[aria-label="Show notes"]')).toBeTruthy();
+			expect(screen.getAllByTestId("fullscreen-side-panel")).toHaveLength(1);
 
-			const rightContainer = document.querySelector(".absolute.right-0");
-			expect(rightContainer).toBeTruthy();
-			expect(rightContainer?.querySelector('button[aria-label="Hide queue"]')).toBeTruthy();
+			fireEvent.click(screen.getByRole("button", { name: "Show notes" }));
+			expect(screen.queryByText("Playing next")).toBeNull();
+			expect(
+				screen.getByTestId("notes-panel").getAttribute("data-embedded"),
+			).toBe("true");
+			expect(screen.getAllByTestId("fullscreen-side-panel")).toHaveLength(1);
+
+			fireEvent.click(screen.getByRole("button", { name: "Comments" }));
+			expect(screen.queryByTestId("notes-panel")).toBeNull();
+			expect(screen.getAllByTestId("fullscreen-side-panel")).toHaveLength(1);
 		});
 
 		it("12. desktop queue provides reorder handles and track action options", () => {
@@ -386,11 +459,37 @@ describe("NowPlayingView Fullscreen QoL", () => {
 				/>,
 			);
 
-			const reorderHandles = document.querySelectorAll('[aria-label^="Reorder"]');
+			const reorderHandles = document.querySelectorAll(
+				'[aria-label^="Reorder"]',
+			);
 			expect(reorderHandles.length).toBe(sampleQueue.length);
 
-			const optionButtons = document.querySelectorAll('[aria-label^="Options for"]');
+			const optionButtons = document.querySelectorAll(
+				'[aria-label^="Options for"]',
+			);
 			expect(optionButtons.length).toBe(sampleQueue.length);
+		});
+
+		it("13. uses a collapse control instead of a close icon", () => {
+			render(
+				<NowPlayingView
+					projectId="proj_abc"
+					projectName="Astro Album"
+					variant="desktop"
+				/>,
+			);
+
+			fireEvent.click(
+				screen.getByRole("button", { name: "Collapse Now Playing" }),
+			);
+			expect(mockCloseNowPlaying).toHaveBeenCalledTimes(1);
+		});
+
+		it("14. dismisses a mobile pull only after distance or velocity threshold", () => {
+			expect(shouldDismissNowPlaying(121, 0)).toBe(true);
+			expect(shouldDismissNowPlaying(49, 651)).toBe(true);
+			expect(shouldDismissNowPlaying(47, 900)).toBe(false);
+			expect(shouldDismissNowPlaying(80, 200)).toBe(false);
 		});
 	});
 });
