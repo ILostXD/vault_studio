@@ -50,7 +50,7 @@ function LoginPage() {
 				return true;
 			} catch {
 				setServerUrlError(
-					"Use a valid URL, for example http://192.168.1.253:8080.",
+					"Use a valid URL, for example http://192.168.1.100:8080.",
 				);
 				return false;
 			}
@@ -162,7 +162,7 @@ function LoginPage() {
 											applyServerUrl({ recheck: true });
 										}
 									}}
-									placeholder="http://192.168.1.253:8080"
+									placeholder="http://192.168.1.100:8080"
 									className="themed-input-surface text-(--text-0) text-base md:text-base placeholder:text-(--text-0)/40 h-12 rounded-2xl px-5"
 								/>
 								<Button
