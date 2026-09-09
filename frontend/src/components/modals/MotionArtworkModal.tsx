@@ -4,12 +4,17 @@ import {
 	ChevronDown,
 	CircleAlert,
 	Film,
+	Laptop2,
 	ListMusic,
 	LoaderCircle,
 	MessageSquareText,
 	MoreHorizontal,
+	MoreVertical,
 	Pause,
 	Play,
+	Repeat,
+	Share2,
+	Shuffle,
 	SkipBack,
 	SkipForward,
 	Star,
@@ -85,48 +90,102 @@ function ArtworkMedia({
 function SpotifyPreview({
 	asset,
 	coverUrl,
+	projectName,
 	artistName,
 	trackTitle,
 }: {
 	asset?: ProjectMotionAsset;
 	coverUrl: string | null;
+	projectName?: string;
 	artistName: string;
 	trackTitle: string;
 }) {
+	const [isPlaying, setIsPlaying] = useState(true);
+
 	return (
-		<div className="relative mx-auto aspect-[9/19.5] h-[min(62dvh,640px)] overflow-hidden rounded-[30px] bg-black shadow-2xl">
+		<div className="relative mx-auto aspect-[9/19.5] w-[min(100%,31.4dvh,320px)] overflow-hidden rounded-[32px] bg-black text-white shadow-2xl">
 			<ArtworkMedia asset={asset} coverUrl={coverUrl} />
-			<div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,.42),transparent_26%,transparent_55%,rgba(0,0,0,.82))]" />
+			<div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.6)_0%,transparent_18%,transparent_48%,rgba(0,0,0,0.65)_68%,rgba(0,0,0,0.92)_100%)]" />
+
+			{/* Top bar */}
 			<div className="absolute inset-x-0 top-0 flex items-center justify-between px-5 pt-5 text-white">
-				<span className="text-xs font-medium text-white/80">
-					Playing from Album
-				</span>
-				<MoreHorizontal className="size-5" />
+				<ChevronDown className="size-5 text-white/80" />
+				<div className="flex min-w-0 flex-1 flex-col items-center px-2">
+					<span className="text-[9px] font-semibold uppercase tracking-wider text-white/60">
+						Playing from Album
+					</span>
+					<span className="max-w-[150px] truncate text-[11px] font-bold text-white">
+						{projectName || "Album"}
+					</span>
+				</div>
+				<MoreVertical className="size-5 text-white/80" />
 			</div>
-			<div className="absolute inset-x-0 bottom-0 p-5 text-white">
-				<div className="flex items-end gap-3">
-					{coverUrl && (
-						<img
-							src={coverUrl}
-							alt=""
-							className="size-11 rounded-md object-cover"
-						/>
-					)}
-					<div className="min-w-0 flex-1">
-						<p className="truncate text-xl font-semibold">{trackTitle}</p>
-						<p className="truncate text-sm text-white/70">{artistName}</p>
+
+			{/* Bottom player controls */}
+			<div className="absolute inset-x-0 bottom-0 px-5 pb-5 pt-3 text-white">
+				{/* Track info & library checkmark */}
+				<div className="flex items-center justify-between gap-3">
+					<div className="flex min-w-0 flex-1 items-center gap-3">
+						{coverUrl && (
+							<img
+								src={coverUrl}
+								alt=""
+								className="size-11 shrink-0 rounded-[4px] object-cover shadow"
+							/>
+						)}
+						<div className="min-w-0 flex-1">
+							<p className="truncate text-base font-bold leading-tight text-white">
+								{trackTitle}
+							</p>
+							<p className="mt-0.5 truncate text-xs font-medium text-white/70">
+								{artistName}
+							</p>
+						</div>
 					</div>
-					<div className="flex size-10 items-center justify-center rounded-full bg-white text-black">
-						<Play className="size-4" fill="currentColor" />
+					<div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#1ed760] text-black shadow">
+						<Check className="size-3.5 stroke-[3]" />
 					</div>
 				</div>
-				<div className="mt-4 h-1 rounded-full bg-white/35">
-					<div className="h-full w-1/3 rounded-full bg-white" />
+
+				{/* Progress bar with scrubber dot */}
+				<div className="mt-3.5">
+					<div className="relative h-1 w-full rounded-full bg-white/20">
+						<div className="h-full w-[40%] rounded-full bg-white" />
+						<div className="absolute left-[40%] top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-sm" />
+					</div>
+					<div className="mt-1.5 flex justify-between text-[10px] font-medium text-white/55 font-mono">
+						<span>1:04</span>
+						<span>2:33</span>
+					</div>
 				</div>
-				<div className="mt-5 flex items-center justify-around">
-					<Pause className="size-6" fill="currentColor" />
-					<Play className="size-11" fill="currentColor" />
-					<Film className="size-6" />
+
+				{/* Playback controls */}
+				<div className="mt-2.5 flex items-center justify-between px-1">
+					<Shuffle className="size-5 text-[#1ed760]" />
+					<SkipBack className="size-6 fill-white text-white" />
+					<button
+						type="button"
+						onClick={() => setIsPlaying((prev) => !prev)}
+						className="flex size-14 items-center justify-center rounded-full bg-white text-black shadow-lg transition-transform active:scale-95 cursor-pointer"
+						aria-label={isPlaying ? "Pause" : "Play"}
+					>
+						{isPlaying ? (
+							<Pause className="size-6 fill-black text-black" />
+						) : (
+							<Play className="size-6 fill-black text-black ml-0.5" />
+						)}
+					</button>
+					<SkipForward className="size-6 fill-white text-white" />
+					<Repeat className="size-5 text-white/80" />
+				</div>
+
+				{/* Bottom utility icons */}
+				<div className="mt-3.5 flex items-center justify-between px-1 text-white/70">
+					<Laptop2 className="size-4 hover:text-white" />
+					<div className="flex items-center gap-4">
+						<Share2 className="size-4 hover:text-white" />
+						<ListMusic className="size-4 hover:text-white" />
+					</div>
 				</div>
 			</div>
 		</div>
@@ -322,6 +381,7 @@ export default function MotionArtworkModal({
 							<SpotifyPreview
 								asset={selectedAsset}
 								coverUrl={coverUrl}
+								projectName={projectName}
 								artistName={artistName}
 								trackTitle={trackTitle}
 							/>
