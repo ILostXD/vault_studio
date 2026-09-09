@@ -1,18 +1,20 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+	AudioWaveform,
+	Cast,
 	Check,
 	ChevronDown,
 	CircleAlert,
-	Film,
+	FastForward,
 	Laptop2,
 	ListMusic,
 	LoaderCircle,
-	MessageSquareText,
-	MoreHorizontal,
+	MessageSquareQuote,
 	MoreVertical,
 	Pause,
 	Play,
 	Repeat,
+	Rewind,
 	Share2,
 	Shuffle,
 	SkipBack,
@@ -195,16 +197,18 @@ function SpotifyPreview({
 function ApplePortraitPreview({
 	asset,
 	coverUrl,
-	projectName,
+	projectName: _projectName,
 	artistName,
 	trackTitle,
 }: {
 	asset?: ProjectMotionAsset;
 	coverUrl: string | null;
-	projectName: string;
+	projectName?: string;
 	artistName: string;
 	trackTitle: string;
 }) {
+	const [isPlaying, setIsPlaying] = useState(true);
+
 	return (
 		<div className="relative mx-auto aspect-[9/19.5] w-[min(100%,31.4dvh,320px)] overflow-hidden rounded-[32px] bg-black text-white shadow-2xl">
 			<MotionArtworkStage
@@ -213,51 +217,116 @@ function ApplePortraitPreview({
 				coverUrl={coverUrl}
 			/>
 
-			<div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,.18)_0%,transparent_25%,transparent_46%,rgba(0,0,0,.12)_62%,rgba(0,0,0,.3)_100%)]" />
+			{/* Soft vignette overlay */}
+			<div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.25)_0%,transparent_20%,transparent_45%,rgba(0,0,0,0.3)_62%,rgba(0,0,0,0.85)_100%)]" />
 
-			<div className="absolute inset-x-0 top-0 flex items-center justify-between px-5 pt-5">
-				<ChevronDown className="size-5" />
-				<span className="max-w-[65%] truncate text-[10px] font-medium text-white/80">
-					{projectName}
-				</span>
-				<MoreHorizontal className="size-5" />
+			{/* Top sheet grabber */}
+			<div className="absolute inset-x-0 top-0 flex justify-center pt-2.5">
+				<div className="h-1 w-8 rounded-full bg-white/25" />
 			</div>
 
-			<div className="absolute inset-x-0 top-[55%] px-6">
-				<div className="flex items-end gap-3">
+			{/* Bottom player section */}
+			<div className="absolute inset-x-0 bottom-0 px-6 pb-4 pt-2 text-white">
+				{/* Track title, artist, and action buttons */}
+				<div className="flex items-center justify-between gap-3">
 					<div className="min-w-0 flex-1">
-						<p className="truncate text-xl font-medium">{trackTitle}</p>
-						<p className="truncate text-sm text-white/65">{artistName}</p>
+						<p className="truncate text-base font-bold leading-tight tracking-tight text-white">
+							{trackTitle}
+						</p>
+						<p className="mt-0.5 truncate text-xs font-medium text-white/70">
+							{artistName}
+						</p>
 					</div>
-					<div className="flex gap-2">
-						<div className="flex size-9 items-center justify-center rounded-full bg-white/14">
-							<Star className="size-4" />
-						</div>
-						<div className="flex size-9 items-center justify-center rounded-full bg-white/14">
-							<MoreHorizontal className="size-4" />
-						</div>
+					<div className="flex shrink-0 items-center gap-2">
+						<button
+							type="button"
+							className="flex size-7 items-center justify-center rounded-full bg-white/12 text-white/90 shadow transition-colors hover:bg-white/20 active:scale-95"
+							aria-label="Favorite"
+						>
+							<Star className="size-3.5" />
+						</button>
+						<button
+							type="button"
+							className="flex size-7 items-center justify-center rounded-full bg-white/12 text-white/90 shadow transition-colors hover:bg-white/20 active:scale-95"
+							aria-label="More options"
+						>
+							<MoreVertical className="size-3.5" />
+						</button>
 					</div>
 				</div>
 
-				<div className="mt-5 h-1 rounded-full bg-white/30">
-					<div className="h-full w-1/4 rounded-full bg-white/75" />
+				{/* Progress bar and Lossless badge */}
+				<div className="mt-4">
+					<div className="h-1 w-full rounded-full bg-white/20">
+						<div className="h-full w-[22%] rounded-full bg-white/75" />
+					</div>
+					<div className="mt-1.5 flex items-center justify-between font-mono text-[10px] text-white/50">
+						<span>0:02</span>
+						<div className="flex items-center gap-1 rounded bg-white/10 px-1.5 py-0.5 font-sans text-[9px] font-semibold tracking-wide text-white/80">
+							<AudioWaveform className="size-2.5 text-white/70" />
+							<span>Lossless</span>
+						</div>
+						<span>-3:14</span>
+					</div>
 				</div>
-				<div className="mt-2 flex justify-between text-[10px] text-white/45">
-					<span>0:12</span>
-					<span>-2:24</span>
+
+				{/* Playback controls */}
+				<div className="mt-4 flex items-center justify-between px-6">
+					<button
+						type="button"
+						className="flex items-center justify-center text-white transition-transform active:scale-90"
+						aria-label="Rewind"
+					>
+						<Rewind className="size-8 fill-white text-white" />
+					</button>
+					<button
+						type="button"
+						onClick={() => setIsPlaying((prev) => !prev)}
+						className="flex cursor-pointer items-center justify-center text-white transition-transform active:scale-90"
+						aria-label={isPlaying ? "Pause" : "Play"}
+					>
+						{isPlaying ? (
+							<Pause className="size-10 fill-white text-white" />
+						) : (
+							<Play className="ml-1 size-10 fill-white text-white" />
+						)}
+					</button>
+					<button
+						type="button"
+						className="flex items-center justify-center text-white transition-transform active:scale-90"
+						aria-label="Fast forward"
+					>
+						<FastForward className="size-8 fill-white text-white" />
+					</button>
 				</div>
-			</div>
 
-			<div className="absolute inset-x-0 top-[73%] flex items-center justify-around px-8">
-				<SkipBack className="size-7" fill="currentColor" />
-				<Play className="size-12" fill="currentColor" />
-				<SkipForward className="size-7" fill="currentColor" />
-			</div>
+				{/* Bottom utility icons */}
+				<div className="mt-5 flex items-center justify-between px-6 text-white/60">
+					<button
+						type="button"
+						className="transition-colors hover:text-white"
+						aria-label="Lyrics"
+					>
+						<MessageSquareQuote className="size-5" />
+					</button>
+					<button
+						type="button"
+						className="transition-colors hover:text-white"
+						aria-label="Cast"
+					>
+						<Cast className="size-5" />
+					</button>
+					<button
+						type="button"
+						className="transition-colors hover:text-white"
+						aria-label="Queue"
+					>
+						<ListMusic className="size-5" />
+					</button>
+				</div>
 
-			<div className="absolute inset-x-0 bottom-7 flex items-center justify-around px-12 text-white/65">
-				<MessageSquareText className="size-5" />
-				<Film className="size-5" />
-				<ListMusic className="size-5" />
+				{/* Home indicator bar */}
+				<div className="mx-auto mt-4 h-1 w-24 rounded-full bg-white/40" />
 			</div>
 		</div>
 	);
