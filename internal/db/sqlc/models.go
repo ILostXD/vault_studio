@@ -335,6 +335,7 @@ type UserPreference struct {
 	Theme              string         `json:"theme"`
 	SystemDarkTheme    string         `json:"system_dark_theme"`
 	CommentsEnabled    bool           `json:"comments_enabled"`
+	KeyModePreference  string         `json:"key_mode_preference"`
 }
 
 type UserProjectShare struct {

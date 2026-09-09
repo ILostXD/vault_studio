@@ -118,6 +118,12 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
   );
 
   useEffect(() => {
+    const key = parseKey(value);
+    setSelectedNote(key?.note ?? null);
+    setSelectedMode(key?.mode ?? "major");
+  }, [value]);
+
+  useEffect(() => {
     const soundFiles = [
       "/piano/piano-c3.mp3",
       "/piano/piano-e3.mp3",

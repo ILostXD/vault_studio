@@ -28,13 +28,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePreferences } from "@/contexts/PreferencesContext";
 import { cn } from "@/lib/utils";
 import { toast } from "@/routes/__root";
-import type { InstanceInfo, Quality, StorageStats } from "@/types/api";
+import type { InstanceInfo, KeyModePreference, Quality, StorageStats } from "@/types/api";
 
 export const Route = createFileRoute("/profile/")({
   component: ProfilePage,
 });
 
 function ProfilePage() {
+  const [savingKeyPreference, setSavingKeyPreference] = useState(false);
   const { user, updateUsername } = useAuth();
   const {
     preferences,
@@ -420,16 +421,44 @@ function ProfilePage() {
                     </Button>
                   </div>
 
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-(--card-border) pb-4">
+                  <div className="flex min-w-0 flex-col gap-3 border-b border-(--card-border) pb-4">
+                    <div className="min-w-0">
+                      <p className="text-(--text-0) text-base">Automatic key detection</p>
+                      <p className="text-(--text-2) text-sm">Preferred relative key</p>
+                    </div>
+                    <fieldset disabled={!preferences || savingKeyPreference} aria-label="Automatic key detection" className="min-w-0 w-full disabled:opacity-50">
+                      <ToggleGroup
+                        className="w-full"
+                        options={[
+                          { label: "As detected", value: "detected" },
+                          { label: "Minor", value: "minor" },
+                          { label: "Major", value: "major" },
+                        ]}
+                        value={preferences?.key_mode_preference ?? "detected"}
+                        onValueChange={async (value) => {
+                          setSavingKeyPreference(true);
+                          try {
+                            await updatePreferences({ key_mode_preference: value as KeyModePreference });
+                          } catch {
+                            toast.error("Failed to save key preference");
+                          } finally {
+                            setSavingKeyPreference(false);
+                          }
+                        }}
+                      />
+                    </fieldset>
+                  </div>
+
+                  <div className="flex min-w-0 flex-col gap-3 border-b border-(--card-border) pb-4">
                     <div className="min-w-0">
                       <p className="text-(--text-0) text-base">Theme</p>
                       <p className="text-(--text-2) text-sm">
                         App appearance and contrast
                       </p>
                     </div>
-                    <div className="w-full space-y-2 sm:w-auto">
+                    <div className="min-w-0 w-full space-y-5">
                       <ToggleGroup
-                        className="h-[36px] w-full sm:min-w-[340px]"
+                        className="min-h-10 w-full"
                         options={[
                           { label: "Light", value: "light" },
                           { label: "Default", value: "default" },
@@ -451,21 +480,16 @@ function ProfilePage() {
                       />
                       {preferences?.theme === "system" && (
                         <div className="flex items-center justify-between gap-3 pl-1">
-                          <span className="text-xs text-(--text-2)">
-                            Dark appearance
-                          </span>
-                          <ToggleGroup
-                            size="sm"
-                            className="h-8 min-w-[150px]"
-                            options={[
-                              { label: "Default", value: "default" },
-                              { label: "Black", value: "black" },
-                            ]}
-                            value={preferences?.system_dark_theme || "default"}
-                            onValueChange={async (val) => {
+                          <label htmlFor="system-dark-black" className="text-sm text-(--text-2)">
+                            Dark appearance (Black)
+                          </label>
+                          <Switch
+                            id="system-dark-black"
+                            checked={preferences?.system_dark_theme === "black"}
+                            onCheckedChange={async (checked) => {
                               try {
                                 await updatePreferences({
-                                  system_dark_theme: val,
+                                  system_dark_theme: checked ? "black" : "default",
                                 });
                               } catch (error) {
                                 console.error(

@@ -1,6 +1,12 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import fuzzysort from "fuzzysort";
 import type { Track } from "@/types/api";
+import { isEditableTarget } from "@/lib/keyboard";
+
+function shouldIgnoreProjectShortcut(event: KeyboardEvent) {
+  return event.defaultPrevented || event.isComposing ||
+    isEditableTarget(event.target) || Boolean(document.querySelector('[role="dialog"][aria-modal="true"]'));
+}
 
 interface UseProjectSearchOptions {
   tracks: Track[];
@@ -93,6 +99,7 @@ export function useProjectSearch({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (shouldIgnoreProjectShortcut(e)) return;
       if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.code === "KeyF") {
         e.preventDefault();
         setIsGlobalSearchOpen((prev) => !prev);
@@ -102,13 +109,6 @@ export function useProjectSearch({
       if (e.altKey && e.code === "KeyF") {
         e.preventDefault();
         setIsSearchOpen((prev) => !prev);
-        return;
-      }
-
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
-      ) {
         return;
       }
 
@@ -130,12 +130,7 @@ export function useProjectSearch({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
-      ) {
-        return;
-      }
+      if (shouldIgnoreProjectShortcut(e)) return;
 
       if (!isSearchOpen && tracks.length > 0) {
         if (e.key === "ArrowDown") {

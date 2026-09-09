@@ -14,7 +14,6 @@ import { uploadVersion } from "@/api/versions";
 import AlbumCover from "@/components/AlbumCover";
 import LinkNotAvailable from "@/components/LinkNotAvailable";
 import NotesPanel from "@/components/NotesPanel";
-import NowPlayingView from "@/components/NowPlayingView";
 import { ProjectModals } from "@/components/ProjectModals";
 import { ProjectTrackList } from "@/components/ProjectTrackList";
 import ScrollingText from "@/components/ScrollingText";
@@ -167,7 +166,6 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 		setProjectTracks,
 		toggleShuffle,
 		isShuffled,
-		isNowPlayingOpen,
 	} = useAudioPlayer();
 
 	const tracks = useMemo(() => apiTracks || [], [apiTracks]);
@@ -176,9 +174,6 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 			? tracks.some((t) => t.public_id === currentTrack.id)
 			: false;
 	}, [isPlaying, currentTrack, tracks]);
-	const isCurrentProjectNowPlaying = Boolean(
-		isNowPlayingOpen && currentTrack?.projectId === project?.public_id,
-	);
 
 	const playButton = usePlayButtonAnimation();
 	const normalizedTheme =
@@ -194,7 +189,6 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 
 	const [showTracksPanel, setShowTracksPanel] = useState(false);
 	const [showCoverPanel, setShowCoverPanel] = useState(false);
-	const [coverColorsReady, setCoverColorsReady] = useState(false);
 	const [isSmallScreen, setIsSmallScreen] = useState(false);
 	const isMobilePortrait =
 		isSmallScreen &&
@@ -396,7 +390,6 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 		mutationFn: ({ projectId, file }: { projectId: string; file: File }) =>
 			uploadProjectCover(projectId, file),
 		onSuccess: (_data, variables) => {
-			setCoverColorsReady(false);
 			queryClient.invalidateQueries({
 				queryKey: projectKeys.detail(variables.projectId),
 			});
@@ -641,18 +634,15 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 
 	useEffect(() => {
 		setShowTracksPanel(false);
+		setShowCoverPanel(false);
 		if (project && !projectLoading && !tracksLoading) {
-			const timer = setTimeout(() => setShowTracksPanel(true), 50);
+			const timer = setTimeout(() => {
+				setShowTracksPanel(true);
+				setShowCoverPanel(true);
+			}, 50);
 			return () => clearTimeout(timer);
 		}
 	}, [projectId, projectLoading, tracksLoading]);
-
-	useEffect(() => {
-		if (project && !projectLoading && coverColorsReady) {
-			const timer = setTimeout(() => setShowCoverPanel(true), 50);
-			return () => clearTimeout(timer);
-		}
-	}, [project, projectLoading, coverColorsReady]);
 
 	useEffect(() => {
 		if (selectedTrack && tracks.length > 0) {
@@ -778,24 +768,20 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 							x: isNotesOpen && !isSmallScreen ? "-100%" : 0,
 							opacity:
 								isNotesOpen && !isSmallScreen ? 0 : showCoverPanel ? 1 : 0,
+							y: showCoverPanel ? 0 : 8,
 						}}
-						transition={{ x: { duration: 0.4 }, opacity: { duration: 0.65 }, ease: [0.22, 1, 0.36, 1] }}
+						transition={{
+							x: { duration: 0.4 },
+							opacity: { duration: 0.85, ease: [0.16, 1, 0.3, 1] },
+							y: { duration: 0.85, ease: [0.16, 1, 0.3, 1] },
+						}}
 						className={cn(
 							"flex items-start justify-center overflow-visible md:sticky md:self-start md:pl-5 md:pr-22 top-30",
 							isMobilePortrait ? "p-0 -mt-2" : "px-2 pt-2",
 						)}
 					>
 						<AnimatePresence initial={false} mode="sync">
-							{isCurrentProjectNowPlaying ? (
-								<NowPlayingView
-									key="now-playing"
-									projectId={project.public_id}
-									projectName={String(project.name)}
-									coverUrl={projectCoverImage}
-									variant={isSmallScreen ? "mobile" : "desktop"}
-									tracks={tracks}
-								/>
-							) : isMobilePortrait ? (
+							{isMobilePortrait ? (
 								<motion.div
 									key="project-portrait-cover"
 									initial={{ opacity: 0 }}
@@ -821,8 +807,6 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 												src={projectCoverImage}
 												alt={String(project.name)}
 												className="absolute inset-0 size-full object-cover object-top"
-												onLoad={() => setCoverColorsReady(true)}
-												onError={() => setCoverColorsReady(true)}
 											/>
 										)}
 										<video
@@ -837,8 +821,6 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 											disablePictureInPicture
 											aria-label={`${project.name} animated cover`}
 											className="absolute inset-0 size-full object-cover object-top motion-reduce:hidden"
-											onLoadedData={() => setCoverColorsReady(true)}
-											onError={() => setCoverColorsReady(true)}
 										/>
 									</div>
 									{canEditProject && (
@@ -875,7 +857,6 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 										className="w-full"
 										onUploadClick={() => setIsCoverModalOpen(true)}
 										showUploadOverlay={canEditProject}
-										onColorsReady={() => setCoverColorsReady(true)}
 										isPlaying={isCurrentProjectPlaying}
 									/>
 									<input
@@ -895,8 +876,13 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 						animate={{
 							x: isNotesOpen && !isSmallScreen ? "-100%" : 0,
 							opacity: showTracksPanel ? 1 : 0,
+							y: showTracksPanel ? 0 : 8,
 						}}
-						transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
+						transition={{
+							x: { duration: 0.4 },
+							opacity: { duration: 0.85, ease: [0.16, 1, 0.3, 1] },
+							y: { duration: 0.85, ease: [0.16, 1, 0.3, 1] },
+						}}
 						className={cn(
 							"flex flex-col text-(--text-0) md:pt-0 md:pr-5 md:max-w-lg md:-ml-10",
 							isMobilePortrait ? "-mt-4 sm:mt-0 pt-0" : "pt-6",

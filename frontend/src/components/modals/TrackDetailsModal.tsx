@@ -1,4 +1,5 @@
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
+import { usePreferredKey } from "@/hooks/usePreferredKey";
 import {
   ChevronLeft,
   Link,
@@ -109,6 +110,7 @@ function TrackDetailsModal({
   const prevTrackIdRef = useRef(trackId);
   const closeTimeoutRef = useRef<number | null>(null);
   const trackRef = useRef(track);
+  const displayedKey = usePreferredKey(track.key);
   const prefetchProjects = usePrefetchProjects();
   const prefetchSharingData = usePrefetchSharingData();
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -524,7 +526,7 @@ function TrackDetailsModal({
                             }}
                           >
                             {formatDuration(track.duration)}
-                            {track.key && ` • ${track.key}`}
+                            {displayedKey && ` • ${displayedKey}`}
                             {track.bpm && ` • ${track.bpm} BPM`}
                           </div>
                         </div>

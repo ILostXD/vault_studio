@@ -17,6 +17,7 @@ SET default_quality = COALESCE(sqlc.narg('default_quality'), default_quality),
     theme = COALESCE(sqlc.narg('theme'), theme),
     system_dark_theme = COALESCE(sqlc.narg('system_dark_theme'), system_dark_theme),
     comments_enabled = COALESCE(sqlc.narg('comments_enabled'), comments_enabled),
+    key_mode_preference = COALESCE(sqlc.narg('key_mode_preference'), key_mode_preference),
     updated_at = CURRENT_TIMESTAMP
 WHERE user_id = sqlc.arg('user_id')
 RETURNING *;

@@ -23,6 +23,7 @@ type PreferencesResponse struct {
 	Theme              string    `json:"theme"`
 	SystemDarkTheme    string    `json:"system_dark_theme"`
 	CommentsEnabled    bool      `json:"comments_enabled"`
+	KeyModePreference  string    `json:"key_mode_preference"`
 	CreatedAt          string    `json:"created_at"`
 	UpdatedAt          string    `json:"updated_at"`
 }
@@ -37,14 +38,15 @@ func NewPreferencesHandler(database *db.DB) *PreferencesHandler {
 
 func toPreferencesResponse(prefs sqlc.UserPreference) PreferencesResponse {
 	resp := PreferencesResponse{
-		UserID:          prefs.UserID,
-		DefaultQuality:  prefs.DefaultQuality,
-		AccentColor:     prefs.AccentColor,
-		Theme:           prefs.Theme,
-		SystemDarkTheme: prefs.SystemDarkTheme,
-		CommentsEnabled: prefs.CommentsEnabled,
-		CreatedAt:       prefs.CreatedAt.Time.Format(time.RFC3339),
-		UpdatedAt:       prefs.UpdatedAt.Time.Format(time.RFC3339),
+		UserID:            prefs.UserID,
+		DefaultQuality:    prefs.DefaultQuality,
+		AccentColor:       prefs.AccentColor,
+		Theme:             prefs.Theme,
+		SystemDarkTheme:   prefs.SystemDarkTheme,
+		CommentsEnabled:   prefs.CommentsEnabled,
+		KeyModePreference: prefs.KeyModePreference,
+		CreatedAt:         prefs.CreatedAt.Time.Format(time.RFC3339),
+		UpdatedAt:         prefs.UpdatedAt.Time.Format(time.RFC3339),
 	}
 
 	if prefs.DiscColors.Valid && prefs.DiscColors.String != "" {
@@ -125,6 +127,15 @@ func (h *PreferencesHandler) UpdatePreferences(w http.ResponseWriter, r *http.Re
 
 	params := sqlc.UpdateUserPreferencesParams{
 		UserID: int64(userID),
+	}
+
+	if req.KeyModePreference != nil {
+		switch *req.KeyModePreference {
+		case "detected", "major", "minor":
+			params.KeyModePreference = sql.NullString{String: *req.KeyModePreference, Valid: true}
+		default:
+			return apperr.NewBadRequest("invalid key mode preference")
+		}
 	}
 
 	if req.DefaultQuality != nil {

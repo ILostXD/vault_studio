@@ -7,6 +7,7 @@ import {
 	getFullscreenDesktopQueueOpen,
 } from "@/lib/fullscreenQueue";
 import NowPlayingView, { shouldDismissNowPlaying } from "./NowPlayingView";
+import { NOW_PLAYING_ARTWORK_MODE_KEY, type ProjectMotionAsset } from "@/lib/motionArtwork";
 
 function createStorage(): Storage {
 	const values = new Map<string, string>();
@@ -26,6 +27,7 @@ const mockCloseNowPlaying = vi.fn();
 const mockPlay = vi.fn();
 const mockClearQueue = vi.fn();
 const mockRemoveFromQueue = vi.fn();
+let motionAssets: ProjectMotionAsset[] = [];
 
 const sampleTrack = {
 	id: "trk_123",
@@ -77,7 +79,7 @@ vi.mock("@/contexts/PreferencesContext", () => ({
 }));
 
 vi.mock("@/hooks/useProjectMotionAssets", () => ({
-	useProjectMotionAssets: () => ({ data: [] }),
+	useProjectMotionAssets: () => ({ data: motionAssets }),
 }));
 
 vi.mock("@tanstack/react-router", () => ({
@@ -163,6 +165,7 @@ describe("NowPlayingView Fullscreen QoL", () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+		motionAssets = [];
 		storage = createStorage();
 		Object.defineProperty(window, "localStorage", {
 			configurable: true,
@@ -173,6 +176,25 @@ describe("NowPlayingView Fullscreen QoL", () => {
 	afterEach(() => {
 		cleanup();
 	});
+
+	it.each(["Open queue", "Notes", "Comments"])(
+		"uses the flowing background for %s over portrait artwork and restores the video on close",
+		(button) => {
+			motionAssets = [{ kind: "apple_portrait", preview_url: "/portrait.mp4" } as ProjectMotionAsset];
+			window.localStorage.setItem(NOW_PLAYING_ARTWORK_MODE_KEY, "apple_portrait");
+			render(<NowPlayingView projectId="proj_abc" projectName="Astro Album" variant="mobile" />);
+			expect(screen.queryByTestId("motion-artwork-bg")).toBeNull();
+			const transports = screen.getByTestId("mobile-transport-controls");
+			const waveform = screen.getByTestId("mobile-playback-waveform");
+			const toggle = screen.getByRole("button", { name: button });
+			fireEvent.click(toggle);
+			expect(screen.getByTestId("motion-artwork-bg").getAttribute("data-max-layers")).toBe("1");
+			expect(screen.getByTestId("mobile-transport-controls")).toBe(transports);
+			expect(screen.getByTestId("mobile-playback-waveform")).toBe(waveform);
+			fireEvent.click(toggle);
+			expect(screen.queryByTestId("motion-artwork-bg")).toBeNull();
+		},
+	);
 
 	describe("Queue preference persistence", () => {
 		it("1. defaults queue to OPEN when no preference is saved", () => {

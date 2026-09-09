@@ -336,8 +336,9 @@ export default function SharedProjectView({
             initial={false}
             animate={{
               opacity: showCoverPanel ? 1 : 0,
+              y: showCoverPanel ? 0 : 8,
             }}
-            transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
+            transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
             className="flex items-start justify-center overflow-visible px-2 md:pl-5 md:pr-22 md:sticky md:self-start pt-2 top-30"
           >
             <div className="relative w-full md:max-w-[24rem]">
@@ -362,8 +363,9 @@ export default function SharedProjectView({
             initial={false}
             animate={{
               opacity: showTracksPanel ? 1 : 0,
+              y: showTracksPanel ? 0 : 8,
             }}
-            transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
+            transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col text-(--text-0) pt-6 md:pt-0 md:pr-5 md:max-w-lg md:-ml-10"
           >
             <div className="mb-4 -space-y-1">
@@ -430,7 +432,11 @@ export default function SharedProjectView({
                 {tracks
                   .filter((track) => track)
                   .map((track, index) => (
-                    <div key={track.public_id} className="relative rounded-2xl">
+                    <div
+                      key={track.public_id}
+                      style={{ animationDelay: `${Math.min(index * 60, 900)}ms` }}
+                      className="track-reveal relative rounded-2xl"
+                    >
                       <TrackListItem
                         id={track.public_id}
                         index={index}

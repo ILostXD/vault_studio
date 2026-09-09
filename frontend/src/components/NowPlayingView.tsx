@@ -1,5 +1,3 @@
-import { Capacitor, SystemBars, SystemBarsStyle } from "@capacitor/core";
-import { EdgeToEdge } from "@capawesome/capacitor-android-edge-to-edge-support";
 import {
 	DragDropContext,
 	Draggable,
@@ -292,22 +290,6 @@ export default function NowPlayingView({
 			closeNowPlaying();
 		}
 	};
-
-	useEffect(() => {
-		if (variant !== "mobile" || Capacitor.getPlatform() !== "android") return;
-
-		void Promise.all([
-			EdgeToEdge.disable(),
-			SystemBars.show(),
-			SystemBars.setStyle({ style: SystemBarsStyle.Dark }),
-		]).catch((error) => {
-			console.error("Failed to apply fullscreen system bars:", error);
-		});
-
-		return () => {
-			window.dispatchEvent(new Event("vault-system-bars-refresh"));
-		};
-	}, [variant]);
 
 	useBodyScrollLock(true);
 
@@ -875,7 +857,7 @@ export default function NowPlayingView({
 				aria-modal="true"
 				aria-label={`Now playing ${currentTrack.title}`}
 			>
-				{isTallArtwork ? (
+				{isTallArtwork && !activePanel ? (
 					<MotionArtworkStage
 						presentation={mobilePresentation}
 						assetUrl={activeMobileAsset?.preview_url}

@@ -1,4 +1,5 @@
 export type Quality = "source" | "lossless" | "lossy";
+export type KeyModePreference = "detected" | "major" | "minor";
 
 export type TranscodingStatus =
 	| "pending"
@@ -29,6 +30,7 @@ export interface UserPreferences {
 	theme?: string;
 	system_dark_theme?: string;
 	comments_enabled?: boolean;
+	key_mode_preference?: KeyModePreference;
 	created_at: string;
 	updated_at: string;
 }
@@ -156,6 +158,7 @@ export interface UpdatePreferencesRequest {
 	theme?: string;
 	system_dark_theme?: string;
 	comments_enabled?: boolean;
+	key_mode_preference?: KeyModePreference;
 }
 
 export interface UpdateInstanceNameRequest {

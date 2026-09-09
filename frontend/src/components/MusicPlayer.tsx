@@ -9,6 +9,7 @@ import {
   ShuffleIcon,
   RepeatIcon,
   Repeat1Icon,
+  ArrowUpRight,
 } from "lucide-react";
 import type React from "react";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
@@ -28,6 +29,7 @@ import { useWebHaptics } from "web-haptics/react";
 import WaveformComments from "./WaveformComments";
 import { WaveformGraphic } from "./WaveformGraphic";
 import { usePreferences } from "../contexts/PreferencesContext";
+import { isEditableTarget } from "@/lib/keyboard";
 
 interface MusicPlayerProps {
   hideControls?: boolean;
@@ -397,17 +399,13 @@ export default function MusicPlayer({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.code !== "Space" || event.repeat) {
+      if (event.code !== "Space" || event.repeat || event.defaultPrevented || event.isComposing) {
         return;
       }
       const target = event.target as HTMLElement | null;
       if (target) {
-        const tagName = target.tagName;
         const isEditable =
-          target.getAttribute("contenteditable") === "true" ||
-          tagName === "INPUT" ||
-          tagName === "TEXTAREA" ||
-          tagName === "BUTTON";
+          isEditableTarget(target) || target.closest("button");
         if (isEditable) {
           return;
         }
@@ -884,7 +882,7 @@ export default function MusicPlayer({
 
       {!hideControls && (
         <div
-          className={`fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] sm:bottom-6 left-1/2 -translate-x-1/2 z-110 w-[calc(100%-1rem)] sm:w-[calc(100%-3rem)] max-w-[800px] transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
+          className={`mini-player fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] sm:bottom-6 left-1/2 -translate-x-1/2 z-110 w-[calc(100%-1rem)] sm:w-[calc(100%-3rem)] max-w-[800px] transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
             isNowPlayingOpen
               ? "pointer-events-none translate-y-5 opacity-0"
               : showPlayer
@@ -952,7 +950,14 @@ export default function MusicPlayer({
             }}
           >
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 z-10 ml-1.5 sm:ml-2 text-left">
-              <div className="size-9 sm:size-10 cursor-pointer bg-[#333333] border border-[rgba(53,51,51,0.2)] rounded-tl-[9px] rounded-tr-[9px] rounded-br-[9px] rounded-bl-[13px] shrink-0 overflow-hidden">
+              <button
+                type="button"
+                onClick={openNowPlaying}
+                disabled={!currentTrack}
+                aria-label="Open Now Playing"
+                title="Open Now Playing"
+                className="group relative size-9 sm:size-10 cursor-pointer bg-[#333333] border border-[rgba(53,51,51,0.2)] rounded-tl-[9px] rounded-tr-[9px] rounded-br-[9px] rounded-bl-[13px] shrink-0 overflow-hidden focus-visible:outline-2 focus-visible:outline-(--accent-color)"
+              >
                 {currentTrack && coverUrl && (
                   <img
                     src={coverUrl}
@@ -969,7 +974,10 @@ export default function MusicPlayer({
                     decoding="async"
                   />
                 )}
-              </div>
+                <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/55 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none">
+                  <ArrowUpRight className="size-5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:transform-none" />
+                </span>
+              </button>
 
               <div className="min-w-0 w-full">
                 <button

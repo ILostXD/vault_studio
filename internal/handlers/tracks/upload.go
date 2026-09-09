@@ -219,7 +219,7 @@ func (h *TracksHandler) UploadTrack(w http.ResponseWriter, r *http.Request) erro
 		return apperr.NewInternal("failed to create track file record", err)
 	}
 
-	if _, err := service.AnalyzeTrack(ctx, h.db.Queries, track.ID, saveResult.Path); err != nil {
+	if _, err := service.AnalyzeTrack(ctx, h.db.Queries, track.ID, int64(userID), saveResult.Path); err != nil {
 		slog.Warn("automatic audio analysis failed", "track_id", track.ID, "error", err)
 	}
 

@@ -261,7 +261,7 @@ func (h *VersionsHandler) ActivateVersion(w http.ResponseWriter, r *http.Request
 		Quality:   "source",
 	})
 	if err == nil {
-		analysis, analysisErr := service.AnalyzeTrack(ctx, h.db.Queries, track.ID, sourceFile.FilePath)
+		analysis, analysisErr := service.AnalyzeTrack(ctx, h.db.Queries, track.ID, int64(userID), sourceFile.FilePath)
 		if analysisErr != nil {
 			slog.Warn("automatic audio analysis failed", "track_id", track.ID, "version_id", versionID, "error", analysisErr)
 		} else {
@@ -311,7 +311,7 @@ func (h *VersionsHandler) AnalyzeActiveVersion(w http.ResponseWriter, r *http.Re
 		return err
 	}
 
-	analysis, err := service.AnalyzeTrack(ctx, h.db.Queries, track.ID, sourceFile.FilePath)
+	analysis, err := service.AnalyzeTrack(ctx, h.db.Queries, track.ID, int64(userID), sourceFile.FilePath)
 	if err != nil {
 		return apperr.NewInternal("failed to analyze audio", err)
 	}
@@ -483,6 +483,14 @@ func (h *VersionsHandler) UploadVersion(w http.ResponseWriter, r *http.Request) 
 	})
 	if err != nil {
 		return apperr.NewInternal("failed to create version", err)
+	}
+
+	err = h.db.SetActiveVersion(ctx, sqlc.SetActiveVersionParams{
+		ActiveVersionID: sql.NullInt64{Int64: version.ID, Valid: true},
+		ID:              track.ID,
+	})
+	if err != nil {
+		return apperr.NewInternal("failed to set active version", err)
 	}
 
 	saveResult, err := h.storage.SaveTrackSource(r.Context(), storage.SaveTrackSourceInput{

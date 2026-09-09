@@ -1,4 +1,5 @@
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
+import { usePreferredKey } from "@/hooks/usePreferredKey";
 import {
   ChevronLeft,
   X,
@@ -92,6 +93,7 @@ export default function TrackVersionsModal({
   const [editedBpm, setEditedBpm] = useState<number | undefined>(
     track.bpm || undefined,
   );
+  const displayedKey = usePreferredKey(editedKey || track.key);
   const [, setIsSaving] = useState(false);
   const [versions, setVersions] = useState<VersionWithMetadata[]>([]);
   const [isLoadingVersions, setIsLoadingVersions] = useState(false);
@@ -353,8 +355,10 @@ export default function TrackVersionsModal({
     setIsUploading(true);
 
     try {
-      await uploadVersion(trackId, file);
-
+      const newVersion = await uploadVersion(trackId, file);
+      if (newVersion?.id) {
+        setActiveVersionId(newVersion.id);
+      }
       await loadVersions();
       onUpdate?.();
     } catch (error) {
@@ -899,7 +903,7 @@ export default function TrackVersionsModal({
                                 type="button"
                                 className="px-2 py-1 themed-control rounded-md transition-colors cursor-pointer min-w-[86px]"
                               >
-                                {editedKey || track.key || "Not set"}
+                                {displayedKey || "Not set"}
                               </button>
                             </Popover.Trigger>
                             <Popover.Portal>
@@ -926,7 +930,7 @@ export default function TrackVersionsModal({
                                   </div>
 
                                   <KeySelector
-                                    value={editedKey}
+                                    value={displayedKey}
                                     onChange={(key) => {
                                       handleSaveKey(key);
                                     }}
@@ -1072,7 +1076,7 @@ export default function TrackVersionsModal({
                       </div>
                     </div>
 
-                    <div className="scroll-fade-y flex flex-col gap-3 px-6 mt-8 pt-3 pb-25 overflow-y-auto flex-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 hover:scrollbar-thumb-white/20">
+                    <div className="scroll-fade-y flex flex-col gap-6 px-6 mt-8 pt-4 pb-25 overflow-y-auto flex-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 hover:scrollbar-thumb-white/20">
                       {isLoadingVersions ? null : versions.length === 0 ? (
                         <div className="flex items-center justify-center py-8 text-(--text-0)/50">
                           No versions found

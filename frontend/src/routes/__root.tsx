@@ -11,6 +11,7 @@ import { EdgeToEdge } from "@capawesome/capacitor-android-edge-to-edge-support";
 
 import { toast as sonnerToast, Toaster } from "sonner";
 import MusicPlayer from "../components/MusicPlayer";
+import FullscreenPlayer from "../components/FullscreenPlayer";
 import { useAuth } from "../contexts/AuthContext";
 import { usePreferences } from "../contexts/PreferencesContext";
 import { useAudioPlayer } from "../contexts/AudioPlayerContext";
@@ -231,27 +232,29 @@ function RootComponent() {
   useEffect(() => {
     if (Capacitor.getPlatform() !== "android") return;
 
-    const { color, style } = useDarkSystemBars
+    const immersive = useDarkSystemBars || isNowPlayingOpen;
+    const { color, style } = immersive
       ? { color: "#080808", style: SystemBarsStyle.Dark }
       : getAndroidSystemBarColor(effectiveTheme);
-    const statusBarColor = useDarkSystemBars ? "#00000000" : color;
+    const statusBarColor = immersive ? "#00000000" : color;
 
-    const updateInsets = useDarkSystemBars
+    const updateInsets = immersive
       ? EdgeToEdge.disable()
       : EdgeToEdge.enable();
 
     updateInsets
       .then(() =>
         Promise.all([
+          SystemBars.show(),
           SystemBars.setStyle({ style }),
           EdgeToEdge.setStatusBarColor({ color: statusBarColor }),
-          EdgeToEdge.setNavigationBarColor({ color }),
+          EdgeToEdge.setNavigationBarColor({ color: isNowPlayingOpen ? "#00000000" : color }),
         ]),
       )
       .catch((error) => {
         console.warn("Failed to apply Android system bar styling:", error);
       });
-  }, [effectiveTheme, useDarkSystemBars, systemBarsRevision]);
+  }, [effectiveTheme, useDarkSystemBars, isNowPlayingOpen, systemBarsRevision]);
 
   useEffect(() => {
     if (Capacitor.getPlatform() !== "android") return;
@@ -333,6 +336,7 @@ function RootComponent() {
     <>
       <Outlet />
       {isAuthenticated && !isSetupRoute && <MusicPlayer hideControls={isProfileRoute} />}
+      {isAuthenticated && !isSetupRoute && <FullscreenPlayer />}
       <Toaster
         position="top-center"
         offset="16px"

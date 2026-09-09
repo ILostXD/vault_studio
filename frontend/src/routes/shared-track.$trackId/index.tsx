@@ -25,6 +25,7 @@ import {
   AnimatePresence,
 } from "motion/react";
 import { useTrack } from "@/hooks/useTracks";
+import { usePreferredKey } from "@/hooks/usePreferredKey";
 import { useProjects } from "@/hooks/useProjects";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -62,6 +63,7 @@ function SharedTrackPage() {
   const navigate = useNavigate();
   const { trackId } = Route.useParams();
   const { data: track, isLoading: trackLoading } = useTrack(trackId);
+  const displayedKey = usePreferredKey(track?.key);
 
   const { data: ownedProjects = [] } = useProjects();
 
@@ -593,7 +595,7 @@ function SharedTrackPage() {
                   {track.key && (
                     <div className="flex items-center justify-between">
                       <span className="text-(--text-1) text-sm">Key</span>
-                      <span className="text-(--text-0) text-sm">{track.key}</span>
+                      <span className="text-(--text-0) text-sm">{displayedKey}</span>
                     </div>
                   )}
                   {track.bpm && (
