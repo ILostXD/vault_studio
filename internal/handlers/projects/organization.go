@@ -85,6 +85,11 @@ func (h *ProjectsHandler) MoveProject(w http.ResponseWriter, r *http.Request) er
 			slog.Debug("[MoveProject] error getting max order", "error", err)
 		}
 
+		oldOrg, _ := h.db.GetUserSharedProjectOrganization(ctx, sqlc.GetUserSharedProjectOrganizationParams{
+			UserID:    int64(userID),
+			ProjectID: projectByPublic.ID,
+		})
+
 		_, err = h.db.UpsertSharedProjectOrganization(ctx, sqlc.UpsertSharedProjectOrganizationParams{
 			UserID:      int64(userID),
 			ProjectID:   projectByPublic.ID,
@@ -93,6 +98,12 @@ func (h *ProjectsHandler) MoveProject(w http.ResponseWriter, r *http.Request) er
 		})
 		if err != nil {
 			return apperr.NewInternal("failed to organize shared project", err)
+		}
+
+		if oldOrg.FolderID.Valid && (req.FolderID == nil || *req.FolderID != oldOrg.FolderID.Int64) {
+			if _, err := h.db.DeleteFolderIfEmpty(ctx, oldOrg.FolderID.Int64, int64(userID)); err != nil {
+				slog.Warn("[MoveProject] failed to clean empty old folder for shared project", "folder_id", oldOrg.FolderID.Int64, "error", err)
+			}
 		}
 
 		w.Header().Set("Content-Type", "application/json")

@@ -4,7 +4,6 @@ import { useFolderContents, useCreateFolder } from "@/hooks/useFolders";
 import { useCreateProject } from "@/hooks/useProjects";
 import MorphingAddButton from "@/components/MorphingAddButton";
 import { toast } from "@/routes/__root";
-import LinkNotAvailable from "@/components/LinkNotAvailable";
 import { useEffect, useRef, useMemo } from "react";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 
@@ -117,8 +116,31 @@ function FolderPage() {
     }
   };
 
+  useEffect(() => {
+    if (!isLoading && error) {
+      navigate({ to: "/" });
+    }
+  }, [isLoading, error, navigate]);
+
+  useEffect(() => {
+    if (!isLoading && contents) {
+      const hasItems =
+        (contents.projects?.length || 0) > 0 ||
+        (contents.folders?.length || 0) > 0 ||
+        (contents.shared_tracks?.length || 0) > 0;
+      if (!hasItems) {
+        const createdAt = contents.folder?.created_at
+          ? new Date(contents.folder.created_at).getTime()
+          : 0;
+        if (Date.now() - createdAt > 10000) {
+          navigate({ to: "/" });
+        }
+      }
+    }
+  }, [isLoading, contents, navigate]);
+
   if (!isLoading && error) {
-    return <LinkNotAvailable />;
+    return <div className="min-h-screen bg-background" />;
   }
 
   return (

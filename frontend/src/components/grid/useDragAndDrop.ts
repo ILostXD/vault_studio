@@ -6,10 +6,61 @@ import { getCachedCoverUrl } from "@/hooks/useProjectCoverImage";
 
 interface DragDropCallbacks {
   onCreateFolder?: (name: string, projectIds: string[], folderIds?: number[]) => Promise<number | undefined>;
-  onMoveProjectToFolder?: (projectId: string, folderId: number) => Promise<void>;
+  onMoveProjectToFolder?: (projectId: string, folderId: number | null) => Promise<void>;
   onMoveFolderToFolder?: (folderId: number, targetFolderId: number | null) => Promise<void>;
   onOrganizeSharedProject?: (projectId: number, folderId: number | null, customOrder?: number) => Promise<void>;
   onOrganizeSharedTrack?: (trackId: number, folderId: number | null, customOrder?: number) => Promise<void>;
+  onNavigateAfterDrop?: (targetFolderId: number | null) => void;
+}
+
+function checkBreadcrumbHover(
+  point: { x: number; y: number },
+  cardCenter: { x: number; y: number }
+): string | null {
+  if (typeof document === "undefined") return null;
+  const elements = document.querySelectorAll<HTMLElement>("[data-breadcrumb-drop]");
+
+  for (const el of elements) {
+    const rect = el.getBoundingClientRect();
+    const padding = 12;
+    const inPoint =
+      point.x >= rect.left - padding &&
+      point.x <= rect.right + padding &&
+      point.y >= rect.top - padding &&
+      point.y <= rect.bottom + padding;
+
+    const inCard =
+      cardCenter.x >= rect.left - padding &&
+      cardCenter.x <= rect.right + padding &&
+      cardCenter.y >= rect.top - padding &&
+      cardCenter.y <= rect.bottom + padding;
+
+    if (inPoint || inCard) {
+      const dropAttr = el.getAttribute("data-breadcrumb-drop");
+      if (dropAttr === "root") {
+        return "breadcrumb:root";
+      } else if (dropAttr?.startsWith("folder-")) {
+        return `breadcrumb:folder:${dropAttr.replace("folder-", "")}`;
+      }
+    }
+  }
+  return null;
+}
+
+function updateBreadcrumbDomHover(activeTarget: string | null) {
+  if (typeof document === "undefined") return;
+  const elements = document.querySelectorAll<HTMLElement>("[data-breadcrumb-drop]");
+  elements.forEach((el) => {
+    const dropAttr = el.getAttribute("data-breadcrumb-drop");
+    const isOver =
+      (dropAttr === "root" && activeTarget === "breadcrumb:root") ||
+      (dropAttr && activeTarget === `breadcrumb:folder:${dropAttr.replace("folder-", "")}`);
+    if (isOver) {
+      el.setAttribute("data-drag-over", "true");
+    } else {
+      el.removeAttribute("data-drag-over");
+    }
+  });
 }
 
 export function useDragAndDrop(
@@ -75,11 +126,12 @@ export function useDragAndDrop(
   );
 
   const handleDragMove = useCallback(
-    (id: string, _point: { x: number; y: number }) => {
+    (id: string, point: { x: number; y: number }) => {
       rectsRef.current = measureRects();
       const draggedRect = rectsRef.current.get(id);
       if (!draggedRect) {
         setHoverTargetId(null);
+        updateBreadcrumbDomHover(null);
         return;
       }
 
@@ -88,8 +140,10 @@ export function useDragAndDrop(
         y: draggedRect.top + draggedRect.height / 2,
       };
 
-      const target = findHoverTarget(cardCenter, draggingId);
+      const breadcrumbTarget = checkBreadcrumbHover(point, cardCenter);
+      const target = breadcrumbTarget || findHoverTarget(cardCenter, draggingId);
       setHoverTargetId(target);
+      updateBreadcrumbDomHover(breadcrumbTarget);
 
       if (hoverTimeoutRef.current) {
         clearTimeout(hoverTimeoutRef.current);
@@ -109,6 +163,7 @@ export function useDragAndDrop(
   );
 
   const handleDragCancel = useCallback(() => {
+    updateBreadcrumbDomHover(null);
     setDraggingId(null);
     setHoverTargetId(null);
     if (hoverTimeoutRef.current) {
@@ -131,9 +186,56 @@ export function useDragAndDrop(
       const targetId = hoverTargetId;
 
       if (!targetId || targetId === draggingId) {
+        updateBreadcrumbDomHover(null);
         setDraggingId(null);
         setHoverTargetId(null);
         return false;
+      }
+
+      if (targetId.startsWith("breadcrumb:")) {
+        if (!shouldActuallyDrop) {
+          setDroppingIntoId(targetId);
+          return true;
+        }
+
+        updateBreadcrumbDomHover(null);
+
+        const targetFolderId =
+          targetId === "breadcrumb:root"
+            ? null
+            : parseInt(targetId.replace("breadcrumb:folder:", ""), 10);
+
+        try {
+          if (source && source.type === "project") {
+            if (source.isShared && callbacks?.onOrganizeSharedProject) {
+              await callbacks.onOrganizeSharedProject(source.project.id, targetFolderId);
+            } else if (callbacks?.onMoveProjectToFolder) {
+              await callbacks.onMoveProjectToFolder(source.project.public_id, targetFolderId);
+            }
+          } else if (source && source.type === "folder") {
+            if (callbacks?.onMoveFolderToFolder && source.folderId) {
+              await callbacks.onMoveFolderToFolder(source.folderId, targetFolderId);
+            }
+          } else if (source && source.type === "track") {
+            if (callbacks?.onOrganizeSharedTrack) {
+              await callbacks.onOrganizeSharedTrack(source.track.id, targetFolderId);
+            }
+          }
+        } catch (error) {
+          console.error("Failed to move item to breadcrumb target:", error);
+        }
+
+        const willBeEmpty = items.length <= 1;
+
+        setItems((prev) => prev.filter((it) => it.id !== source.id));
+        setDroppingIntoId(null);
+        setDraggingId(null);
+        setHoverTargetId(null);
+
+        if (willBeEmpty && callbacks?.onNavigateAfterDrop) {
+          callbacks.onNavigateAfterDrop(targetFolderId);
+        }
+        return true;
       }
 
       const targetIndex = items.findIndex((it) => it.id === targetId);
@@ -454,6 +556,7 @@ export function useDragAndDrop(
         }
       }
 
+      updateBreadcrumbDomHover(null);
       setDraggingId(null);
       setHoverTargetId(null);
       return false;

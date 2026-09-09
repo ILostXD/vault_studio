@@ -562,13 +562,13 @@ export default function DraggableProjectGrid({
   const handleMoveProjectToFolder = useCallback(
     async (
       projectId: string,
-      folderId: number,
+      folderId: number | null,
       customOrder?: number,
     ): Promise<void> => {
       isDropInProgressRef.current = true;
 
       try {
-        if (customOrder !== undefined) {
+        if (folderId !== null && customOrder !== undefined) {
           await moveProjectsToFolder.mutateAsync({
             projects: [{ project_id: projectId, custom_order: customOrder }],
             folderId,
@@ -577,9 +577,26 @@ export default function DraggableProjectGrid({
           await moveProject.mutateAsync({ id: projectId, folderId });
         }
 
-        await queryClient.refetchQueries({
-          queryKey: projectKeys.list(folderId),
-        });
+        if (folderId !== null) {
+          await queryClient.refetchQueries({
+            queryKey: projectKeys.list(folderId),
+          });
+          await queryClient.refetchQueries({
+            queryKey: folderKeys.contents(folderId),
+          });
+        } else {
+          await queryClient.refetchQueries({
+            queryKey: projectKeys.list("root"),
+          });
+        }
+
+        if (currentFolderId) {
+          queryClient.invalidateQueries({
+            queryKey: folderKeys.contents(currentFolderId),
+          });
+        }
+        queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+        queryClient.invalidateQueries({ queryKey: folderKeys.lists() });
 
         setTimeout(() => {
           isDropInProgressRef.current = false;
@@ -589,7 +606,7 @@ export default function DraggableProjectGrid({
         throw error;
       }
     },
-    [moveProject, moveProjectsToFolder, queryClient],
+    [moveProject, moveProjectsToFolder, queryClient, currentFolderId],
   );
 
   const handleOrganizeSharedProject = useCallback(
@@ -613,8 +630,18 @@ export default function DraggableProjectGrid({
           await queryClient.refetchQueries({
             queryKey: folderKeys.contents(folderId),
           });
+        } else {
+          await queryClient.refetchQueries({
+            queryKey: projectKeys.list("root"),
+          });
+        }
+        if (currentFolderId) {
+          queryClient.invalidateQueries({
+            queryKey: folderKeys.contents(currentFolderId),
+          });
         }
         queryClient.invalidateQueries({ queryKey: ["shared-projects"] });
+        queryClient.invalidateQueries({ queryKey: folderKeys.lists() });
 
         setTimeout(() => {
           isDropInProgressRef.current = false;
@@ -625,7 +652,7 @@ export default function DraggableProjectGrid({
         throw error;
       }
     },
-    [queryClient],
+    [queryClient, currentFolderId],
   );
 
   const handleOrganizeSharedTrack = useCallback(
@@ -647,7 +674,13 @@ export default function DraggableProjectGrid({
             queryKey: folderKeys.contents(folderId),
           });
         }
+        if (currentFolderId) {
+          queryClient.invalidateQueries({
+            queryKey: folderKeys.contents(currentFolderId),
+          });
+        }
         queryClient.invalidateQueries({ queryKey: ["shared-tracks"] });
+        queryClient.invalidateQueries({ queryKey: folderKeys.lists() });
 
         setTimeout(() => {
           isDropInProgressRef.current = false;
@@ -658,7 +691,7 @@ export default function DraggableProjectGrid({
         throw error;
       }
     },
-    [queryClient],
+    [queryClient, currentFolderId],
   );
 
   const handleLeaveSharedProject = useCallback((project: Project) => {
@@ -697,6 +730,20 @@ export default function DraggableProjectGrid({
     }
   }, [projectToLeave, isLeaving, queryClient]);
 
+  const handleNavigateAfterDrop = useCallback(
+    (targetFolderId: number | null) => {
+      if (targetFolderId === null) {
+        navigate({ to: "/" });
+      } else {
+        navigate({
+          to: "/folder/$folderId",
+          params: { folderId: String(targetFolderId) },
+        });
+      }
+    },
+    [navigate],
+  );
+
   const {
     draggingId,
     hoverTargetId,
@@ -714,6 +761,8 @@ export default function DraggableProjectGrid({
     onMoveFolderToFolder: handleMoveFolderToFolder,
     onOrganizeSharedProject: handleOrganizeSharedProject,
     onOrganizeSharedTrack: handleOrganizeSharedTrack,
+    onNavigateAfterDrop:
+      currentFolderId !== undefined ? handleNavigateAfterDrop : undefined,
   });
 
   const handleDrop = useCallback(

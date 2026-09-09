@@ -468,6 +468,13 @@ func (s *projectService) MoveProject(ctx context.Context, publicID string, userI
 	}
 
 	slog.Debug("[MoveProject] successfully moved owned project", "project_id", project.ID, "folder_id", newFolderID, "custom_order", customOrder)
+
+	if project.FolderID.Valid && (folderID == nil || *folderID != project.FolderID.Int64) {
+		if _, err := s.db.DeleteFolderIfEmpty(ctx, project.FolderID.Int64, userID); err != nil {
+			slog.Warn("[MoveProject] failed to check/clean empty old folder", "folder_id", project.FolderID.Int64, "error", err)
+		}
+	}
+
 	return updated, nil
 }
 
@@ -493,6 +500,7 @@ func (s *projectService) MoveProjectsToFolderWithOrder(ctx context.Context, proj
 	newFolderID := sql.NullInt64{Int64: folderID, Valid: true}
 	results := make([]sqlc.Project, 0, len(projects))
 	baseTime := time.Now()
+	oldFolderIDs := make(map[int64]struct{})
 
 	for i, projectInfo := range projects {
 		project, err := queries.GetProjectByPublicID(ctx, sqlc.GetProjectByPublicIDParams{
@@ -501,6 +509,10 @@ func (s *projectService) MoveProjectsToFolderWithOrder(ctx context.Context, proj
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to get project %s: %w", projectInfo.ProjectID, err)
+		}
+
+		if project.FolderID.Valid && project.FolderID.Int64 != folderID {
+			oldFolderIDs[project.FolderID.Int64] = struct{}{}
 		}
 
 		timestamp := baseTime.Add(time.Duration(i) * time.Millisecond)
@@ -528,6 +540,12 @@ func (s *projectService) MoveProjectsToFolderWithOrder(ctx context.Context, proj
 
 	if err := tx.Commit(); err != nil {
 		return nil, err
+	}
+
+	for oldID := range oldFolderIDs {
+		if _, err := s.db.DeleteFolderIfEmpty(ctx, oldID, userID); err != nil {
+			slog.Warn("[MoveProjectsToFolderWithOrder] failed to check/clean empty old folder", "folder_id", oldID, "error", err)
+		}
 	}
 
 	return results, nil
@@ -575,7 +593,17 @@ func (s *projectService) DeleteProject(ctx context.Context, publicID string, use
 		return err
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	if project.FolderID.Valid {
+		if _, err := s.db.DeleteFolderIfEmpty(ctx, project.FolderID.Int64, userID); err != nil {
+			slog.Warn("[DeleteProject] failed to check/clean empty old folder", "folder_id", project.FolderID.Int64, "error", err)
+		}
+	}
+
+	return nil
 }
 
 func (s *projectService) UploadCover(ctx context.Context, input UploadCoverInput) (sqlc.Project, error) {

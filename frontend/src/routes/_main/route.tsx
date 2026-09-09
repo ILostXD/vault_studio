@@ -176,7 +176,8 @@ function MainLayout() {
                 variant="ghost"
                 size="sm"
                 haptic="light"
-                className="flex items-center gap-1 text-(--text-0) hover:text-(--text-0)/80 -ml-2"
+                data-breadcrumb-drop={folder?.parent_id ? `folder-${folder.parent_id}` : "root"}
+                className="flex items-center gap-1 text-(--text-0) hover:text-(--text-0)/80 -ml-2 rounded-md transition-all duration-150 data-[drag-over=true]:bg-white/15 data-[drag-over=true]:text-(--text-0) data-[drag-over=true]:scale-105 data-[drag-over=true]:ring-1 data-[drag-over=true]:ring-white/30"
                 onClick={handleBack}
               >
                 <ChevronLeft className="size-4" />
@@ -206,7 +207,8 @@ function MainLayout() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-auto p-0 text-(--text-0)/50 hover:text-(--text-0) text-2xl font-medium shrink-0"
+                data-breadcrumb-drop="root"
+                className="h-auto p-1 -m-1 text-(--text-0)/50 hover:text-(--text-0) text-2xl font-medium shrink-0 rounded-md transition-all duration-150 data-[drag-over=true]:bg-white/15 data-[drag-over=true]:text-(--text-0) data-[drag-over=true]:scale-105 data-[drag-over=true]:ring-1 data-[drag-over=true]:ring-white/30"
                 onClick={() => handleBreadcrumbClick(null)}
               >
                 <BrandWordmark />
@@ -245,7 +247,8 @@ function MainLayout() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-auto p-0 text-(--text-0) hover:text-(--text-0)/80 text-2xl font-medium truncate"
+                          data-breadcrumb-drop={`folder-${folderItem.id}`}
+                          className="h-auto p-1 -m-1 text-(--text-0) hover:text-(--text-0)/80 text-2xl font-medium truncate rounded-md transition-all duration-150 data-[drag-over=true]:bg-white/15 data-[drag-over=true]:text-(--text-0) data-[drag-over=true]:scale-105 data-[drag-over=true]:ring-1 data-[drag-over=true]:ring-white/30"
                           onClick={() => handleBreadcrumbClick(folderItem.id)}
                         >
                           {folderItem.name}

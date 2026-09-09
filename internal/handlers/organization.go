@@ -141,6 +141,11 @@ func (h *OrganizationHandler) OrganizeSharedProject(w http.ResponseWriter, r *ht
 	}
 
 	slog.Debug("[OrganizeSharedProject] Upserting project", "projectID", projectID, "folderID", folderID, "customOrder", customOrder)
+	oldOrg, _ := h.db.GetUserSharedProjectOrganization(r.Context(), sqlc.GetUserSharedProjectOrganizationParams{
+		UserID:    int64(userID),
+		ProjectID: projectID,
+	})
+
 	org, err := h.db.UpsertSharedProjectOrganization(r.Context(), sqlc.UpsertSharedProjectOrganizationParams{
 		UserID:      int64(userID),
 		ProjectID:   projectID,
@@ -152,6 +157,12 @@ func (h *OrganizationHandler) OrganizeSharedProject(w http.ResponseWriter, r *ht
 		return apperr.NewInternal("failed to organize project", err)
 	}
 	slog.Debug("[OrganizeSharedProject] Successfully organized project", "projectID", projectID, "customOrder", org.CustomOrder, "folderID", org.FolderID)
+
+	if oldOrg.FolderID.Valid && (req.FolderID == nil || *req.FolderID != oldOrg.FolderID.Int64) {
+		if _, err := h.db.DeleteFolderIfEmpty(r.Context(), oldOrg.FolderID.Int64, int64(userID)); err != nil {
+			slog.Warn("[OrganizeSharedProject] failed to clean empty old folder", "folder_id", oldOrg.FolderID.Int64, "error", err)
+		}
+	}
 
 	return httputil.OKResult(w, convertSharedProjectOrganization(org))
 }
@@ -224,6 +235,11 @@ func (h *OrganizationHandler) OrganizeSharedTrack(w http.ResponseWriter, r *http
 	}
 
 	slog.Debug("[OrganizeSharedTrack] Upserting track", "trackID", trackID, "folderID", folderID, "customOrder", customOrder)
+	oldOrg, _ := h.db.GetUserSharedTrackOrganization(r.Context(), sqlc.GetUserSharedTrackOrganizationParams{
+		UserID:  int64(userID),
+		TrackID: trackID,
+	})
+
 	org, err := h.db.UpsertSharedTrackOrganization(r.Context(), sqlc.UpsertSharedTrackOrganizationParams{
 		UserID:      int64(userID),
 		TrackID:     trackID,
@@ -235,6 +251,12 @@ func (h *OrganizationHandler) OrganizeSharedTrack(w http.ResponseWriter, r *http
 		return apperr.NewInternal("failed to organize track", err)
 	}
 	slog.Debug("[OrganizeSharedTrack] Successfully organized track", "trackID", trackID, "customOrder", org.CustomOrder, "folderID", org.FolderID)
+
+	if oldOrg.FolderID.Valid && (req.FolderID == nil || *req.FolderID != oldOrg.FolderID.Int64) {
+		if _, err := h.db.DeleteFolderIfEmpty(r.Context(), oldOrg.FolderID.Int64, int64(userID)); err != nil {
+			slog.Warn("[OrganizeSharedTrack] failed to clean empty old folder", "folder_id", oldOrg.FolderID.Int64, "error", err)
+		}
+	}
 
 	return httputil.OKResult(w, convertSharedTrackOrganization(org))
 }
