@@ -110,7 +110,7 @@ function SpotifyPreview({
 			<div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.6)_0%,transparent_18%,transparent_48%,rgba(0,0,0,0.65)_68%,rgba(0,0,0,0.92)_100%)]" />
 
 			{/* Top bar */}
-			<div className="absolute inset-x-0 top-0 flex items-center justify-between px-5 pt-5 text-white">
+			<div className="absolute inset-x-0 top-0 flex items-center justify-between px-6 pt-6 text-white">
 				<ChevronDown className="size-5 text-white/80" />
 				<div className="flex min-w-0 flex-1 flex-col items-center px-2">
 					<span className="text-[9px] font-semibold uppercase tracking-wider text-white/60">
@@ -124,7 +124,7 @@ function SpotifyPreview({
 			</div>
 
 			{/* Bottom player controls */}
-			<div className="absolute inset-x-0 bottom-0 px-5 pb-5 pt-3 text-white">
+			<div className="absolute inset-x-0 bottom-0 px-6 pb-7 text-white">
 				{/* Track info & library checkmark */}
 				<div className="flex items-center justify-between gap-3">
 					<div className="flex min-w-0 flex-1 items-center gap-3">
@@ -150,31 +150,31 @@ function SpotifyPreview({
 				</div>
 
 				{/* Progress bar with scrubber dot */}
-				<div className="mt-3.5">
+				<div className="mt-6">
 					<div className="relative h-1 w-full rounded-full bg-white/20">
 						<div className="h-full w-[40%] rounded-full bg-white" />
 						<div className="absolute left-[40%] top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-sm" />
 					</div>
-					<div className="mt-1.5 flex justify-between text-[10px] font-medium text-white/55 font-mono">
+					<div className="mt-2 flex justify-between font-mono text-[10px] font-medium text-white/55">
 						<span>1:04</span>
 						<span>2:33</span>
 					</div>
 				</div>
 
 				{/* Playback controls */}
-				<div className="mt-2.5 flex items-center justify-between px-1">
+				<div className="mt-6 flex items-center justify-between px-2">
 					<Shuffle className="size-5 text-[#1ed760]" />
 					<SkipBack className="size-6 fill-white text-white" />
 					<button
 						type="button"
 						onClick={() => setIsPlaying((prev) => !prev)}
-						className="flex size-14 items-center justify-center rounded-full bg-white text-black shadow-lg transition-transform active:scale-95 cursor-pointer"
+						className="flex size-14 cursor-pointer items-center justify-center rounded-full bg-white text-black shadow-lg transition-transform active:scale-95"
 						aria-label={isPlaying ? "Pause" : "Play"}
 					>
 						{isPlaying ? (
 							<Pause className="size-6 fill-black text-black" />
 						) : (
-							<Play className="size-6 fill-black text-black ml-0.5" />
+							<Play className="ml-0.5 size-6 fill-black text-black" />
 						)}
 					</button>
 					<SkipForward className="size-6 fill-white text-white" />
@@ -182,7 +182,7 @@ function SpotifyPreview({
 				</div>
 
 				{/* Bottom utility icons */}
-				<div className="mt-3.5 flex items-center justify-between px-1 text-white/70">
+				<div className="mt-6 flex items-center justify-between px-2 text-white/70">
 					<Laptop2 className="size-4 hover:text-white" />
 					<div className="flex items-center gap-4">
 						<Share2 className="size-4 hover:text-white" />
@@ -218,15 +218,15 @@ function ApplePortraitPreview({
 			/>
 
 			{/* Soft vignette overlay */}
-			<div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.25)_0%,transparent_20%,transparent_45%,rgba(0,0,0,0.3)_62%,rgba(0,0,0,0.85)_100%)]" />
+			<div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.25)_0%,transparent_18%,transparent_42%,rgba(0,0,0,0.35)_56%,rgba(0,0,0,0.85)_100%)]" />
 
 			{/* Top sheet grabber */}
-			<div className="absolute inset-x-0 top-0 flex justify-center pt-2.5">
-				<div className="h-1 w-8 rounded-full bg-white/25" />
+			<div className="absolute inset-x-0 top-0 flex justify-center pt-3">
+				<div className="h-1 w-9 rounded-full bg-white/25" />
 			</div>
 
 			{/* Bottom player section */}
-			<div className="absolute inset-x-0 bottom-0 px-6 pb-4 pt-2 text-white">
+			<div className="absolute inset-x-0 bottom-0 px-6 pb-6 text-white">
 				{/* Track title, artist, and action buttons */}
 				<div className="flex items-center justify-between gap-3">
 					<div className="min-w-0 flex-1">
@@ -240,29 +240,29 @@ function ApplePortraitPreview({
 					<div className="flex shrink-0 items-center gap-2">
 						<button
 							type="button"
-							className="flex size-7 items-center justify-center rounded-full bg-white/12 text-white/90 shadow transition-colors hover:bg-white/20 active:scale-95"
+							className="flex size-8 items-center justify-center rounded-full bg-white/12 text-white/90 shadow transition-colors hover:bg-white/20 active:scale-95"
 							aria-label="Favorite"
 						>
-							<Star className="size-3.5" />
+							<Star className="size-4" />
 						</button>
 						<button
 							type="button"
-							className="flex size-7 items-center justify-center rounded-full bg-white/12 text-white/90 shadow transition-colors hover:bg-white/20 active:scale-95"
+							className="flex size-8 items-center justify-center rounded-full bg-white/12 text-white/90 shadow transition-colors hover:bg-white/20 active:scale-95"
 							aria-label="More options"
 						>
-							<MoreVertical className="size-3.5" />
+							<MoreVertical className="size-4" />
 						</button>
 					</div>
 				</div>
 
 				{/* Progress bar and Lossless badge */}
-				<div className="mt-4">
+				<div className="mt-6">
 					<div className="h-1 w-full rounded-full bg-white/20">
 						<div className="h-full w-[22%] rounded-full bg-white/75" />
 					</div>
-					<div className="mt-1.5 flex items-center justify-between font-mono text-[10px] text-white/50">
+					<div className="mt-2 flex items-center justify-between font-mono text-[10px] text-white/50">
 						<span>0:02</span>
-						<div className="flex items-center gap-1 rounded bg-white/10 px-1.5 py-0.5 font-sans text-[9px] font-semibold tracking-wide text-white/80">
+						<div className="flex items-center gap-1 rounded bg-white/10 px-2 py-0.5 font-sans text-[9px] font-semibold tracking-wide text-white/80">
 							<AudioWaveform className="size-2.5 text-white/70" />
 							<span>Lossless</span>
 						</div>
@@ -271,7 +271,7 @@ function ApplePortraitPreview({
 				</div>
 
 				{/* Playback controls */}
-				<div className="mt-4 flex items-center justify-between px-6">
+				<div className="mt-7 flex items-center justify-around px-4">
 					<button
 						type="button"
 						className="flex items-center justify-center text-white transition-transform active:scale-90"
@@ -286,9 +286,9 @@ function ApplePortraitPreview({
 						aria-label={isPlaying ? "Pause" : "Play"}
 					>
 						{isPlaying ? (
-							<Pause className="size-10 fill-white text-white" />
+							<Pause className="size-11 fill-white text-white" />
 						) : (
-							<Play className="ml-1 size-10 fill-white text-white" />
+							<Play className="ml-1 size-11 fill-white text-white" />
 						)}
 					</button>
 					<button
@@ -301,7 +301,7 @@ function ApplePortraitPreview({
 				</div>
 
 				{/* Bottom utility icons */}
-				<div className="mt-5 flex items-center justify-between px-6 text-white/60">
+				<div className="mt-7 flex items-center justify-between px-8 text-white/60">
 					<button
 						type="button"
 						className="transition-colors hover:text-white"
@@ -326,7 +326,7 @@ function ApplePortraitPreview({
 				</div>
 
 				{/* Home indicator bar */}
-				<div className="mx-auto mt-4 h-1 w-24 rounded-full bg-white/40" />
+				<div className="mx-auto mt-5 h-1 w-28 rounded-full bg-white/40" />
 			</div>
 		</div>
 	);
