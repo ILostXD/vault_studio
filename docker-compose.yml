@@ -17,7 +17,7 @@ services:
       - ACCESS_TOKEN_TTL=${ACCESS_TOKEN_TTL:-15m}
       - REFRESH_TOKEN_TTL=${REFRESH_TOKEN_TTL:-720h}
       - SIGNED_URL_TTL=${SIGNED_URL_TTL:-5m}
-      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost,http://192.168.1.253}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost,http://localhost:8080,http://192.168.1.183,http://192.168.1.183:8080,http://192.168.1.253,http://192.168.1.253:8080}
       - LOG_LEVEL=${LOG_LEVEL:-warn}
       - AUDIO_ANALYSIS_URL=http://audio-analysis:8001
       - TOOLOST_CLIENT_ID=${TOOLOST_CLIENT_ID:-}
