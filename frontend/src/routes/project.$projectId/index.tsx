@@ -162,7 +162,6 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 		pause,
 		isPlaying,
 		currentTrack,
-		previewProgress,
 		clearQueue,
 		addProjectToQueue,
 		setProjectTracks,
@@ -780,7 +779,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 							opacity:
 								isNotesOpen && !isSmallScreen ? 0 : showCoverPanel ? 1 : 0,
 						}}
-						transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
+						transition={{ x: { duration: 0.4 }, opacity: { duration: 0.65 }, ease: [0.22, 1, 0.36, 1] }}
 						className={cn(
 							"flex items-start justify-center overflow-visible md:sticky md:self-start md:pl-5 md:pr-22 top-30",
 							isMobilePortrait ? "p-0 -mt-2" : "px-2 pt-2",
@@ -823,6 +822,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 												alt={String(project.name)}
 												className="absolute inset-0 size-full object-cover object-top"
 												onLoad={() => setCoverColorsReady(true)}
+												onError={() => setCoverColorsReady(true)}
 											/>
 										)}
 										<video
@@ -837,6 +837,8 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 											disablePictureInPicture
 											aria-label={`${project.name} animated cover`}
 											className="absolute inset-0 size-full object-cover object-top motion-reduce:hidden"
+											onLoadedData={() => setCoverColorsReady(true)}
+											onError={() => setCoverColorsReady(true)}
 										/>
 									</div>
 									{canEditProject && (
@@ -875,7 +877,6 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 										showUploadOverlay={canEditProject}
 										onColorsReady={() => setCoverColorsReady(true)}
 										isPlaying={isCurrentProjectPlaying}
-										playbackProgress={previewProgress}
 									/>
 									<input
 										ref={coverInputRef}
@@ -1071,6 +1072,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 						</div>
 
 						<ProjectTrackList
+							reveal={showTracksPanel}
 							tracks={tracks}
 							filteredTracks={search.filteredTracks}
 							project={project}

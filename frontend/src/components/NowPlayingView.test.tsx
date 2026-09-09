@@ -45,12 +45,13 @@ const sampleQueue = [
 	},
 ];
 
+vi.mock("@/contexts/PlaybackProgressContext", () => ({ usePlaybackProgress: () => 30 }));
+
 vi.mock("@/contexts/AudioPlayerContext", () => ({
 	useAudioPlayer: () => ({
 		currentTrack: sampleTrack,
 		isPlaying: true,
 		duration: 180,
-		previewProgress: 30,
 		pause: vi.fn(),
 		resume: vi.fn(),
 		previousTrack: vi.fn(),

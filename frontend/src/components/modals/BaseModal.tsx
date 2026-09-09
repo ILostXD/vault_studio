@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect } from "react";
+import { useEffect, useEffectEvent } from "react";
 import { createPortal } from "react-dom";
 import { useWebHaptics } from "web-haptics/react";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 
 interface BaseModalProps {
 	isOpen: boolean;
@@ -31,25 +32,19 @@ export default function BaseModal({
 	dataAttributes = EMPTY_DATA_ATTRIBUTES,
 }: BaseModalProps) {
 	const haptic = useWebHaptics();
+	useBodyScrollLock(isOpen);
+	const onOpen = useEffectEvent(() => haptic.trigger("medium"));
+	const onEscape = useEffectEvent((e: KeyboardEvent) => {
+		if (e.key === "Escape" && !e.defaultPrevented && !disableClose) onClose();
+	});
 
 	useEffect(() => {
-		const handleEscape = (e: KeyboardEvent) => {
-			if (e.key === "Escape" && !disableClose) {
-				onClose();
-			}
-		};
-
-		if (isOpen) {
-			haptic.trigger("medium");
-			document.addEventListener("keydown", handleEscape);
-			document.body.style.overflow = "hidden";
-		}
-
-		return () => {
-			document.removeEventListener("keydown", handleEscape);
-			document.body.style.overflow = "unset";
-		};
-	}, [isOpen, disableClose, onClose, haptic]);
+		if (!isOpen) return;
+		onOpen();
+		const handleEscape = (e: KeyboardEvent) => onEscape(e);
+		document.addEventListener("keydown", handleEscape);
+		return () => document.removeEventListener("keydown", handleEscape);
+	}, [isOpen]);
 
 	return (
 		<>
@@ -83,20 +78,19 @@ export default function BaseModal({
 								<motion.div
 									initial={{
 										opacity: 0,
-										y: 18,
-										scale: 0.965,
-										filter: "blur(6px)",
+										y: 12,
+										scale: 0.985,
 									}}
-									animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-									exit={{ opacity: 0, y: 10, scale: 0.98, filter: "blur(3px)" }}
-									transition={{ type: "spring", stiffness: 420, damping: 34 }}
+									animate={{ opacity: 1, y: 0, scale: 1 }}
+									exit={{ opacity: 0, y: 8, scale: 0.985 }}
+									transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
 									className={`relative z-10 my-auto w-full ${maxWidthClasses[maxWidth]} max-h-[calc(100dvh-2rem)] overflow-hidden border border-(--card-border) rounded-[34px] shadow-2xl pointer-events-auto overlay-surface text-(--text-0)`}
 									onClick={(e) => e.stopPropagation()}
 									{...(dataAttributes["data-modal-content"] && {
 										"data-modal-content": dataAttributes["data-modal-content"],
 									})}
 								>
-									<div className="relative max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain">
+									<div className="relative max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain touch-pan-y">
 										{children}
 									</div>
 								</motion.div>

@@ -50,6 +50,7 @@ interface ProjectTrackListProps {
 
   onMoreClick: (track: Track) => void;
   isDraggable: boolean;
+  reveal?: boolean;
 }
 
 export function ProjectTrackList({
@@ -80,6 +81,7 @@ export function ProjectTrackList({
   handleTrackDrop,
   onMoreClick,
   isDraggable,
+  reveal = true,
 }: ProjectTrackListProps) {
   return (
     <>
@@ -180,6 +182,7 @@ export function ProjectTrackList({
                 {filteredTracks.map((track, index) => (
                   <div
                     key={track.public_id}
+                    style={{ animationDelay: `${Math.min(index * 50, 400)}ms` }}
                     data-track-drop-zone
                     onDragEnter={(e) =>
                       handleTrackDragEnter(e, track.public_id)
@@ -187,7 +190,7 @@ export function ProjectTrackList({
                     onDragLeave={handleTrackDragLeave}
                     onDragOver={handlePageDragOver}
                     onDrop={(e) => handleTrackDrop(e, track.public_id)}
-                    className={`relative rounded-2xl transition-[background-color,box-shadow] duration-700 ${
+                    className={`${reveal ? "track-reveal" : "opacity-0"} relative rounded-2xl transition-[background-color,box-shadow] duration-300 ${
                       dropTargetTrackId === track.public_id
                         ? "ring-1 ring-white/50 ring-offset-2 ring-offset-background"
                         : ""

@@ -1,3 +1,4 @@
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import {
   ChevronLeft,
   X,
@@ -177,6 +178,8 @@ export default function TrackVersionsModal({
     }
   }, [isOpen, track.key, track.bpm, track.active_version_id, track.title]);
 
+  useBodyScrollLock(internalOpen);
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -186,12 +189,10 @@ export default function TrackVersionsModal({
 
     if (internalOpen) {
       document.addEventListener("keydown", handleEscape);
-      document.body.style.overflow = "hidden";
     }
 
     return () => {
       document.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = "unset";
     };
   }, [internalOpen]);
 

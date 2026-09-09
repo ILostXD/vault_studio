@@ -19,7 +19,7 @@ const buttonVariants = cva(
           "border border-[var(--button-border)] bg-transparent text-foreground hover:bg-[linear-gradient(180deg,var(--button-gradient-from)_0%,var(--button-gradient-to)_100%)]",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "text-accent-foreground border-none",
+        ghost: "text-accent-foreground border-none hover:bg-(--action-bg-hover)",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

@@ -120,7 +120,6 @@ function SharedTrackPage() {
     resume,
     isPlaying,
     currentTrack,
-    previewProgress,
     addToQueue,
   } = useAudioPlayer();
 
@@ -538,7 +537,6 @@ function SharedTrackPage() {
                   setCoverColorsReady(true);
                 }}
                 isPlaying={isTrackPlaying}
-                playbackProgress={previewProgress}
               />
             </div>
           </motion.div>

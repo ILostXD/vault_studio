@@ -679,6 +679,81 @@ code,
   }
 }
 
+/* Keep entrance motion separate from drag transforms. */
+@keyframes track-reveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.track-reveal {
+  animation: track-reveal 650ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@keyframes content-reveal {
+  from { opacity: 0; translate: 0 6px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+details[open] > :not(summary) {
+  animation: content-reveal 400ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@keyframes album-disc-spin {
+  to { transform: rotate(360deg); }
+}
+
+.album-disc-spin {
+  animation: album-disc-spin 30s linear infinite;
+}
+
+[data-slot="button"]:focus-visible,
+[role="slider"]:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 3px;
+}
+
+[data-slot="select-trigger"]:not(:disabled),
+[data-slot="select-item"]:not([data-disabled]),
+[data-slot="dropdown-menu-item"]:not([data-disabled]),
+[data-slot="dropdown-menu-checkbox-item"]:not([data-disabled]),
+[data-slot="dropdown-menu-radio-item"]:not([data-disabled]) {
+  cursor: pointer;
+}
+
+[data-slot="dropdown-menu-content"],
+[data-slot="dropdown-menu-sub-content"],
+[data-slot="select-content"] {
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
+@media (pointer: coarse) {
+  [data-slot="dropdown-menu-item"],
+  [data-slot="dropdown-menu-checkbox-item"],
+  [data-slot="dropdown-menu-radio-item"],
+  [data-slot="dropdown-menu-sub-trigger"],
+  [data-slot="select-item"] {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track-reveal,
+  .album-disc-spin,
+  details[open] > :not(summary),
+  [data-slot="dropdown-menu-content"],
+  [data-slot="dropdown-menu-sub-content"],
+  [data-slot="select-content"] {
+    animation: none;
+  }
+
+  [data-slot="button"],
+  [data-slot="select-trigger"] {
+    transition: none;
+  }
+}
+
 /* Force native browser date pickers to have transparent backgrounds to show parent gradients */
 input[type="date"]::-webkit-datetime-edit,
 input[type="date"]::-webkit-datetime-edit-fields-wrapper,

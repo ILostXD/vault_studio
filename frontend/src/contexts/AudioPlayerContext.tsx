@@ -12,6 +12,7 @@ import { resolveApiUrl } from "../api/server";
 import { createShuffledPlaylist } from "../lib/optimalShuffle";
 import { useAuth } from "./AuthContext";
 import { usePreferences } from "./PreferencesContext";
+import { createPlaybackProgressStore, PlaybackProgressContext } from "./PlaybackProgressContext";
 import { getTrack as fetchTrack } from "../api/tracks";
 import { getVersions } from "../api/versions";
 import { preloadCover } from "../hooks/useProjectCoverImage";
@@ -47,7 +48,6 @@ interface AudioPlayerContextType {
   currentTrack: Track | null;
   isPlaying: boolean;
   duration: number;
-  previewProgress: number;
   isNowPlayingOpen: boolean;
   queue: Track[];
   currentProjectTracks: Track[];
@@ -107,7 +107,8 @@ export function AudioPlayerProvider({
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
-  const [previewProgress, setPreviewProgress] = useState(0);
+  const [progressStore] = useState(createPlaybackProgressStore);
+  const setPreviewProgress = progressStore.setProgress;
   const [isNowPlayingOpen, setIsNowPlayingOpen] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [loopMode, setLoopMode] = useState<LoopMode>("off");
@@ -726,9 +727,7 @@ export function AudioPlayerProvider({
     setDuration(duration);
   }, []);
 
-  const onProgressUpdate = useCallback((progress: number) => {
-    setPreviewProgress(progress);
-  }, []);
+  const onProgressUpdate = progressStore.setProgress;
 
   const addToQueue = useCallback(
     (track: Track) => {
@@ -1098,7 +1097,6 @@ export function AudioPlayerProvider({
         currentTrack,
         isPlaying,
         duration,
-        previewProgress,
         isNowPlayingOpen,
         queue,
         currentProjectTracks,
@@ -1136,7 +1134,9 @@ export function AudioPlayerProvider({
         setShareToken,
       }}
     >
-      {children}
+      <PlaybackProgressContext.Provider value={progressStore}>
+        {children}
+      </PlaybackProgressContext.Provider>
     </AudioPlayerContext.Provider>
   );
 }

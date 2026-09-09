@@ -57,8 +57,11 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import WaveformComments from "@/components/WaveformComments";
+import { WaveformGraphic } from "@/components/WaveformGraphic";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
+import { usePlaybackProgress } from "@/contexts/PlaybackProgressContext";
 import { usePreferences } from "@/contexts/PreferencesContext";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useProjectMotionAssets } from "@/hooks/useProjectMotionAssets";
 import { formatTrackDuration } from "@/lib/duration";
 import {
@@ -88,11 +91,6 @@ export function shouldDismissNowPlaying(offsetY: number, velocityY: number) {
 	return offsetY > 120 || (offsetY > 48 && velocityY > 650);
 }
 
-const WAVEFORM_HEIGHT = 120;
-const WAVEFORM_BAR_WIDTH = 0.8;
-const WAVEFORM_BAR_GAP = 2;
-const WAVEFORM_X_OFFSET = 0.1;
-
 interface PlaybackWaveformProps {
 	bars: number[];
 	duration: number;
@@ -106,12 +104,7 @@ function PlaybackWaveform({
 	progress,
 	onSeek,
 }: PlaybackWaveformProps) {
-	const viewBoxWidth =
-		Math.max(bars.length - 1, 0) * WAVEFORM_BAR_GAP +
-		WAVEFORM_BAR_WIDTH +
-		WAVEFORM_X_OFFSET * 2;
 	const progressPercent = duration > 0 ? (progress / duration) * 100 : 0;
-	const progressPosition = (progressPercent / 100) * viewBoxWidth;
 
 	const seekAt = (clientX: number, element: HTMLDivElement) => {
 		if (duration <= 0) return;
@@ -154,39 +147,58 @@ function PlaybackWaveform({
 			aria-valuemax={Math.floor(duration)}
 			aria-valuenow={Math.floor(progress)}
 		>
-			<svg
-				width="100%"
-				height="100%"
-				viewBox={`0 0 ${viewBoxWidth} ${WAVEFORM_HEIGHT}`}
-				preserveAspectRatio="none"
-				aria-hidden="true"
-			>
-				{bars.map((height, index) => {
-					const normalizedHeight = Math.max(0, Math.min(100, Number(height)));
-					const scaledHeight = Math.max(
-						12,
-						(normalizedHeight / 100) * WAVEFORM_HEIGHT,
-					);
-					const x = WAVEFORM_X_OFFSET + index * WAVEFORM_BAR_GAP;
-					return (
-						<rect
-							key={x}
-							x={x}
-							y={(WAVEFORM_HEIGHT - scaledHeight) / 2}
-							width={WAVEFORM_BAR_WIDTH}
-							height={scaledHeight}
-							rx={2}
-							fill={
-								progressPosition >= x ? "#ffffff" : "rgba(255,255,255,0.25)"
-							}
-						/>
-					);
-				})}
-			</svg>
+			<WaveformGraphic bars={bars} progressPercent={progressPercent} playedColor="#ffffff" unplayedColor="rgba(255,255,255,0.25)" />
 			<div
 				className="pointer-events-none absolute inset-y-0 w-0.5 -translate-x-1/2 rounded-full bg-[var(--accent-color)] shadow-[0_0_8px_var(--accent-color)]"
 				style={{ left: `${progressPercent}%` }}
 			/>
+		</div>
+	);
+}
+
+function PlaybackTimeline({
+	bars,
+	duration,
+	onSeek,
+	versionId,
+	commentsOpen,
+	onCommentsOpenChange,
+	panelTarget,
+	mobile = false,
+}: {
+	bars: number[];
+	duration: number;
+	onSeek: (time: number) => void;
+	versionId?: number | null;
+	commentsOpen: boolean;
+	onCommentsOpenChange: (open: boolean) => void;
+	panelTarget: HTMLElement | null;
+	mobile?: boolean;
+}) {
+	const previewProgress = usePlaybackProgress();
+	const progress = duration > 0 ? Math.min(previewProgress, duration) : 0;
+	return (
+		<div className={cn("relative w-full", !mobile && "mt-6")} data-testid={mobile ? "mobile-playback-waveform" : undefined}>
+			{versionId && (
+				<WaveformComments
+					versionId={versionId}
+					duration={duration}
+					currentTime={progress}
+					onSeek={onSeek}
+					placement="fullscreen"
+					isOpen={commentsOpen}
+					onOpenChange={onCommentsOpenChange}
+					showButton={false}
+					embedded
+					fillEmbedded={mobile}
+					panelTarget={panelTarget}
+				/>
+			)}
+			<PlaybackWaveform bars={bars} duration={duration} progress={progress} onSeek={onSeek} />
+			<div className={cn("mt-1.5 flex justify-between font-mono text-white/55", mobile ? "text-[11px]" : "text-xs")}>
+				<span>{formatTrackDuration(progress) ?? "0:00"}</span>
+				<span>{formatTrackDuration(duration) ?? "0:00"}</span>
+			</div>
 		</div>
 	);
 }
@@ -202,7 +214,6 @@ export default function NowPlayingView({
 		currentTrack,
 		isPlaying,
 		duration,
-		previewProgress,
 		pause,
 		resume,
 		previousTrack,
@@ -298,13 +309,7 @@ export default function NowPlayingView({
 		};
 	}, [variant]);
 
-	useEffect(() => {
-		const previousOverflow = document.body.style.overflow;
-		document.body.style.overflow = "hidden";
-		return () => {
-			document.body.style.overflow = previousOverflow;
-		};
-	}, []);
+	useBodyScrollLock(true);
 
 	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
@@ -371,7 +376,6 @@ export default function NowPlayingView({
 		resolvedArtworkMode === "spotify_canvas";
 	const mobilePresentation: MotionArtworkPresentation =
 		resolvedArtworkMode === "apple_portrait" ? "apple-portrait" : "fill";
-	const progress = duration > 0 ? Math.min(previewProgress, duration) : 0;
 	const artist = currentTrack.artist || currentTrack.projectName || projectName;
 	const selectArtworkMode = (mode: string) => {
 		if (!isNowPlayingArtworkMode(mode)) return;
@@ -495,35 +499,15 @@ export default function NowPlayingView({
 								</div>
 							</div>
 
-							<div className="relative mt-6 w-full">
-								{isCommentsEnabled && activeVersionId && (
-									<WaveformComments
-										versionId={activeVersionId}
-										duration={duration}
-										currentTime={progress}
-										onSeek={seekTo}
-										placement="fullscreen"
-										isOpen={isCommentsOpen}
-										onOpenChange={(open) =>
-											setActivePanel(open ? "comments" : null)
-										}
-										showButton={false}
-										embedded
-										fillEmbedded={false}
-										panelTarget={commentsPanelTarget}
-									/>
-								)}
-								<PlaybackWaveform
-									bars={waveformBars}
-									duration={duration}
-									progress={progress}
-									onSeek={seekTo}
-								/>
-								<div className="mt-1.5 flex justify-between font-mono text-xs text-white/55">
-									<span>{formatTrackDuration(progress) ?? "0:00"}</span>
-									<span>{formatTrackDuration(duration) ?? "0:00"}</span>
-								</div>
-							</div>
+							<PlaybackTimeline
+								bars={waveformBars}
+								duration={duration}
+								onSeek={seekTo}
+								versionId={isCommentsEnabled ? activeVersionId : null}
+								commentsOpen={isCommentsOpen}
+								onCommentsOpenChange={(open) => setActivePanel(open ? "comments" : null)}
+								panelTarget={commentsPanelTarget}
+							/>
 
 							<div className="mt-5 flex w-full items-center justify-between">
 								<Button
@@ -1067,34 +1051,16 @@ export default function NowPlayingView({
 							</motion.div>
 						)}
 
-						<div className="relative" data-testid="mobile-playback-waveform">
-							{isCommentsEnabled && activeVersionId && (
-								<WaveformComments
-									versionId={activeVersionId}
-									duration={duration}
-									currentTime={progress}
-									onSeek={seekTo}
-									placement="fullscreen"
-									isOpen={isCommentsOpen}
-									onOpenChange={(open) =>
-										setActivePanel(open ? "comments" : null)
-									}
-									showButton={false}
-									embedded
-									panelTarget={commentsPanelTarget}
-								/>
-							)}
-							<PlaybackWaveform
-								bars={waveformBars}
-								duration={duration}
-								progress={progress}
-								onSeek={seekTo}
-							/>
-							<div className="mt-1.5 flex justify-between font-mono text-[11px] text-white/55">
-								<span>{formatTrackDuration(progress) ?? "0:00"}</span>
-								<span>{formatTrackDuration(duration) ?? "0:00"}</span>
-							</div>
-						</div>
+						<PlaybackTimeline
+							bars={waveformBars}
+							duration={duration}
+							onSeek={seekTo}
+							versionId={isCommentsEnabled ? activeVersionId : null}
+							commentsOpen={isCommentsOpen}
+							onCommentsOpenChange={(open) => setActivePanel(open ? "comments" : null)}
+							panelTarget={commentsPanelTarget}
+							mobile
+						/>
 
 						<div
 							className="flex items-center justify-between gap-2"

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import {
   ChevronLeft,
   Lock,
@@ -285,6 +286,8 @@ export default function ShareModal({
     }
   }, [isOpen, currentVisibility]);
 
+  useBodyScrollLock(modalView !== "closed");
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -294,12 +297,10 @@ export default function ShareModal({
 
     if (modalView !== "closed") {
       document.addEventListener("keydown", handleEscape);
-      document.body.style.overflow = "hidden";
     }
 
     return () => {
       document.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = "unset";
     };
   }, [modalView]);
 

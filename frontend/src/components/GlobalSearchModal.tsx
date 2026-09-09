@@ -358,9 +358,9 @@ export default function GlobalSearchModal({
 
           {/* Search Panel - Parent Container (Fixed Height, Centered on large screens, top-15vh on small) */}
           <motion.div
-            initial={{ opacity: 0, y: -18, scale: 0.97, filter: "blur(6px)" }}
-            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: -10, scale: 0.985, filter: "blur(3px)" }}
+            initial={{ opacity: 0, y: -12, scale: 0.985 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.985 }}
             transition={{ type: "spring", stiffness: 420, damping: 34 }}
             className="fixed z-1001 w-full max-w-2xl left-1/2 -translate-x-1/2 top-[9vh] sm:top-1/2 sm:-translate-y-1/2 h-[585px] max-h-[calc(100vh-4rem)] px-4 sm:px-0"
             onClick={() => {

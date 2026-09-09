@@ -11,7 +11,6 @@ interface AlbumCoverProps {
 	showUploadOverlay?: boolean;
 	onColorsReady?: () => void;
 	isPlaying?: boolean;
-	playbackProgress?: number;
 }
 
 export default function AlbumCover({
@@ -23,7 +22,6 @@ export default function AlbumCover({
 	showUploadOverlay = false,
 	onColorsReady,
 	isPlaying = false,
-	playbackProgress = 0,
 }: AlbumCoverProps) {
 	const [gradientColors, setGradientColors] = useState<string[]>([
 		"#8FC7FF",
@@ -231,8 +229,8 @@ export default function AlbumCover({
 			{!isMobileScreen && (
 				<div
 					className={cn(
-						"absolute top-1/2 -translate-y-1/2 w-[99%] h-[99%] z-0 transition-all duration-300 ease-in-out",
-						isPlaying ? "-right-13" : "right-0",
+						"absolute top-1/2 right-0 -translate-y-1/2 w-[99%] h-[99%] z-0 transition-transform duration-300 ease-out",
+						isPlaying && "translate-x-13",
 					)}
 				>
 					<div className="absolute inset-0 rounded-full opacity-100" />
@@ -244,20 +242,21 @@ export default function AlbumCover({
 						/>
 						<div className="absolute inset-0 blur-[6px]">
 							<div
-								className="absolute inset-0 rounded-full opacity-100"
+								className="album-disc-spin absolute inset-0 rounded-full opacity-100"
 								style={{
 									mixBlendMode: "multiply",
 									background: `conic-gradient(from 90deg at 50% 50%, rgba(255, 255, 255, 0.00) 157.5deg, ${gradientColors[0]} 180deg, ${gradientColors[1] || gradientColors[0]} 205.96deg, ${gradientColors[2] || gradientColors[1] || gradientColors[0]} 231.92deg, ${gradientColors[3] || gradientColors[2] || gradientColors[1] || gradientColors[0]} 273.46deg, rgba(255, 255, 255, 0.00) 327.12deg)`,
-									transform: `rotate(${(playbackProgress * 12) % 360}deg)`,
+									animationPlayState: isPlaying ? "running" : "paused",
 								}}
 							/>
 
 							<div
-								className="absolute inset-0 rounded-full opacity-100"
+								className="album-disc-spin absolute inset-0 rounded-full opacity-100"
 								style={{
 									mixBlendMode: "multiply",
 									background: `conic-gradient(from 90deg at 50% 50%, rgba(255, 255, 255, 0.00) 157.5deg, ${gradientColors[0]} 180deg, ${gradientColors[1] || gradientColors[0]} 205.96deg, ${gradientColors[2] || gradientColors[1] || gradientColors[0]} 231.92deg, ${gradientColors[3] || gradientColors[2] || gradientColors[1] || gradientColors[0]} 273.46deg, rgba(255, 255, 255, 0.00) 327.12deg)`,
-									transform: `rotate(${((playbackProgress * 12) % 360) + 180}deg)`,
+									animationDelay: "-15s",
+									animationPlayState: isPlaying ? "running" : "paused",
 								}}
 							/>
 						</div>
@@ -268,10 +267,11 @@ export default function AlbumCover({
 							}}
 						/>
 						<div
-							className="absolute inset-0 rounded-full opacity-100"
+							className="album-disc-spin absolute inset-0 rounded-full opacity-100"
 							style={{
 								filter: !isMobileScreen ? "url(#cd-noise)" : undefined,
-								transform: `rotate(${(playbackProgress * 180) % 360}deg)`,
+								animationDuration: "2s",
+								animationPlayState: isPlaying ? "running" : "paused",
 							}}
 						/>
 						<div

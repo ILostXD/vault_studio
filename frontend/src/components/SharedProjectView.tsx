@@ -74,7 +74,6 @@ export default function SharedProjectView({
 
   const isPlaying = audioPlayerContext.isPlaying;
   const currentTrack = audioPlayerContext.currentTrack;
-  const previewProgress = audioPlayerContext.previewProgress;
 
   const playButtonPointerDown = useMotionValue(0);
   const playButtonIsUp = useTransform(
@@ -355,7 +354,6 @@ export default function SharedProjectView({
                     ? tracks.some((t) => t.public_id === currentTrack.id)
                     : false
                 }
-                playbackProgress={previewProgress}
               />
             </div>
           </motion.div>

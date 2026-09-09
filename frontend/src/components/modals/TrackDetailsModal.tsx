@@ -1,3 +1,4 @@
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import {
   ChevronLeft,
   Link,
@@ -217,6 +218,8 @@ function TrackDetailsModal({
     }
   }, [modalState, shouldFocusTitle]);
 
+  useBodyScrollLock(modalState !== "closed");
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -226,12 +229,10 @@ function TrackDetailsModal({
 
     if (modalState !== "closed") {
       document.addEventListener("keydown", handleEscape);
-      document.body.style.overflow = "hidden";
     }
 
     return () => {
       document.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = "unset";
     };
   }, [modalState]);
 

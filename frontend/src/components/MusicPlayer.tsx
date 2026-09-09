@@ -26,6 +26,7 @@ import { useProjectCoverImage } from "../hooks/useProjectCoverImage";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useWebHaptics } from "web-haptics/react";
 import WaveformComments from "./WaveformComments";
+import { WaveformGraphic } from "./WaveformGraphic";
 import { usePreferences } from "../contexts/PreferencesContext";
 
 interface MusicPlayerProps {
@@ -83,11 +84,6 @@ export default function MusicPlayer({
   const INITIAL_VOLUME = 100;
   const VOLUME_STORAGE_KEY = "vault-volume";
   const SHOW_QUEUE_BADGE = false;
-  const WAVEFORM_VIEWBOX_HEIGHT = 120;
-  const WAVEFORM_BAR_WIDTH = 0.8;
-  const WAVEFORM_BAR_RADIUS = 2;
-  const WAVEFORM_BAR_GAP = 2;
-  const WAVEFORM_BAR_X_OFFSET = 0.1;
   const [isVolumeHovered, setIsVolumeHovered] = useState(false);
   const [isVolumePopupOpen, setIsVolumePopupOpen] = useState(false);
   const [isMobileScreen, setIsMobileScreen] = useState(false);
@@ -110,7 +106,6 @@ export default function MusicPlayer({
   const [isQueueOpen, setIsQueueOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
-  const [, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [previewProgress, setPreviewProgress] = useState(0);
   const waveformRef = useRef<HTMLDivElement | null>(null);
@@ -447,10 +442,9 @@ export default function MusicPlayer({
             : 0;
 
         const clampedTime = Math.min(actualTime, audioDuration);
-        setCurrentTime(clampedTime);
-
         if (pendingSeekPositionRef.current === null && !isDragging) {
-          setPreviewProgress(clampedTime);
+          onProgressUpdate(clampedTime);
+          if (!isNowPlayingOpen) setPreviewProgress(clampedTime);
         }
       }
     };
@@ -468,14 +462,15 @@ export default function MusicPlayer({
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("timeupdate", handleTimeUpdate);
     };
-  }, [onPlayingChange, onEnded, onDurationChange, isDragging]);
+  }, [onPlayingChange, onEnded, onDurationChange, onProgressUpdate, isDragging, isNowPlayingOpen]);
 
   useEffect(() => {
-    const updateTime = () => {
-      if (!audioRef.current) {
-        rafIdRef.current = requestAnimationFrame(updateTime);
-        return;
-      }
+    if (!isPlaying && !isDragging) return;
+    let lastUpdate = -Infinity;
+    const updateTime = (timestamp: number) => {
+      rafIdRef.current = requestAnimationFrame(updateTime);
+      if (!audioRef.current || document.hidden || timestamp - lastUpdate < 1000 / 30) return;
+      lastUpdate = timestamp;
 
       const a = audioRef.current;
       const audioDuration =
@@ -483,14 +478,14 @@ export default function MusicPlayer({
 
       if (pendingSeekPositionRef.current !== null) {
         const preview = Math.min(pendingSeekPositionRef.current, audioDuration);
-        setPreviewProgress(preview);
+        onProgressUpdate(preview);
+        if (!isNowPlayingOpen) setPreviewProgress(preview);
       } else if (!isDragging) {
         const actualTime = !Number.isNaN(a.currentTime) ? a.currentTime : 0;
         const clampedTime = Math.min(actualTime, audioDuration);
-        setPreviewProgress(clampedTime);
+        onProgressUpdate(clampedTime);
+        if (!isNowPlayingOpen) setPreviewProgress(clampedTime);
       }
-
-      rafIdRef.current = requestAnimationFrame(updateTime);
     };
 
     rafIdRef.current = requestAnimationFrame(updateTime);
@@ -501,13 +496,13 @@ export default function MusicPlayer({
         rafIdRef.current = null;
       }
     };
-  }, [isDragging]);
+  }, [isDragging, isPlaying, isNowPlayingOpen, onProgressUpdate]);
 
   useEffect(() => {
-    onProgressUpdate(previewProgress);
-    // onProgressUpdate is omitted from deps because it's memoized with useCallback and never changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [previewProgress]);
+    if (!isNowPlayingOpen && audioRef.current) {
+      setPreviewProgress(audioRef.current.currentTime || 0);
+    }
+  }, [isNowPlayingOpen]);
 
   useEffect(() => {
     if (!audioUrl || !audioRef.current) return;
@@ -603,19 +598,6 @@ export default function MusicPlayer({
     });
   }, [currentTrack?.id, currentTrack?.waveform, currentTrack?.title]);
 
-  const waveformViewBoxWidth = useMemo(() => {
-    if (!waveformBars.length) return 0;
-    const contentWidth =
-      (waveformBars.length - 1) * WAVEFORM_BAR_GAP + WAVEFORM_BAR_WIDTH;
-    const totalOffset = WAVEFORM_BAR_X_OFFSET * 2;
-    return contentWidth + totalOffset;
-  }, [waveformBars.length]);
-
-  const waveformProgressPosition = useMemo(() => {
-    if (waveformViewBoxWidth === 0) return 0;
-    return (progressForBars / 100) * waveformViewBoxWidth;
-  }, [progressForBars, waveformViewBoxWidth]);
-
   const performPreviewSeek = useCallback(
     (clientX: number) => {
       if (!waveformRef.current || !duration) return;
@@ -629,8 +611,10 @@ export default function MusicPlayer({
       const seekTime = (clickPercentage / 100) * duration;
 
       pendingSeekPositionRef.current = seekTime;
+      setPreviewProgress(seekTime);
+      onProgressUpdate(seekTime);
     },
-    [duration],
+    [duration, onProgressUpdate],
   );
 
   const handleWaveformMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -900,7 +884,7 @@ export default function MusicPlayer({
 
       {!hideControls && (
         <div
-          className={`fixed bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 z-110 w-[calc(100%-1rem)] sm:w-[calc(100%-3rem)] max-w-[800px] transition-[opacity,transform] duration-400 ease-out ${
+          className={`fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] sm:bottom-6 left-1/2 -translate-x-1/2 z-110 w-[calc(100%-1rem)] sm:w-[calc(100%-3rem)] max-w-[800px] transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
             isNowPlayingOpen
               ? "pointer-events-none translate-y-5 opacity-0"
               : showPlayer
@@ -922,6 +906,7 @@ export default function MusicPlayer({
               onSeek={(time) => {
                 if (audioRef.current) audioRef.current.currentTime = time;
                 setPreviewProgress(time);
+                onProgressUpdate(time);
               }}
             />
           )}
@@ -944,49 +929,7 @@ export default function MusicPlayer({
                 aria-valuenow={Math.floor(previewProgress)}
                 onKeyDown={handleWaveformKeyDown}
               >
-                <svg
-                  width="100%"
-                  height="100%"
-                  viewBox={`0 0 ${waveformViewBoxWidth} ${WAVEFORM_VIEWBOX_HEIGHT}`}
-                  preserveAspectRatio="none"
-                  className="text-(--text-0)"
-                  shapeRendering="geometricPrecision"
-                >
-                  {waveformBars.map((height, i) => {
-                    const normalizedHeight = Math.max(
-                      0,
-                      Math.min(100, Number(height)),
-                    );
-                    const scaledHeight = Math.max(
-                      12,
-                      (normalizedHeight / 100) * WAVEFORM_VIEWBOX_HEIGHT,
-                    );
-                    const topOffset =
-                      (WAVEFORM_VIEWBOX_HEIGHT - scaledHeight) / 2;
-                    const barX = WAVEFORM_BAR_X_OFFSET + i * WAVEFORM_BAR_GAP;
-                    const isPassed = waveformProgressPosition >= barX;
-                    const delay = (i / waveformBars.length) * 600;
-                    return (
-                      <rect
-                        key={barX}
-                        x={WAVEFORM_BAR_X_OFFSET + i * WAVEFORM_BAR_GAP}
-                        y={topOffset}
-                        width={WAVEFORM_BAR_WIDTH}
-                        height={scaledHeight}
-                        rx={WAVEFORM_BAR_RADIUS}
-                        fill={
-                          isPassed
-                            ? "var(--waveform-played)"
-                            : "var(--waveform-unplayed)"
-                        }
-                        style={{
-                          transition: `y 400ms cubic-bezier(0.4, 0, 0.2, 1) ${delay}ms, height 400ms cubic-bezier(0.4, 0, 0.2, 1) ${delay}ms`,
-                          willChange: "y, height",
-                        }}
-                      />
-                    );
-                  })}
-                </svg>
+                <WaveformGraphic bars={waveformBars} progressPercent={progressForBars} />
                 <div
                   className="absolute top-0 bottom-0 rounded-full pointer-events-none -translate-x-1/2"
                   style={{
