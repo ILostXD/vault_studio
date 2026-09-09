@@ -14,7 +14,7 @@ export function SoftwareUpdateSection() {
 	const install = useMutation({
 		mutationFn: installUpdate,
 		onSuccess: () => {
-			toast.success("Update started. Vault Studio will restart shortly.");
+			toast.success("Update started. { vault.studio } will restart shortly.");
 			waitForRestart();
 		},
 		onError: (error) => toast.error(error.message),
@@ -29,7 +29,7 @@ export function SoftwareUpdateSection() {
 						{status.isPending
 							? "Checking GitHub Releases..."
 							: status.isError
-								? "Vault could not check GitHub Releases."
+								? "{ vault.studio } could not check GitHub Releases."
 								: status.data.update_available
 									? `${status.data.latest_version} is available. The server will restart after installing it.`
 									: `Up to date on ${status.data.current_version}.`}

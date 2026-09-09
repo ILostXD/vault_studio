@@ -4,7 +4,7 @@ Thanks for your interest :)
 
 ## Project Status
 
-Vault Studio is currently maintained in limited spare time. Contributions are
+{ vault.studio } is currently maintained in limited spare time. Contributions are
 welcome, but reviews, feedback, and merges may take a while. Thank you for being
 patient if a pull request cannot be handled immediately.
 
@@ -27,7 +27,7 @@ When reporting, please include:
 ### Suggesting Features
 
 Please open an issue to share your idea before investing substantial time. Larger
-feature pull requests are welcome when they solve something Vault Studio users
+feature pull requests are welcome when they solve something { vault.studio } users
 actually want and fit the direction of the project.
 
 ### Questions & Support

@@ -56,7 +56,7 @@ func (h *UpdateHandler) Status(w http.ResponseWriter, r *http.Request) error {
 	}
 	release, err := h.latestRelease(r.Context())
 	if err != nil {
-		return apperr.NewInternal("failed to check for Vault Studio updates", err)
+		return apperr.NewInternal("failed to check for { vault.studio } updates", err)
 	}
 	return httputil.OKResult(w, map[string]any{
 		"current_version":    h.currentVersion,

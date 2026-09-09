@@ -34,7 +34,7 @@ Self-hosted streaming, organization, and creative tools for work-in-progress mus
 
 The project is also inspired by [untitled](https://untitled.stream/), while remaining open source and self-hosted.
 
-## What {vault.studio} Adds
+## What { vault.studio } Adds
 
 - Native Android app with a selectable self-hosted backend URL, including raw HTTP support for local networks
 - Android media controls and track metadata for the notification player and connected devices
@@ -55,14 +55,14 @@ Upload animated artwork once and inspect it in responsive, platform-inspired pre
 
 ## Release Preparation And Distribution
 
-Vault Studio can turn an existing project into a validated release without asking the artist to rebuild information that Vault already knows. Open a project, choose **Prepare Release** from its menu, and work through four focused views:
+{ vault.studio } can turn an existing project into a validated release without asking the artist to rebuild information that { vault } already knows. Open a project, choose **Prepare Release** from its menu, and work through four focused views:
 
 1. **Release** reviews the title, artist, release type, dates, language, genres, label, C-line, P-line, UPC, and reusable credits.
 2. **Tracks** reviews titles, artists, languages, explicit status, optional ISRCs and lyrics, with per-track credit overrides where needed.
 3. **Deliver** shows blocking issues, exports a provider-neutral Release Package, or creates and updates a connected Too Lost draft.
 4. **History** records exports and distributor drafts with the exact metadata and asset hashes used at that time.
 
-Set the artist/display name, legal name, and reusable credits in **Profile > Artist Profile** first. Reusable credits are inherited by every track, while individual tracks can still override them. Vault only sends values it actually knows: missing distributor-specific settings remain visibly unfinished instead of being guessed.
+Set the artist/display name, legal name, and reusable credits in **Profile > Artist Profile** first. Reusable credits are inherited by every track, while individual tracks can still override them. { vault } only sends values it actually knows: missing distributor-specific settings remain visibly unfinished instead of being guessed.
 
 ### Release Package
 
@@ -79,15 +79,15 @@ Release/
 `-- README.txt
 ```
 
-Apple Motion `1:1`, Apple Motion `3:4`, and Spotify Canvas files are included when they exist. Vault never replaces or destructively converts the stored master for this export.
+Apple Motion `1:1`, Apple Motion `3:4`, and Spotify Canvas files are included when they exist. { vault.studio } never replaces or destructively converts the stored master for this export.
 
 ### Too Lost Workflow
 
-When Too Lost is connected, Vault uses Too Lost's genre and language catalogs, uploads temporary FLAC delivery copies, sends known release metadata and the square cover, and creates or updates a **draft**. Vault never calls a final-submission endpoint. The artist finishes stores, territories, licensing, motion artwork, review, and submission in Too Lost.
+When Too Lost is connected, { vault.studio } uses Too Lost's genre and language catalogs, uploads temporary FLAC delivery copies, sends known release metadata and the square cover, and creates or updates a **draft**. { vault.studio } never calls a final-submission endpoint. The artist finishes stores, territories, licensing, motion artwork, review, and submission in Too Lost.
 
-The current integration supports audio releases of type Single, EP, Album, and Compilation. Apple motion artwork remains in the Release Package because Too Lost's published API does not yet define a stable contract for Vault's MP4 assets. Existing ISRC and UPC values are optional; leave them blank when Too Lost should assign them.
+The current integration supports audio releases of type Single, EP, Album, and Compilation. Apple motion artwork remains in the Release Package because Too Lost's published API does not yet define a stable contract for { vault.studio }'s MP4 assets. Existing ISRC and UPC values are optional; leave them blank when Too Lost should assign them.
 
-## Core {vault} Features
+## Core { vault } Features
 
 These features come from the upstream project and remain central to this fork:
 
@@ -138,20 +138,20 @@ docker compose up -d --build
 
 ### In-app Updates
 
-Admins can check GitHub Releases from **Settings > Instance Information**. Vault's GitHub Actions workflow builds the server and audio-analysis Docker images and publishes them to this repository's GitHub Container Registry (GHCR) packages whenever a version tag such as `v1.1.0` is pushed. Docker Hub is not required.
+Admins can check GitHub Releases from **Settings > Instance Information**. { vault.studio }'s GitHub Actions workflow builds the server and audio-analysis Docker images and publishes them to this repository's GitHub Container Registry (GHCR) packages whenever a version tag such as `v1.1.0` is pushed. Docker Hub is not required.
 
 The updater does not run `git pull`, build the newest `main` commit, or publish images itself. It only pulls the `latest` images produced by a tagged GitHub release. Before enabling it, make both GHCR packages public:
 
 - `ghcr.io/ilostxd/vault_studio`
 - `ghcr.io/ilostxd/vault_studio-audio-analysis`
 
-Then start Vault once with the isolated updater override to enable the **Update** button:
+Then start { vault.studio } once with the isolated updater override to enable the **Update** button:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.updates.yml up -d --build
 ```
 
-After that one-time setup, each future tagged release can be installed from Settings without running Git or Compose commands again. The updater pulls the published GHCR images, preserves the existing `./data` mount, and restarts the Vault services. It is not exposed on a host port, uses the instance JWT secret for its internal request, and only its dedicated Watchtower container receives the Docker socket. Keep `JWT_SECRET` private. Android APK updates remain handled by Obtainium or the GitHub release page.
+After that one-time setup, each future tagged release can be installed from Settings without running Git or Compose commands again. The updater pulls the published GHCR images, preserves the existing `./data` mount, and restarts the { vault.studio } services. It is not exposed on a host port, uses the instance JWT secret for its internal request, and only its dedicated Watchtower container receives the Docker socket. Keep `JWT_SECRET` private. Android APK updates remain handled by Obtainium or the GitHub release page.
 
 ## Configuration
 
@@ -174,12 +174,12 @@ After that one-time setup, each future tagged release can be installed from Sett
 
 ### Too Lost Drafts
 
-1. Give Vault a stable public HTTPS address using a reverse proxy or HTTPS tunnel.
+1. Give { vault.studio } a stable public HTTPS address using a reverse proxy or HTTPS tunnel.
 2. Open **Settings > Too Lost distribution** as an administrator and enter that public URL to preview the exact callback URL.
 3. Register an OAuth application in the [Too Lost Developer Portal](https://developer.toolost.com/) using that callback URL.
-4. Enter the issued client ID and secret in Vault, save the settings, then connect Too Lost from the Prepare Release delivery view. No rebuild is required.
+4. Enter the issued client ID and secret in { vault.studio }, save the settings, then connect Too Lost from the Prepare Release delivery view. No rebuild is required.
 
-Vault encrypts the OAuth client secret and connected-account tokens in its database using a key derived from the existing private `JWT_SECRET`. The secret is never returned to the browser after it is saved. Existing installations may keep configuring Too Lost through environment variables; these act as startup defaults until an administrator saves settings in the app:
+{ vault.studio } encrypts the OAuth client secret and connected-account tokens in its database using a key derived from the existing private `JWT_SECRET`. The secret is never returned to the browser after it is saved. Existing installations may keep configuring Too Lost through environment variables; these act as startup defaults until an administrator saves settings in the app:
 
 ```dotenv
 TOOLOST_CLIENT_ID=your-client-id
@@ -192,9 +192,9 @@ PROVIDER_TOKEN_ENCRYPTION_KEY=your-separate-32-byte-base64-key
 
 The Settings page shows whether Too Lost is configured and displays the exact OAuth callback URL to register. Release Package export remains the no-registration fallback. The static square cover is included in both the package and Too Lost drafts when it is available; Apple motion artwork remains package-only until Too Lost publishes a stable MP4 upload contract.
 
-`PUBLIC_BASE_URL` must be a stable public HTTPS address that reaches Vault's HTTP server so Too Lost can return the OAuth callback and fetch the short-lived signed cover URL. A reverse proxy or HTTPS tunnel is sufficient; the database, Docker socket, and audio-analysis service must remain private. Use `production` only after Too Lost grants production access and the registered application uses the production callback.
+`PUBLIC_BASE_URL` must be a stable public HTTPS address that reaches { vault.studio }'s HTTP server so Too Lost can return the OAuth callback and fetch the short-lived signed cover URL. A reverse proxy or HTTPS tunnel is sufficient; the database, Docker socket, and audio-analysis service must remain private. Use `production` only after Too Lost grants production access and the registered application uses the production callback.
 
-Disconnecting Too Lost removes the stored provider credential but leaves Vault release preparations and distribution history intact. Provider credentials and in-app integration settings are encrypted at rest.
+Disconnecting Too Lost removes the stored provider credential but leaves { vault.studio } release preparations and distribution history intact. Provider credentials and in-app integration settings are encrypted at rest.
 
 ## Development
 
@@ -204,6 +204,6 @@ See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 Most of the original application was created by [bungleware](https://github.com/bungleware) and the [{ vault } contributors](https://github.com/bungleware/vault/graphs/contributors). Fork-specific additions are maintained in this repository. See the Git history for a complete attribution trail.
 
-The animated fullscreen artwork background was informed by Aadish Verma's research, [Reverse engineering Apple Music's background gradient](https://www.aadishv.dev/music). Vault Studio's implementation was written independently using the existing React and CSS animation stack.
+The animated fullscreen artwork background was informed by Aadish Verma's research, [Reverse engineering Apple Music's background gradient](https://www.aadishv.dev/music). { vault.studio }'s implementation was written independently using the existing React and CSS animation stack.
 
 This project remains available under the [GNU Affero General Public License v3.0](LICENSE). Parts of this fork were developed with coding-model assistance; see [CONTRIBUTING.md](CONTRIBUTING.md) for the project policy.

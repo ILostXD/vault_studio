@@ -574,7 +574,7 @@ func creditsCSV(r Release) ([]byte, error) {
 }
 func readme(r Release, v Validation) string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "%s — %s\n\nThis package was prepared by Vault Studio from the project's active source masters. Original files in Vault were not modified.\n\nComplete distributor-specific settings such as stores, territories, licenses, and final submission in your distributor.\n", r.Title, r.Artist)
+	fmt.Fprintf(&b, "%s — %s\n\nThis package was prepared by { vault.studio } from the project's active source masters. Original files in { vault } were not modified.\n\nComplete distributor-specific settings such as stores, territories, licenses, and final submission in your distributor.\n", r.Title, r.Artist)
 	if len(v.Issues) > 0 {
 		b.WriteString("\nNeeds attention:\n")
 		for _, i := range v.Issues {
