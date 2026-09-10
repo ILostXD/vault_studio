@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import ProjectCard from "@/components/ProjectCard";
 import FolderCard from "./FolderCard";
 import DraggableTile from "./DraggableTile";
+import { GridTileViewport } from "./grid/GridTileViewport";
 import { TrackCard } from "@/components/TrackCard";
 import MoveProjectModal from "@/components/modals/MoveProjectModal";
 import LeaveProjectModal from "@/components/modals/LeaveProjectModal";
@@ -1044,6 +1045,11 @@ export default function DraggableProjectGrid({
     [items, emptyFolder, queryClient, currentFolderId],
   );
 
+  const sourceItem = draggingId
+    ? items.find((item) => item.id === draggingId)
+    : undefined;
+  const sourceProject = sourceItem?.type === "project" ? sourceItem.project : undefined;
+
   return (
     <LayoutGroup>
       <div className="relative">
@@ -1056,18 +1062,12 @@ export default function DraggableProjectGrid({
           <AnimatePresence mode="popLayout">
             {items.map((item) => {
               const isDragging = draggingId === item.id;
+              const keepMounted = isDragging || hoverTargetId === item.id ||
+                stableHoverTargetId === item.id || droppingIntoId === item.id;
               const scaleDown =
                 draggingId === item.id &&
                 hoverTargetId !== null &&
                 hoverTargetId !== item.id;
-              const sourceItem = draggingId
-                ? items.find((it) => it.id === draggingId)
-                : undefined;
-              const sourceProject =
-                sourceItem && sourceItem.type === "project"
-                  ? sourceItem.project
-                  : undefined;
-
               if (item.type === "folder") {
                 const isEmptied = emptiedFolderIds.has(item.id);
                 const isNewFolder = newFolderIds.has(item.id);
@@ -1076,97 +1076,102 @@ export default function DraggableProjectGrid({
                   draggingId === item.id && droppingIntoId !== null;
 
                 return (
-                  <DraggableTile
+                  <GridTileViewport
                     key={isEmptied ? `emptied-${item.id}` : item.id}
-                    id={item.id}
-                    layoutId={isEmptied ? undefined : item.id}
-                    registerRef={registerRef}
-                    isDragging={isDraggingFolder}
-                    isBeingDropped={isBeingDroppedInto}
-                    isRestoredFromFolder={isNewFolder}
-                    onDragStart={() => handleDragStart(item.id)}
-                    onDragMove={(p) => handleDragMove(item.id, p)}
-                    onDragCancel={handleDragCancel}
-                    onDrop={handleDrop}
+                    label={item.name}
+                    pinned={keepMounted}
                   >
-                    {(dragHandleProps) => {
-                      const handlePointerDown = (e: React.PointerEvent) => {
-                        const target = e.target as HTMLElement;
+                    <DraggableTile
+                      id={item.id}
+                      layoutId={isEmptied ? undefined : item.id}
+                      registerRef={registerRef}
+                      isDragging={isDraggingFolder}
+                      isBeingDropped={isBeingDroppedInto}
+                      isRestoredFromFolder={isNewFolder}
+                      onDragStart={() => handleDragStart(item.id)}
+                      onDragMove={(p) => handleDragMove(item.id, p)}
+                      onDragCancel={handleDragCancel}
+                      onDrop={handleDrop}
+                    >
+                      {(dragHandleProps) => {
+                        const handlePointerDown = (e: React.PointerEvent) => {
+                          const target = e.target as HTMLElement;
 
-                        if (
-                          target.closest(
-                            '[data-slot="dropdown-menu-trigger"]',
-                          ) ||
-                          target.closest(
-                            '[data-slot="dropdown-menu-content"]',
-                          ) ||
-                          target.closest('[data-slot="dropdown-menu-item"]')
-                        ) {
-                          return;
-                        }
-
-                        const folderCard = target.closest(
-                          '[data-dropdown-open="true"]',
-                        );
-                        if (folderCard) {
-                          return;
-                        }
-
-                        if (
-                          target.closest('[data-modal-backdrop="true"]') ||
-                          target.closest('[data-modal-container="true"]') ||
-                          target.closest('[data-modal-content="true"]')
-                        ) {
-                          return;
-                        }
-
-                        if (
-                          document.querySelector('[data-modal-open="true"]')
-                        ) {
-                          return;
-                        }
-
-                        dragHandleProps.onPointerDown?.(e);
-                      };
-
-                      return (
-                        <div
-                          className="flex items-center justify-center w-40"
-                          style={
-                            isEmptied
-                              ? { opacity: 0, pointerEvents: "none" }
-                              : undefined
+                          if (
+                            target.closest(
+                              '[data-slot="dropdown-menu-trigger"]',
+                            ) ||
+                            target.closest(
+                              '[data-slot="dropdown-menu-content"]',
+                            ) ||
+                            target.closest('[data-slot="dropdown-menu-item"]')
+                          ) {
+                            return;
                           }
-                          onPointerDown={handlePointerDown}
-                          onPointerUp={dragHandleProps.onPointerUp}
-                          onPointerMove={dragHandleProps.onPointerMove}
-                        >
-                          <FolderCard
-                            folder={{
-                              id: item.id,
-                              name: item.name,
-                              items: item.items,
-                              folderId: item.folderId,
-                            }}
-                            className="w-40"
-                            hoverActive={
-                              hoverTargetId === item.id &&
-                              draggingId !== item.id
+
+                          const folderCard = target.closest(
+                            '[data-dropdown-open="true"]',
+                          );
+                          if (folderCard) {
+                            return;
+                          }
+
+                          if (
+                            target.closest('[data-modal-backdrop="true"]') ||
+                            target.closest('[data-modal-container="true"]') ||
+                            target.closest('[data-modal-content="true"]')
+                          ) {
+                            return;
+                          }
+
+                          if (
+                            document.querySelector('[data-modal-open="true"]')
+                          ) {
+                            return;
+                          }
+
+                          dragHandleProps.onPointerDown?.(e);
+                        };
+
+                        return (
+                          <div
+                            className="flex items-center justify-center w-40"
+                            style={
+                              isEmptied
+                                ? { opacity: 0, pointerEvents: "none" }
+                                : undefined
                             }
-                            hoverIncomingItems={
-                              stableHoverTargetId === item.id && sourceProject
-                                ? [sourceProject]
-                                : []
-                            }
-                            isDropping={droppingIntoId === item.id}
-                            dragScaleDown={scaleDown}
-                            isDragging={isDraggingFolder}
-                            onEmptyFolder={handleEmptyFolder}
-                          />
-                        </div>
-                      );
-                    }}
-                  </DraggableTile>
+                            onPointerDown={handlePointerDown}
+                            onPointerUp={dragHandleProps.onPointerUp}
+                            onPointerMove={dragHandleProps.onPointerMove}
+                          >
+                            <FolderCard
+                              folder={{
+                                id: item.id,
+                                name: item.name,
+                                items: item.items,
+                                folderId: item.folderId,
+                              }}
+                              className="w-40"
+                              hoverActive={
+                                hoverTargetId === item.id &&
+                                draggingId !== item.id
+                              }
+                              hoverIncomingItems={
+                                stableHoverTargetId === item.id && sourceProject
+                                  ? [sourceProject]
+                                  : []
+                              }
+                              isDropping={droppingIntoId === item.id}
+                              dragScaleDown={scaleDown}
+                              isDragging={isDraggingFolder}
+                              onEmptyFolder={handleEmptyFolder}
+                            />
+                          </div>
+                        );
+                      }}
+                    </DraggableTile>
+                  </GridTileViewport>
                 );
               }
 
@@ -1185,14 +1190,76 @@ export default function DraggableProjectGrid({
                 const isNewTrack = newProjectIds.has(item.id);
 
                 return (
+                  <GridTileViewport key={item.id} label={item.track.title} pinned={keepMounted}>
+                    <DraggableTile
+                      id={item.id}
+                      layoutId={item.id}
+                      registerRef={registerRef}
+                      isDragging={isDragging}
+                      isBeingDropped={isBeingDroppedInto}
+                      isRestoredFromFolder={isRestoredTrack || isNewTrack}
+                      onDragStart={() => handleDragStart(item.id)}
+                      onDragMove={(p) => handleDragMove(item.id, p)}
+                      onDragCancel={handleDragCancel}
+                      onDrop={handleDrop}
+                    >
+                      {(dragHandleProps, dragged) => (
+                        <div className="flex items-center justify-center w-40">
+                          <TrackCard
+                            className="w-40"
+                            track={{
+                              ...item.track,
+                              projectCoverUrl: resolveApiMediaUrl(coverUrl),
+                              projectName: item.track.project_name,
+                              sharedBy: item.track.shared_by_username,
+                            }}
+                            isShared={true}
+                            isOwned={false}
+                            canDownload={item.track.can_download}
+                            onClick={() => {
+                              navigate({
+                                to: "/shared-track/$trackId",
+                                params: { trackId: item.track.public_id },
+                              });
+                            }}
+                            onAddToQueue={() => handleTrackAddToQueue(item.track)}
+                            onMove={() => handleTrackMove(item.track)}
+                            onExport={() => handleTrackExport(item.track)}
+                            onLeave={() => handleTrackLeaveClick(item.track)}
+                            dragHandleProps={dragHandleProps}
+                            isDragging={dragged}
+                            dragScaleDown={scaleDown}
+                            hoverAsFolder={
+                              hoverTargetId === item.id && draggingId !== item.id
+                            }
+                            hoverFolderItems={
+                              stableHoverTargetId === item.id && sourceProject
+                                ? [sourceProject]
+                                : []
+                            }
+                            isDropping={droppingIntoId === item.id}
+                          />
+                        </div>
+                      )}
+                    </DraggableTile>
+                  </GridTileViewport>
+                );
+              }
+
+              const isBeingDroppedInto =
+                draggingId === item.id && droppingIntoId !== null;
+              const isRestoredProject = restoredProjectIds.has(item.id);
+              const isNewProject = newProjectIds.has(item.id);
+
+              return (
+                <GridTileViewport key={item.id} label={String(item.project.name)} pinned={keepMounted}>
                   <DraggableTile
-                    key={item.id}
                     id={item.id}
                     layoutId={item.id}
                     registerRef={registerRef}
                     isDragging={isDragging}
                     isBeingDropped={isBeingDroppedInto}
-                    isRestoredFromFolder={isRestoredTrack || isNewTrack}
+                    isRestoredFromFolder={isRestoredProject || isNewProject}
                     onDragStart={() => handleDragStart(item.id)}
                     onDragMove={(p) => handleDragMove(item.id, p)}
                     onDragCancel={handleDragCancel}
@@ -1200,27 +1267,9 @@ export default function DraggableProjectGrid({
                   >
                     {(dragHandleProps, dragged) => (
                       <div className="flex items-center justify-center w-40">
-                        <TrackCard
+                        <ProjectCard
+                          project={item.project}
                           className="w-40"
-                          track={{
-                            ...item.track,
-                            projectCoverUrl: resolveApiMediaUrl(coverUrl),
-                            projectName: item.track.project_name,
-                            sharedBy: item.track.shared_by_username,
-                          }}
-                          isShared={true}
-                          isOwned={false}
-                          canDownload={item.track.can_download}
-                          onClick={() => {
-                            navigate({
-                              to: "/shared-track/$trackId",
-                              params: { trackId: item.track.public_id },
-                            });
-                          }}
-                          onAddToQueue={() => handleTrackAddToQueue(item.track)}
-                          onMove={() => handleTrackMove(item.track)}
-                          onExport={() => handleTrackExport(item.track)}
-                          onLeave={() => handleTrackLeaveClick(item.track)}
                           dragHandleProps={dragHandleProps}
                           isDragging={dragged}
                           dragScaleDown={scaleDown}
@@ -1233,64 +1282,22 @@ export default function DraggableProjectGrid({
                               : []
                           }
                           isDropping={droppingIntoId === item.id}
+                          isBeingDropped={
+                            draggingId === item.id && droppingIntoId !== null
+                          }
+                          isOwned={!item.isShared}
+                          isShared={item.isShared}
+                          sharedByUsername={item.sharedByUsername}
+                          onLeaveClick={
+                            item.isShared
+                              ? () => handleLeaveSharedProject(item.project)
+                              : undefined
+                          }
                         />
                       </div>
                     )}
                   </DraggableTile>
-                );
-              }
-
-              const isBeingDroppedInto =
-                draggingId === item.id && droppingIntoId !== null;
-              const isRestoredProject = restoredProjectIds.has(item.id);
-              const isNewProject = newProjectIds.has(item.id);
-
-              return (
-                <DraggableTile
-                  key={item.id}
-                  id={item.id}
-                  layoutId={item.id}
-                  registerRef={registerRef}
-                  isDragging={isDragging}
-                  isBeingDropped={isBeingDroppedInto}
-                  isRestoredFromFolder={isRestoredProject || isNewProject}
-                  onDragStart={() => handleDragStart(item.id)}
-                  onDragMove={(p) => handleDragMove(item.id, p)}
-                  onDragCancel={handleDragCancel}
-                  onDrop={handleDrop}
-                >
-                  {(dragHandleProps, dragged) => (
-                    <div className="flex items-center justify-center w-40">
-                      <ProjectCard
-                        project={item.project}
-                        className="w-40"
-                        dragHandleProps={dragHandleProps}
-                        isDragging={dragged}
-                        dragScaleDown={scaleDown}
-                        hoverAsFolder={
-                          hoverTargetId === item.id && draggingId !== item.id
-                        }
-                        hoverFolderItems={
-                          stableHoverTargetId === item.id && sourceProject
-                            ? [sourceProject]
-                            : []
-                        }
-                        isDropping={droppingIntoId === item.id}
-                        isBeingDropped={
-                          draggingId === item.id && droppingIntoId !== null
-                        }
-                        isOwned={!item.isShared}
-                        isShared={item.isShared}
-                        sharedByUsername={item.sharedByUsername}
-                        onLeaveClick={
-                          item.isShared
-                            ? () => handleLeaveSharedProject(item.project)
-                            : undefined
-                        }
-                      />
-                    </div>
-                  )}
-                </DraggableTile>
+                </GridTileViewport>
               );
             })}
           </AnimatePresence>

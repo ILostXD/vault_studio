@@ -288,7 +288,11 @@ export default function DraggableTile({
         onDragStart();
       }}
       onDrag={(_, info) => {
-        onDragMove(info.point);
+        // Drop targets use getBoundingClientRect, including during auto-scroll.
+        onDragMove({
+          x: info.point.x - window.scrollX,
+          y: info.point.y - window.scrollY,
+        });
       }}
       onDragEnd={async () => {
         const currentOffset = { x: x.get(), y: y.get() };
