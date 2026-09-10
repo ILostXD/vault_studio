@@ -228,18 +228,16 @@ export async function duplicateProject(id: string): Promise<Project> {
 	return post<Project>(`/api/projects/${id}/duplicate`);
 }
 
-export async function exportProject(id: string): Promise<Blob> {
-	const response = await fetch(resolveApiUrl(`/api/projects/${id}/export`), {
-		credentials: "include",
-		headers: getAuthHeaders(),
+export async function exportProject(
+	id: string,
+	fileName: string,
+	exportId: string,
+	onProgress?: (loadedBytes: number, totalBytes?: number) => void,
+): Promise<DownloadResult> {
+	return saveDownload({
+		url: `/api/projects/${id}/export?export_id=${encodeURIComponent(exportId)}`,
+		fileName,
+		mimeType: "application/zip",
+		onProgress,
 	});
-
-	if (!response.ok) {
-		const error = await response
-			.json()
-			.catch(() => ({ error: "Failed to export project" }));
-		throw new Error(error.error || "Failed to export project");
-	}
-
-	return response.blob();
 }

@@ -58,7 +58,7 @@ public class NativeFileSavePlugin extends Plugin {
             connection = (HttpURLConnection) new URL(call.getString("url")).openConnection();
             connection.setInstanceFollowRedirects(true);
             connection.setConnectTimeout(15_000);
-            connection.setReadTimeout(60_000);
+            connection.setReadTimeout(300_000);
 
             JSObject headers = call.getObject("headers", new JSObject());
             Iterator<String> keys = headers.keys();
@@ -78,10 +78,23 @@ public class NativeFileSavePlugin extends Plugin {
             ) {
                 if (output == null) throw new IOException("Unable to open the selected file");
                 byte[] buffer = new byte[64 * 1024];
+                long loaded = 0;
+                long total = connection.getContentLengthLong();
+                long lastProgress = android.os.SystemClock.elapsedRealtime();
+                sendProgress(call, loaded, total);
                 int read;
                 while ((read = input.read(buffer)) != -1) {
                     output.write(buffer, 0, read);
+                    loaded += read;
+                    long now = android.os.SystemClock.elapsedRealtime();
+                    if (now - lastProgress >= 150) {
+                        sendProgress(call, loaded, total);
+                        lastProgress = now;
+                    }
                 }
+                if (total >= 0 && loaded != total) throw new IOException("Download was interrupted. Please try again.");
+                output.flush();
+                sendProgress(call, loaded, total);
             }
 
             JSObject response = new JSObject();
@@ -97,5 +110,15 @@ public class NativeFileSavePlugin extends Plugin {
         } finally {
             if (connection != null) connection.disconnect();
         }
+    }
+
+    private void sendProgress(PluginCall call, long loaded, long total) {
+        String id = call.getString("progressId");
+        if (id == null) return;
+        JSObject event = new JSObject();
+        event.put("id", id);
+        event.put("loaded", loaded);
+        if (total > 0) event.put("total", total);
+        getActivity().runOnUiThread(() -> notifyListeners("downloadProgress", event));
     }
 }

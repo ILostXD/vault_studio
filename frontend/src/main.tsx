@@ -4,6 +4,7 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import * as TanStackQueryProvider from "./integrations/tanstack-query/root-provider.tsx";
 import { AuthProvider } from "./contexts/AuthContext";
 import { PreferencesProvider } from "./contexts/PreferencesContext";
+import { ExportProvider } from "./contexts/ExportContext";
 import { AudioPlayerProvider } from "./contexts/AudioPlayerContext";
 import { routeTree } from "./routeTree.gen";
 import { MotionConfig } from "motion/react";
@@ -37,11 +38,13 @@ if (rootElement && !rootElement.innerHTML) {
         <AuthProvider>
           <PreferencesProvider>
             <AudioPlayerProvider>
-              <MotionConfig reducedMotion="user">
-                <TooltipProvider>
-                  <RouterProvider router={router} />
-                </TooltipProvider>
-              </MotionConfig>
+              <ExportProvider>
+                <MotionConfig reducedMotion="user">
+                  <TooltipProvider>
+                    <RouterProvider router={router} />
+                  </TooltipProvider>
+                </MotionConfig>
+              </ExportProvider>
             </AudioPlayerProvider>
           </PreferencesProvider>
         </AuthProvider>

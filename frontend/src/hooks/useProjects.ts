@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Project, UpdateProjectRequest } from '../types/api'
 import * as projectsApi from '../api/projects'
+import { useExport } from '../contexts/ExportContext'
+import { onWSMessage, offWSMessage } from './useWebSocket'
 
 export const projectKeys = {
   all: ['projects'] as const,
@@ -143,19 +145,57 @@ export function useDuplicateProject() {
 }
 
 export function useExportProject() {
+  const { startExport, updateExport, completeExport, failExport, dismissExport } = useExport()
+
   return useMutation({
     mutationFn: async ({ id, projectName }: { id: string; projectName: string }) => {
-      const blob = await projectsApi.exportProject(id)
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `${projectName}.zip`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
+      const exportId = startExport({
+        title: projectName,
+        phase: 'preparing',
+        statusText: 'Preparing project package...',
+      })
 
-      return blob
+      let downloading = false
+      const listener = (message: { type: string; payload: unknown }) => {
+        if (message.type !== 'project_export_progress' || downloading) return
+        const p = message.payload as { export_id: string; loaded: number; total: number; filename: string }
+        if (p.export_id !== exportId) return
+        updateExport(exportId, {
+          phase: 'preparing',
+          progress: p.total > 0 ? Math.min(100, p.loaded / p.total * 100) : undefined,
+          statusText: `Preparing ZIP: ${p.filename}`,
+        })
+      }
+      onWSMessage(listener)
+      try {
+        const result = await projectsApi.exportProject(id, `${projectName}.zip`, exportId, (loadedBytes, totalBytes) => {
+          downloading = true
+          const loadedMb = (loadedBytes / (1024 * 1024)).toFixed(1)
+          if (totalBytes && totalBytes > 0) {
+            const pct = Math.min(100, (loadedBytes / totalBytes) * 100)
+            updateExport(exportId, {
+              phase: 'downloading',
+              progress: pct,
+              statusText: `Downloading ${loadedMb} / ${(totalBytes / (1024 * 1024)).toFixed(1)} MB`,
+            })
+          } else {
+            updateExport(exportId, {
+              phase: 'downloading',
+              progress: undefined,
+              statusText: `Downloading ${loadedMb} MB...`,
+            })
+          }
+        })
+
+        if (result.cancelled) dismissExport(exportId)
+        else completeExport(exportId, 'ZIP download ready')
+        return result
+      } catch (err) {
+        failExport(exportId, err instanceof Error ? err.message : 'Failed to export project')
+        throw err
+      } finally {
+        offWSMessage(listener)
+      }
     },
   })
 }

@@ -7,7 +7,7 @@ import {
 import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { SearchIcon, UserIcon, ChevronLeft } from "lucide-react";
+import { SearchIcon, UserIcon, ChevronLeft, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFolder, useAllFolders, useUpdateFolder } from "@/hooks/useFolders";
 import type { Folder } from "@/types/api";
@@ -153,7 +153,17 @@ function MainLayout() {
   }, []);
 
   if (isLoading || !isAuthenticated) {
-    return <div className="min-h-screen bg-background" />;
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3">
+        <span className="font-mono text-2xl font-bold tracking-tight text-foreground">
+          <BrandWordmark />
+        </span>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <LoaderCircle className="size-3.5 animate-spin" />
+          <span>Connecting...</span>
+        </div>
+      </div>
+    );
   }
 
   return (

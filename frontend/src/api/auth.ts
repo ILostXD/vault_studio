@@ -7,10 +7,10 @@ export async function register(data: RegisterRequest): Promise<AuthResponse> {
 }
 
 export async function login(credentials: LoginRequest): Promise<AuthResponse> {
-	return post<AuthResponse>('/api/auth/login', credentials, { requiresAuth: false })
+	return post<AuthResponse>('/api/auth/login', credentials, { requiresAuth: false, timeoutMs: 10000 })
 }
 
-export async function refresh(): Promise<AuthResponse> {
+export async function refresh(options?: { timeoutMs?: number }): Promise<AuthResponse> {
 	const refreshToken = getAuthTokens()?.refreshToken
 	return post<AuthResponse>(
 		'/api/auth/refresh',
@@ -18,17 +18,18 @@ export async function refresh(): Promise<AuthResponse> {
 			...(refreshToken ? { refresh_token: refreshToken } : {}),
 			remember_me: refreshToken ? isPersistentAuthSession() : true,
 		},
-		{ requiresAuth: false }
+		{ requiresAuth: false, timeoutMs: options?.timeoutMs ?? 4000 }
 	)
 }
 
-export async function getMe(): Promise<User> {
-  return get<User>('/api/auth/me')
+export async function getMe(options?: { timeoutMs?: number }): Promise<User> {
+  return get<User>('/api/auth/me', { timeoutMs: options?.timeoutMs ?? 4000 })
 }
 
-export async function checkUsersExist(): Promise<{ users_exist: boolean }> {
+export async function checkUsersExist(options?: { timeoutMs?: number }): Promise<{ users_exist: boolean }> {
   return get<{ users_exist: boolean }>('/api/auth/check-users', {
     requiresAuth: false,
+    timeoutMs: options?.timeoutMs ?? 6000,
   })
 }
 

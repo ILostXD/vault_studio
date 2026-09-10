@@ -6,12 +6,14 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { App } from "@capacitor/app";
+import { Keyboard } from "@capacitor/keyboard";
 import { Capacitor, SystemBars, SystemBarsStyle } from "@capacitor/core";
 import { EdgeToEdge } from "@capawesome/capacitor-android-edge-to-edge-support";
 
 import { toast as sonnerToast, Toaster } from "sonner";
 import MusicPlayer from "../components/MusicPlayer";
 import FullscreenPlayer from "../components/FullscreenPlayer";
+import { ExportProgressIndicator } from "../components/ExportProgressIndicator";
 import { useAuth } from "../contexts/AuthContext";
 import { usePreferences } from "../contexts/PreferencesContext";
 import { useAudioPlayer } from "../contexts/AudioPlayerContext";
@@ -262,6 +264,15 @@ function RootComponent() {
     let listener: { remove: () => Promise<void> } | undefined;
 
     App.addListener("backButton", ({ canGoBack }) => {
+      if (
+        document.activeElement instanceof HTMLInputElement ||
+        document.activeElement instanceof HTMLTextAreaElement
+      ) {
+        document.activeElement.blur();
+        Keyboard.hide().catch(() => {});
+        return;
+      }
+
       if (closeTopOverlay()) return;
       if (isNowPlayingOpen) {
         closeNowPlaying();
@@ -337,6 +348,7 @@ function RootComponent() {
       <Outlet />
       {isAuthenticated && !isSetupRoute && <MusicPlayer hideControls={isProfileRoute} />}
       {isAuthenticated && !isSetupRoute && <FullscreenPlayer />}
+      {isAuthenticated && <ExportProgressIndicator />}
       <Toaster
         position="top-center"
         offset="16px"

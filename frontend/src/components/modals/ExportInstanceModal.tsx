@@ -7,9 +7,10 @@ import {
   getExportSize,
   type ExportResult,
 } from "@/api/instance";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { onWSMessage, offWSMessage } from "@/hooks/useWebSocket";
+import { Progress } from "@/components/ui/progress";
 
 interface ExportProgress {
   current: number;
@@ -37,6 +38,8 @@ export default function ExportInstanceModal({
   onClose,
 }: ExportInstanceModalProps) {
   const [isExporting, setIsExporting] = useState(false);
+  const totalFiles = useRef(0);
+  const [exportError, setExportError] = useState("");
   const [progress, setProgress] = useState<ExportProgress | null>(null);
   const [result, setResult] = useState<
     (ExportResult & { totalFiles: number }) | null
@@ -58,6 +61,7 @@ export default function ExportInstanceModal({
       if (message.type === "export_progress") {
         const p = message.payload as ExportProgress;
         setProgress({ ...p });
+        totalFiles.current = p.total;
       }
     };
 
@@ -66,6 +70,8 @@ export default function ExportInstanceModal({
   }, [isExporting]);
 
   const handleExport = async () => {
+    totalFiles.current = 0;
+    setExportError("");
     try {
       setIsExporting(true);
       setProgress(null);
@@ -73,10 +79,11 @@ export default function ExportInstanceModal({
       const exportResult = await exportInstance();
       setResult({
         ...exportResult,
-        totalFiles: progress?.total ?? 0,
+        totalFiles: totalFiles.current,
       });
     } catch (error) {
       console.error("Export failed:", error);
+      setExportError(error instanceof Error ? error.message : "Failed to export instance");
     } finally {
       setIsExporting(false);
     }
@@ -85,12 +92,13 @@ export default function ExportInstanceModal({
   const handleClose = () => {
     setResult(null);
     setProgress(null);
+    setExportError("");
     onClose();
   };
 
   const isDone = !!result;
-  const pct = progress
-    ? Math.round((progress.current / progress.total) * 100)
+  const pct = progress && progress.total > 0
+    ? Math.min(100, Math.round((progress.current / progress.total) * 100))
     : 0;
 
   return (
@@ -164,12 +172,7 @@ export default function ExportInstanceModal({
                   </span>
                   <span>{pct}%</span>
                 </div>
-                <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-accent-blue rounded-full transition-all duration-150"
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
+                <Progress value={progress ? pct : undefined} />
                 <p className="text-xs text-muted-foreground truncate h-4">
                   {progress?.filename ?? "\u00A0"}
                 </p>
@@ -196,6 +199,7 @@ export default function ExportInstanceModal({
           )}
         </AnimatePresence>
 
+        {exportError && <p role="alert" className="mb-4 text-sm text-(--danger-0)">{exportError}</p>}
         {/* Buttons */}
         <AnimatePresence initial={false} mode="wait">
           {isDone ? (

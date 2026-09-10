@@ -1,39 +1,10 @@
 package projects
 
 import (
-	"archive/zip"
 	"io"
 	"os"
 	"strings"
 )
-
-func addFileToZip(zipWriter *zip.Writer, filePath, zipPath string) error {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	info, err := file.Stat()
-	if err != nil {
-		return err
-	}
-
-	header, err := zip.FileInfoHeader(info)
-	if err != nil {
-		return err
-	}
-	header.Name = zipPath
-	header.Method = zip.Deflate
-
-	writer, err := zipWriter.CreateHeader(header)
-	if err != nil {
-		return err
-	}
-
-	_, err = io.Copy(writer, file)
-	return err
-}
 
 func sanitizeFilename(name string) string {
 	replacer := strings.NewReplacer(

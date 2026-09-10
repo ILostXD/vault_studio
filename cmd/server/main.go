@@ -263,7 +263,7 @@ func main() {
 	statsHandler := handlers.NewStatsHandler(database, Version, CommitSHA)
 	instanceHandler := handlers.NewInstanceHandler(database, config.DataDir, wsHub)
 	mediaHandler := handlers.NewMediaHandler(config.AuthConfig)
-	projectsHandler := projects.NewProjectsHandler(svc.Projects, database, config.DataDir)
+	projectsHandler := projects.NewProjectsHandler(svc.Projects, database, config.DataDir, wsHub)
 	foldersHandler := handlers.NewFoldersHandler(database)
 	tracksHandler := tracks.NewTracksHandler(database, storageAdapter, transcoder)
 	versionsHandler := handlers.NewVersionsHandler(database, storageAdapter, transcoder)

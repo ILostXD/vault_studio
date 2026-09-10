@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	AlertCircle,
 	CheckCircle2,
+	ChevronDown,
 	ChevronRight,
 	Download,
 	FileImage,
@@ -234,7 +235,7 @@ export function PrepareReleaseModal({
 			anchor.href = url;
 			anchor.download = `${String(response?.release.title || "Release").replace(/[<>:"/\\|?*]/g, "-")}-release-package.zip`;
 			anchor.click();
-			URL.revokeObjectURL(url);
+			window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 			void client.invalidateQueries({
 				queryKey: distributionKeys.history(projectId),
 			});
@@ -242,11 +243,11 @@ export function PrepareReleaseModal({
 			if (error instanceof ApiError && error.data?.validation) {
 				setProviderValidation(error.data.validation);
 			}
-			setActionError(
+			const message =
 				error instanceof Error
 					? error.message
-					: "Could not export the release package",
-			);
+					: "Could not export the release package";
+			setActionError(message);
 		} finally {
 			setIsExporting(false);
 			window.setTimeout(() => setExportProgress(null), 1200);
@@ -265,10 +266,12 @@ export function PrepareReleaseModal({
 			<div className="min-h-0 text-(--text-0)">
 				<header className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-(--card-border) bg-(--surface-overlay-to) px-5 py-4 sm:px-6">
 					<div>
-						<p className="text-xs font-medium uppercase text-(--text-2)">
+						<p className="text-xs font-semibold tracking-wider uppercase text-(--text-2)">
 							Distribution
 						</p>
-						<h2 className="text-2xl font-semibold">Prepare Release</h2>
+						<h2 className="text-xl sm:text-2xl font-semibold mt-0.5 text-(--text-0)">
+							Prepare Release
+						</h2>
 						<p className="mt-1 text-sm text-(--text-1)">
 							Review what Vault knows, then export it or create a distributor
 							draft.
@@ -278,15 +281,17 @@ export function PrepareReleaseModal({
 						type="button"
 						size="icon"
 						variant="ghost"
+						className="size-8 shrink-0 rounded-full"
 						aria-label="Close prepare release"
 						onClick={onClose}
+						disabled={save.isPending || send.isPending || isExporting}
 					>
-						<X />
+						<X className="size-5" />
 					</Button>
 				</header>
 
 				<div
-					className="grid grid-cols-4 border-b border-(--card-border) px-2 sm:px-4"
+					className="grid grid-cols-4 border-b border-(--card-border) px-2 sm:px-6"
 					role="tablist"
 					aria-label="Release preparation sections"
 				>
@@ -298,12 +303,12 @@ export function PrepareReleaseModal({
 								role="tab"
 								aria-selected={tab === item}
 								onClick={() => setTab(item)}
-								className={`relative min-w-0 border-b-2 border-transparent px-1 py-3 text-xs font-medium capitalize transition-colors duration-200 sm:text-sm ${tab === item ? "text-(--text-0)" : "text-(--text-2) hover:text-(--text-0)"}`}
+								className={`relative min-w-0 border-b-2 border-transparent px-2 py-3 text-xs font-medium capitalize transition-colors duration-200 sm:text-sm ${tab === item ? "text-(--text-0)" : "text-(--text-2) hover:text-(--text-0)"}`}
 							>
 								{tab === item && (
 									<motion.span
 										layoutId="prepare-release-active-tab"
-										className="absolute inset-x-1 -bottom-0.5 h-0.5 rounded-full bg-(--accent-blue)"
+										className="absolute inset-x-2 -bottom-0.5 h-0.5 rounded-full bg-(--accent-blue)"
 										transition={{ type: "spring", stiffness: 500, damping: 38 }}
 									/>
 								)}
@@ -374,16 +379,16 @@ export function PrepareReleaseModal({
 									</p>
 									<ArtworkSummary release={response.release} />
 									<Button
-										className="mt-4"
+										className="mt-4 gap-2"
 										onClick={() => void handleExport()}
 										disabled={
 											!validation?.can_export || save.isPending || isExporting
 										}
 									>
 										{isExporting ? (
-											<LoaderCircle className="animate-spin" />
+											<LoaderCircle className="size-4 animate-spin" />
 										) : (
-											<Download />
+											<Download className="size-4" />
 										)}
 										{isExporting ? "Building package..." : "Export package"}
 									</Button>
@@ -470,32 +475,39 @@ export function PrepareReleaseModal({
 											Lost.
 										</p>
 									)}
-									<div className="mt-4 flex flex-wrap gap-2">
+									<div className="mt-4 flex flex-wrap items-center gap-3">
 										{tooLost.data?.connected ? (
 											<>
 												<Button
+													className="gap-2"
 													onClick={() => {
 														setActionError("");
 														send.mutate();
 													}}
 													disabled={send.isPending}
 												>
-													<Send />
+													{send.isPending ? (
+														<LoaderCircle className="size-4 animate-spin" />
+													) : (
+														<Send className="size-4" />
+													)}
 													{send.isPending
 														? "Preparing draft..."
 														: "Create or update Too Lost draft"}
 												</Button>
 												<Button
 													variant="outline"
+													className="gap-2"
 													onClick={() => disconnect.mutate()}
 													disabled={disconnect.isPending}
 												>
-													<Unplug />
+													<Unplug className="size-4" />
 													Disconnect
 												</Button>
 											</>
 										) : (
 											<Button
+												className="gap-2"
 												onClick={() => connect.mutate()}
 												disabled={
 													connect.isPending ||
@@ -503,7 +515,7 @@ export function PrepareReleaseModal({
 													tooLost.data?.configured === false
 												}
 											>
-												<Link2 />
+												<Link2 className="size-4" />
 												Connect Too Lost
 											</Button>
 										)}
@@ -590,12 +602,17 @@ export function PrepareReleaseModal({
 							</p>
 						)}
 						{(tab === "release" || tab === "tracks") && (
-							<div className="mt-7 flex items-center justify-end gap-3 border-t border-(--card-border) pt-5">
+							<div className="mt-6 flex items-center justify-end gap-3 border-t border-(--card-border) pt-4">
 								<Button
+									className="gap-2"
 									onClick={() => draft && save.mutate(draft)}
 									disabled={save.isPending}
 								>
-									<Save />
+									{save.isPending ? (
+										<LoaderCircle className="size-4 animate-spin" />
+									) : (
+										<Save className="size-4" />
+									)}
 									{save.isPending ? "Saving..." : "Save preparation"}
 								</Button>
 							</div>
@@ -640,28 +657,28 @@ function ReleaseTab({
 	const language = String(value("language") ?? "");
 	const selectedGenres = (value("genres") ?? []) as string[];
 	return (
-		<div className="space-y-7">
-			<section className="grid gap-4 sm:grid-cols-2">
-				<div>
-					<p className="flex items-center gap-2 font-medium">
-						<CheckCircle2 className="size-4 text-emerald-500" />
+		<div className="space-y-6">
+			<section className="grid gap-3 sm:grid-cols-2">
+				<div className="rounded-xl border border-(--card-border) bg-(--action-bg) p-3.5">
+					<p className="flex items-center gap-2 text-sm font-medium">
+						<CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
 						Ready
 					</p>
-					<p className="mt-2 text-sm text-(--text-1)">
+					<p className="mt-1.5 text-xs text-(--text-1) leading-relaxed">
 						{ready.join(" · ") || "Add the core release details below."}
 					</p>
 				</div>
-				<div>
-					<p className="flex items-center gap-2 font-medium">
-						<AlertCircle className="size-4 text-amber-500" />
+				<div className="rounded-xl border border-(--card-border) bg-(--action-bg) p-3.5">
+					<p className="flex items-center gap-2 text-sm font-medium">
+						<AlertCircle className="size-4 text-amber-500 shrink-0" />
 						Needs attention
 					</p>
-					<p className="mt-2 text-sm text-(--text-1)">
+					<p className="mt-1.5 text-xs text-(--text-1) leading-relaxed">
 						{errors} blocking · {warnings} to review
 					</p>
 				</div>
 			</section>
-			<section className="grid gap-4 border-t border-(--card-border) pt-5 sm:grid-cols-2">
+			<section className="grid gap-x-5 gap-y-4 border-t border-(--card-border) pt-5 sm:grid-cols-2">
 				<Field label="Release title">
 					<Input
 						value={String(value("title") ?? "")}
@@ -716,9 +733,9 @@ function ReleaseTab({
 						value={String(value("original_release_date") ?? "")}
 						onValueChange={(next) => update("original_release_date", next)}
 					/>
-					<small className="text-(--text-2)">
+					<p className="text-xs text-(--text-2) leading-tight mt-0.5">
 						Leave blank when this is the release's first publication.
-					</small>
+					</p>
 				</Field>
 				<Field label="Primary genre">
 					<ValueSelect
@@ -743,11 +760,11 @@ function ReleaseTab({
 							update("genres", [selectedGenres[0], next].filter(Boolean))
 						}
 					/>
-					<small className="text-(--text-2)">
+					<p className="text-xs text-(--text-2) leading-tight mt-0.5">
 						{providerCatalog
 							? "Genres loaded from Too Lost."
 							: "Connect Too Lost to refresh its full genre catalog."}
-					</small>
+					</p>
 				</Field>
 				<Field label="Label">
 					<Input
@@ -773,9 +790,9 @@ function ReleaseTab({
 						onChange={(e) => update("upc", e.target.value)}
 						inputMode="numeric"
 					/>
-					<small className="text-(--text-2)">
+					<p className="text-xs text-(--text-2) leading-tight mt-0.5">
 						Leave blank for the distributor to assign one.
-					</small>
+					</p>
 				</Field>
 			</section>
 			<section className="border-t border-(--card-border) pt-5">
@@ -831,14 +848,19 @@ function TracksTab({
 				const hasCreditOverride = override.credits !== undefined;
 				const language = String(value("language") ?? "");
 				return (
-					<details key={track.track_id} className="py-4 first:pt-0">
-						<summary className="cursor-pointer font-medium">
-							<span className="mr-3 font-mono text-sm text-(--text-2)">
-								{track.number}
-							</span>
-							{String(value("title") ?? track.title)}
+					<details key={track.track_id} className="group py-3 first:pt-0">
+						<summary className="flex items-center justify-between gap-3 cursor-pointer select-none rounded-xl p-2.5 sm:p-3 font-medium text-sm transition-colors hover:bg-(--action-bg-hover)">
+							<div className="flex items-center gap-3 min-w-0">
+								<span className="font-mono text-xs text-(--text-2) w-5 text-right shrink-0">
+									{track.number}
+								</span>
+								<span className="truncate text-(--text-0)">
+									{String(value("title") ?? track.title)}
+								</span>
+							</div>
+							<ChevronDown className="size-4 text-(--text-2) transition-transform duration-200 group-open:rotate-180 shrink-0" />
 						</summary>
-						<div className="mt-4 grid gap-4 pl-0 sm:grid-cols-2 sm:pl-7">
+						<div className="mt-3 grid gap-x-5 gap-y-4 px-2.5 sm:px-4 sm:grid-cols-2">
 							<Field label="Title">
 								<Input
 									value={String(value("title") ?? "")}
@@ -902,9 +924,9 @@ function TracksTab({
 										update(track.track_id, "isrc", e.target.value)
 									}
 								/>
-								<small className="text-(--text-2)">
+								<p className="text-xs text-(--text-2) leading-tight mt-0.5">
 									Leave blank for the distributor to assign one.
-								</small>
+								</p>
 							</Field>
 							<Field label="Lyrics" className="sm:col-span-2">
 								<textarea
@@ -916,9 +938,10 @@ function TracksTab({
 								/>
 							</Field>
 							<div className="sm:col-span-2">
-								<label className="mb-3 flex items-center gap-2 text-sm">
+								<label className="mb-3 flex items-center gap-2.5 text-sm cursor-pointer select-none py-1 text-(--text-1) hover:text-(--text-0)">
 									<input
 										type="checkbox"
+										className="rounded border-(--control-border) bg-(--action-bg)"
 										checked={hasCreditOverride}
 										onChange={(e) =>
 											e.target.checked
@@ -956,7 +979,7 @@ function ArtworkSummary({
 		spotify_canvas: "Spotify Canvas",
 	};
 	return (
-		<div className="mt-4 grid gap-2 sm:grid-cols-2">
+		<div className="mt-4 grid gap-3 sm:grid-cols-2">
 			<div className="flex items-center gap-3 rounded-[var(--button-radius)] border border-(--card-border) bg-(--action-bg) p-3">
 				<FileImage className="size-4 shrink-0 text-(--text-1)" />
 				<div className="min-w-0">
@@ -1090,8 +1113,8 @@ function Field({
 }) {
 	return (
 		// biome-ignore lint/a11y/noLabelWithoutControl: children contain the shared Input component or a native form control.
-		<label className={`min-w-0 space-y-1 text-sm ${className}`}>
-			<span className="block text-(--text-1)">{label}</span>
+		<label className={`flex flex-col min-w-0 gap-1.5 text-sm ${className}`}>
+			<span className="block font-medium text-xs text-(--text-1)">{label}</span>
 			{children}
 		</label>
 	);

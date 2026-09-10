@@ -10,6 +10,7 @@
         "@capacitor/app": "^8.1.0",
         "@capacitor/core": "^8.4.1",
         "@capacitor/ios": "^8.4.1",
+        "@capacitor/keyboard": "^8.0.5",
         "@capawesome/capacitor-android-edge-to-edge-support": "^8.0.8",
         "@faker-js/faker": "^10.3.0",
         "@fontsource/ibm-plex-mono": "^5.2.7",
@@ -309,6 +310,8 @@
     "@capacitor/core": ["@capacitor/core@8.4.1", "", { "dependencies": { "tslib": "^2.1.0" } }, "sha512-xqhOGLbTAYeOWK+IDUNSjQJAPapQjRHrIcgk9PYp52or9zFTaaMko31uNi16N6W+CRJ8VrRram6fOYILkBG2Hg=="],
 
     "@capacitor/ios": ["@capacitor/ios@8.4.1", "", { "peerDependencies": { "@capacitor/core": "^8.4.0" } }, "sha512-EgcAk7NYheHMTyP3CUrA65qKs4D2UEAKgw44HI6Uk3dTw6KjLQkdLOQWvbeRncHaZ2gklfOojUoc5DlSw2lhYg=="],
+
+    "@capacitor/keyboard": ["@capacitor/keyboard@8.0.5", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-oFXygC4eKYA5l2MdpTR06L2M/4x6e2SLD5yS1T9+UBDKTkzyvhWKEhbYLUaTIBPpLKqlfGudJw1X73S1H9eUzQ=="],
 
     "@capawesome/capacitor-android-edge-to-edge-support": ["@capawesome/capacitor-android-edge-to-edge-support@8.0.8", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-+eKz15uhfOwft5IRZFL1QQZT/FHeeE5scNnlP9CIMrhW0Ctc9cJM13Ec2vOTd9oYGz3mCF3kf39C2spDDuSUVw=="],
 

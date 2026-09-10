@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
+import { Capacitor } from "@capacitor/core";
 import type {
   User,
   LoginRequest,
@@ -37,18 +38,32 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
 	const [user, setUser] = useState<User | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
+	const [isLoading, setIsLoading] = useState(() => {
+		if (Capacitor.isNativePlatform() && !getAuthTokens()) {
+			return false;
+		}
+		return true;
+	});
 
 	useEffect(() => {
 		const initAuth = async () => {
+			const tokens = getAuthTokens();
 			const cachedUser = getCachedUser();
+
+			// On native platforms without stored tokens, there is no session to restore.
+			// Skip the remote refresh network request immediately to eliminate startup delay.
+			if (Capacitor.isNativePlatform() && !tokens) {
+				setIsLoading(false);
+				return;
+			}
+
 			try {
-				if (getAuthTokens()) {
-					const userData = await authApi.getMe();
+				if (tokens) {
+					const userData = await authApi.getMe({ timeoutMs: 4000 });
 					storeCachedUser(userData, isPersistentAuthSession());
 					setUser(userData);
 				} else {
-					const response = await authApi.refresh();
+					const response = await authApi.refresh({ timeoutMs: 4000 });
 					storeAuthTokensFromResponse(response, true);
 					storeCachedUser(response.user, true);
 					setUser(response.user);
@@ -60,8 +75,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 					clearAuthTokens();
 					setUser(null);
 				}
+			} finally {
+				setIsLoading(false);
 			}
-			setIsLoading(false);
 		};
 
     initAuth();

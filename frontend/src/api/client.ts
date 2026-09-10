@@ -23,6 +23,7 @@ export class ApiError extends Error {
 export interface RequestOptions extends RequestInit {
   requiresAuth?: boolean
 	skipAuthRefresh?: boolean
+	timeoutMs?: number
 }
 
 let refreshPromise: Promise<void> | null = null
@@ -34,10 +35,22 @@ async function refreshAuthSession() {
 		const tokens = getAuthTokens()
 		const persistent = isPersistentAuthSession()
 		let response: Response
+
+		let timeoutId: ReturnType<typeof setTimeout> | undefined
+		let signal: AbortSignal | undefined
+		if (typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal) {
+			signal = AbortSignal.timeout(5000)
+		} else {
+			const controller = new AbortController()
+			timeoutId = setTimeout(() => controller.abort(), 5000)
+			signal = controller.signal
+		}
+
 		try {
 			response = await fetch(resolveApiUrl('/api/auth/refresh'), {
 				method: 'POST',
 				credentials: 'include',
+				signal,
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					...(tokens?.refreshToken
@@ -51,6 +64,8 @@ async function refreshAuthSession() {
 				error instanceof Error ? error.message : 'Network error',
 				0,
 			)
+		} finally {
+			if (timeoutId) clearTimeout(timeoutId)
 		}
 
 		if (!response.ok) {
@@ -66,7 +81,6 @@ async function refreshAuthSession() {
 
 	return refreshPromise
 }
-
 
 function getCookieValue(name: string): string | null {
 	if (typeof document === 'undefined') return null
@@ -90,6 +104,8 @@ async function apiClient<T>(
 		requiresAuth = true,
 		skipAuthRefresh = false,
 		headers = {},
+		timeoutMs,
+		signal: customSignal,
 		...restOptions
 	} = options
 
@@ -99,6 +115,22 @@ async function apiClient<T>(
 		'Content-Type': 'application/json',
 		...(requiresAuth ? getAuthHeaders() : {}),
 		...(headers as Record<string, string>),
+	}
+
+	const effectiveTimeout = timeoutMs !== undefined ? timeoutMs : 7000
+	let timeoutId: ReturnType<typeof setTimeout> | undefined
+	let signal = customSignal
+
+	if (effectiveTimeout > 0 && !signal) {
+		if (typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal) {
+			signal = AbortSignal.timeout(effectiveTimeout)
+		} else {
+			const controller = new AbortController()
+			timeoutId = setTimeout(() => {
+				controller.abort(new Error(`Request timed out after ${effectiveTimeout}ms`))
+			}, effectiveTimeout)
+			signal = controller.signal
+		}
 	}
 
 	if (requiresAuth) {
@@ -114,9 +146,14 @@ async function apiClient<T>(
   try {
 		const response = await fetch(url, {
 			...restOptions,
+			signal,
 			headers: requestHeaders,
 			credentials: 'include',
 		})
+
+		if (timeoutId) {
+			clearTimeout(timeoutId)
+		}
 
 		if (response.status === 401) {
 			if (requiresAuth && !skipAuthRefresh) {
@@ -161,14 +198,31 @@ async function apiClient<T>(
 
     return await response.json()
   } catch (error) {
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
+
     if (error instanceof ApiError) {
       throw error
+    }
+
+    if (
+      error instanceof Error &&
+      (error.name === 'AbortError' ||
+        error.name === 'TimeoutError' ||
+        error.message?.includes('timed out'))
+    ) {
+      throw new ApiError('Unable to reach server. Connection timed out.', 0)
     }
 
     throw new ApiError(
       error instanceof Error ? error.message : 'Network error',
       0
     )
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
   }
 }
 
@@ -215,5 +269,3 @@ export async function patch<T>(
     body: data ? JSON.stringify(data) : undefined,
   })
 }
-
-// debugAuth helpers removed with cookie-based auth

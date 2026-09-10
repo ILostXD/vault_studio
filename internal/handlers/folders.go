@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
-	"time"
 
 	"bungleware/vault/internal/apperr"
 	"bungleware/vault/internal/db"
@@ -88,9 +87,6 @@ func (h *FoldersHandler) ListFolders(w http.ResponseWriter, r *http.Request) err
 		return apperr.NewUnauthorized("user not found in context")
 	}
 
-	// Clean up stale empty folders (older than 10s grace period)
-	_ = h.db.CleanupEmptyFolders(r.Context(), int64(userID), 10*time.Second)
-
 	parentIDStr := r.URL.Query().Get("parent_id")
 
 	var folders []sqlc.Folder
@@ -128,9 +124,6 @@ func (h *FoldersHandler) ListAllFolders(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		return apperr.NewUnauthorized("user not found in context")
 	}
-
-	// Clean up stale empty folders (older than 10s grace period)
-	_ = h.db.CleanupEmptyFolders(r.Context(), int64(userID), 10*time.Second)
 
 	folders, err := h.db.ListAllFoldersByUser(r.Context(), int64(userID))
 	if err != nil {
@@ -422,18 +415,6 @@ func (h *FoldersHandler) GetFolderContents(w http.ResponseWriter, r *http.Reques
 	})
 	if err := httputil.HandleDBError(err, "folder not found", "failed to query folder"); err != nil {
 		return err
-	}
-
-	// If folder is older than 10s and empty, delete it and return 404
-	if folder.CreatedAt.Valid && time.Since(folder.CreatedAt.Time) > 10*time.Second {
-		empty, _ := h.db.IsFolderEmpty(r.Context(), id, int64(userID))
-		if empty {
-			_ = h.db.DeleteFolder(r.Context(), sqlc.DeleteFolderParams{
-				ID:     id,
-				UserID: int64(userID),
-			})
-			return apperr.NewNotFound("folder not found")
-		}
 	}
 
 	subfolders, err := h.db.ListFoldersByParent(r.Context(), sqlc.ListFoldersByParentParams{

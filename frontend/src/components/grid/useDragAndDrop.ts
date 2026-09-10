@@ -3,6 +3,7 @@ import type { GridItem } from "./types";
 import { dedupeProjects } from "./types";
 import { CROSSFADE_DURATION_MS } from "@/lib/constants";
 import { getCachedCoverUrl } from "@/hooks/useProjectCoverImage";
+import { toast } from "@/routes/__root";
 
 interface DragDropCallbacks {
   onCreateFolder?: (name: string, projectIds: string[], folderIds?: number[]) => Promise<number | undefined>;
@@ -185,7 +186,7 @@ export function useDragAndDrop(
       const source = items[sourceIndex];
       const targetId = hoverTargetId;
 
-      if (!targetId || targetId === draggingId) {
+      if (!source || !targetId || targetId === draggingId) {
         updateBreadcrumbDomHover(null);
         setDraggingId(null);
         setHoverTargetId(null);
@@ -206,23 +207,33 @@ export function useDragAndDrop(
             : parseInt(targetId.replace("breadcrumb:folder:", ""), 10);
 
         try {
-          if (source && source.type === "project") {
+          if (source.type === "project") {
             if (source.isShared && callbacks?.onOrganizeSharedProject) {
               await callbacks.onOrganizeSharedProject(source.project.id, targetFolderId);
             } else if (callbacks?.onMoveProjectToFolder) {
               await callbacks.onMoveProjectToFolder(source.project.public_id, targetFolderId);
+            } else {
+              throw new Error("Moving this project is unavailable");
             }
-          } else if (source && source.type === "folder") {
+          } else if (source.type === "folder") {
             if (callbacks?.onMoveFolderToFolder && source.folderId) {
               await callbacks.onMoveFolderToFolder(source.folderId, targetFolderId);
+            } else {
+              throw new Error("Moving this folder is unavailable");
             }
-          } else if (source && source.type === "track") {
+          } else if (source.type === "track") {
             if (callbacks?.onOrganizeSharedTrack) {
               await callbacks.onOrganizeSharedTrack(source.track.id, targetFolderId);
+            } else {
+              throw new Error("Moving this track is unavailable");
             }
           }
         } catch (error) {
           console.error("Failed to move item to breadcrumb target:", error);
+          toast.error("Could not move this item. Please try again.");
+          setDroppingIntoId(null);
+          handleDragCancel();
+          return false;
         }
 
         const willBeEmpty = items.length <= 1;
@@ -561,7 +572,7 @@ export function useDragAndDrop(
       setHoverTargetId(null);
       return false;
     },
-    [draggingId, hoverTargetId, items, setItems, callbacks]
+    [draggingId, hoverTargetId, items, setItems, callbacks, handleDragCancel]
   );
 
   return {

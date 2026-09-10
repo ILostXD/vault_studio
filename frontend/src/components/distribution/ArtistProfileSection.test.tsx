@@ -1,7 +1,13 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+	cleanup,
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+} from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { ArtistProfileSection } from "./ArtistProfileSection";
 
@@ -39,7 +45,9 @@ function renderProfile() {
 
 it("remembers whether reusable credits are expanded", async () => {
 	const first = renderProfile();
-	const details = (await screen.findByText("Reusable credits")).closest("details");
+	const details = (await screen.findByText("Reusable credits")).closest(
+		"details",
+	);
 	expect(details?.open).toBe(true);
 
 	if (!details) throw new Error("Reusable credits disclosure is missing");

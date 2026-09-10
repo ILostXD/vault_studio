@@ -51,6 +51,7 @@ type Querier interface {
 	CreateWebSocketSession(ctx context.Context, arg CreateWebSocketSessionParams) (WebsocketSession, error)
 	DeleteAllSharedProjectOrganizationsInFolder(ctx context.Context, arg DeleteAllSharedProjectOrganizationsInFolderParams) error
 	DeleteAllSharedTrackOrganizationsInFolder(ctx context.Context, arg DeleteAllSharedTrackOrganizationsInFolderParams) error
+	DeleteEmptyFolder(ctx context.Context, arg DeleteEmptyFolderParams) (int64, error)
 	DeleteExpiredFederationTokens(ctx context.Context) error
 	DeleteExpiredRefreshTokens(ctx context.Context) error
 	DeleteExpiredTokens(ctx context.Context) error

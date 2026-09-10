@@ -84,6 +84,28 @@ func (q *Queries) CreateFolder(ctx context.Context, arg CreateFolderParams) (Fol
 	return i, err
 }
 
+const deleteEmptyFolder = `-- name: DeleteEmptyFolder :execrows
+DELETE FROM folders
+WHERE id = ? AND user_id = ?
+  AND NOT EXISTS (SELECT 1 FROM projects WHERE folder_id = folders.id)
+  AND NOT EXISTS (SELECT 1 FROM folders AS children WHERE children.parent_id = folders.id)
+  AND NOT EXISTS (SELECT 1 FROM user_shared_project_organization WHERE folder_id = folders.id)
+  AND NOT EXISTS (SELECT 1 FROM user_shared_track_organization WHERE folder_id = folders.id)
+`
+
+type DeleteEmptyFolderParams struct {
+	ID     int64 `json:"id"`
+	UserID int64 `json:"user_id"`
+}
+
+func (q *Queries) DeleteEmptyFolder(ctx context.Context, arg DeleteEmptyFolderParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteEmptyFolder, arg.ID, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const deleteFolder = `-- name: DeleteFolder :exec
 DELETE FROM folders
 WHERE id = ? AND user_id = ?

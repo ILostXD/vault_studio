@@ -44,7 +44,7 @@ export function CreditsEditor({
 		key: rowKeys.current[index],
 	}));
 	return (
-		<div className="space-y-2">
+		<div className="space-y-3">
 			<AnimatePresence initial={false} mode="popLayout">
 				{rows.map(({ credit, index, key }) => (
 					<motion.div
@@ -54,11 +54,11 @@ export function CreditsEditor({
 						animate={{ opacity: 1, y: 0, scale: 1 }}
 						exit={{ opacity: 0, y: -6, scale: 0.985 }}
 						transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-						className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-2"
+						className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-end gap-2.5"
 					>
 						<label
 							htmlFor={`${id}-name-${index}`}
-							className="min-w-0 space-y-1 text-xs text-(--text-1)"
+							className="min-w-0 flex flex-col gap-1.5 text-xs text-(--text-1)"
 						>
 							<span>Name {index + 1}</span>
 							<Input
@@ -75,7 +75,7 @@ export function CreditsEditor({
 						</label>
 						<label
 							htmlFor={`${id}-role-${index}`}
-							className="min-w-0 space-y-1 text-xs text-(--text-1)"
+							className="min-w-0 flex flex-col gap-1.5 text-xs text-(--text-1)"
 						>
 							<span>Role {index + 1}</span>
 							<Select
@@ -115,7 +115,7 @@ export function CreditsEditor({
 							type="button"
 							size="icon"
 							variant="ghost"
-							className="self-end text-(--danger-0) transition-colors hover:bg-(--danger-1) hover:text-(--danger-0)"
+							className="size-9 shrink-0 text-(--danger-0) transition-colors hover:bg-(--danger-1) hover:text-(--danger-0)"
 							title={`Remove credit ${index + 1}`}
 							aria-label={`Remove credit ${index + 1}`}
 							onClick={() => {
@@ -123,22 +123,23 @@ export function CreditsEditor({
 								onChange(value.filter((_, i) => i !== index));
 							}}
 						>
-							<Trash2 />
+							<Trash2 className="size-4" />
 						</Button>
 					</motion.div>
 				))}
 			</AnimatePresence>
-			<div className="flex min-h-14 items-center">
+			<div className="flex items-center pt-2">
 				<Button
 					type="button"
 					size="sm"
 					variant="outline"
+					className="gap-1.5"
 					onClick={() => {
 						rowKeys.current.push(`${id}-credit-${nextKey.current++}`);
 						onChange([...value, { name: "", role: "" }]);
 					}}
 				>
-					<Plus />
+					<Plus className="size-4" />
 					Add credit
 				</Button>
 			</div>

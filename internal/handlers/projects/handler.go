@@ -1,7 +1,6 @@
 package projects
 
 import (
-	"archive/zip"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -10,8 +9,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
-	"log/slog"
 	"bungleware/vault/internal/apperr"
 	"bungleware/vault/internal/db"
 	sqlc "bungleware/vault/internal/db/sqlc"
@@ -20,19 +19,22 @@ import (
 	"bungleware/vault/internal/httputil"
 	"bungleware/vault/internal/ids"
 	"bungleware/vault/internal/service"
+	"log/slog"
 )
 
 type ProjectsHandler struct {
 	service service.ProjectService
 	db      *db.DB
 	dataDir string
+	wsHub   *handlers.WSHub
 }
 
-func NewProjectsHandler(svc service.ProjectService, database *db.DB, dataDir string) *ProjectsHandler {
+func NewProjectsHandler(svc service.ProjectService, database *db.DB, dataDir string, wsHub *handlers.WSHub) *ProjectsHandler {
 	return &ProjectsHandler{
 		service: svc,
 		db:      database,
 		dataDir: dataDir,
+		wsHub:   wsHub,
 	}
 }
 
@@ -545,33 +547,22 @@ func (h *ProjectsHandler) ExportProject(w http.ResponseWriter, r *http.Request) 
 	}
 
 	tracks, err := queries.ListPlainTracksByProject(ctx, sqlc.ListPlainTracksByProjectParams{
-		UserID:    int64(userID),
+		UserID:    project.UserID,
 		ProjectID: project.ID,
 	})
 	if err != nil {
 		return apperr.NewInternal("failed to list tracks", err)
 	}
 
-	w.Header().Set("Content-Type", "application/zip")
-	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.zip"`, sanitizeFilename(project.Name)))
-
-	// Create zip writer
-	zipWriter := zip.NewWriter(w)
-	defer zipWriter.Close()
-
+	files := make([]projectExportFile, 0, len(tracks)+1)
 	if project.CoverArtPath.Valid {
-		// Cover art path is stored as absolute path in database
-		coverPath := project.CoverArtPath.String
-		if _, err := os.Stat(coverPath); err == nil {
-			ext := filepath.Ext(coverPath)
-			if err := addFileToZip(zipWriter, coverPath, "cover"+ext); err != nil {
-				slog.Debug("failed to add cover to zip", "error", err)
-			}
-		}
+		files = append(files, projectExportFile{path: project.CoverArtPath.String, name: "cover" + filepath.Ext(project.CoverArtPath.String)})
 	}
 
-	usedNames := make(map[string]int)
-
+	usedNames := make(map[string]bool)
+	for _, file := range files {
+		usedNames[strings.ToLower(file.name)] = true
+	}
 	for _, track := range tracks {
 		if !track.ActiveVersionID.Valid {
 			continue
@@ -582,13 +573,10 @@ func (h *ProjectsHandler) ExportProject(w http.ResponseWriter, r *http.Request) 
 			Quality:   "source",
 		})
 		if err != nil {
-			continue
+			return apperr.NewInternal("could not export source master for "+track.Title, err)
 		}
 
 		filePath := sourceFile.FilePath
-		if _, err := os.Stat(filePath); err != nil {
-			continue
-		}
 
 		baseName := sanitizeFilename(track.Title)
 		ext := filepath.Ext(sourceFile.FilePath)
@@ -597,17 +585,37 @@ func (h *ProjectsHandler) ExportProject(w http.ResponseWriter, r *http.Request) 
 		}
 		zipName := baseName + ext
 
-		if count, exists := usedNames[zipName]; exists {
-			usedNames[zipName] = count + 1
-			zipName = fmt.Sprintf("%s (%d)%s", baseName, count+1, ext)
-		} else {
-			usedNames[zipName] = 1
+		for count := 2; usedNames[strings.ToLower(zipName)]; count++ {
+			zipName = fmt.Sprintf("%s (%d)%s", baseName, count, ext)
 		}
-
-		if err := addFileToZip(zipWriter, filePath, zipName); err != nil {
-			slog.Debug("failed to add track to zip", "track_title", track.Title, "error", err)
-			continue
-		}
+		usedNames[strings.ToLower(zipName)] = true
+		files = append(files, projectExportFile{path: filePath, name: zipName})
 	}
+
+	exportID := r.URL.Query().Get("export_id")
+	var lastProgress time.Time
+	archive, err := buildProjectExport(ctx, files, func(loaded, total int64, filename string) {
+		if h.wsHub == nil || exportID == "" || len(exportID) > 128 {
+			return
+		}
+		if loaded != total && !lastProgress.IsZero() && time.Since(lastProgress) < 150*time.Millisecond {
+			return
+		}
+		lastProgress = time.Now()
+		h.wsHub.SendToUser(int64(userID), handlers.WSMessage{Type: "project_export_progress", Payload: map[string]any{
+			"export_id": exportID, "loaded": loaded, "total": total, "filename": filename,
+		}})
+	})
+	if err != nil {
+		return apperr.NewInternal("could not build project export", err)
+	}
+	defer os.Remove(archive.Name())
+	defer archive.Close()
+
+	// Serve a completed archive with its exact length. A failed archive never becomes a successful download.
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.zip"`, sanitizeFilename(project.Name)))
+	http.ServeContent(w, r, "project.zip", time.Time{}, archive)
 	return nil
 }

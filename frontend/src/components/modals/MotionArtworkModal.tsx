@@ -24,7 +24,7 @@ import {
 	Upload,
 	X,
 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
 	deleteProjectMotionAsset,
 	uploadProjectMotionAsset,
@@ -89,6 +89,17 @@ function ArtworkMedia({
 	);
 }
 
+function usePreviewPlayback(isPlaying: boolean, url?: string) {
+	const ref = useRef<HTMLDivElement>(null);
+	useEffect(() => {
+		ref.current?.querySelectorAll("video").forEach((video) => {
+			if (isPlaying) void video.play().catch(() => {});
+			else video.pause();
+		});
+	}, [isPlaying, url]);
+	return ref;
+}
+
 function SpotifyPreview({
 	asset,
 	coverUrl,
@@ -103,9 +114,10 @@ function SpotifyPreview({
 	trackTitle: string;
 }) {
 	const [isPlaying, setIsPlaying] = useState(true);
+	const previewRef = usePreviewPlayback(isPlaying, asset?.preview_url);
 
 	return (
-		<div className="relative mx-auto aspect-[9/19.5] w-[min(100%,31.4dvh,320px)] overflow-hidden rounded-[32px] bg-black text-white shadow-2xl">
+		<div ref={previewRef} className="relative mx-auto aspect-[9/19.5] w-[min(100%,31.4dvh,320px)] overflow-hidden rounded-[32px] bg-black text-white shadow-2xl">
 			<ArtworkMedia asset={asset} coverUrl={coverUrl} />
 			<div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.6)_0%,transparent_18%,transparent_48%,rgba(0,0,0,0.65)_68%,rgba(0,0,0,0.92)_100%)]" />
 
@@ -208,9 +220,10 @@ function ApplePortraitPreview({
 	trackTitle: string;
 }) {
 	const [isPlaying, setIsPlaying] = useState(true);
+	const previewRef = usePreviewPlayback(isPlaying, asset?.preview_url);
 
 	return (
-		<div className="relative mx-auto aspect-[9/19.5] w-[min(100%,31.4dvh,320px)] overflow-hidden rounded-[32px] bg-black text-white shadow-2xl">
+		<div ref={previewRef} className="relative mx-auto aspect-[9/19.5] w-[min(100%,31.4dvh,320px)] overflow-hidden rounded-[32px] bg-black text-white shadow-2xl">
 			<MotionArtworkStage
 				presentation="apple-portrait"
 				assetUrl={asset?.preview_url}
