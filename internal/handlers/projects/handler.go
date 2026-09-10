@@ -347,23 +347,26 @@ func (h *ProjectsHandler) DuplicateProject(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
+	type fileCopyTask struct {
+		src string
+		dst string
+		dir string
+	}
+	var filesToCopy []fileCopyTask
+
 	if originalProject.CoverArtPath.Valid {
 		oldCoverPath := originalProject.CoverArtPath.String
 		oldCoverDir := filepath.Dir(oldCoverPath)
 		newCoverDir := strings.Replace(oldCoverDir, originalProject.PublicID, duplicateProject.PublicID, 1)
-		if err := os.MkdirAll(newCoverDir, 0o755); err != nil {
-			return apperr.NewInternal("failed to create project directory", err)
-		}
 		newCoverPath := filepath.Join(newCoverDir, filepath.Base(oldCoverPath))
-		if err := copyFileForProject(oldCoverPath, newCoverPath); err == nil {
-			_, err = queries.UpdateProjectCover(ctx, sqlc.UpdateProjectCoverParams{
-				CoverArtPath: sql.NullString{String: newCoverPath, Valid: true},
-				CoverArtMime: originalProject.CoverArtMime,
-				ID:           duplicateProject.ID,
-			})
-			if err != nil {
-				slog.Debug("failed to update cover path for duplicate project", "error", err)
-			}
+		filesToCopy = append(filesToCopy, fileCopyTask{src: oldCoverPath, dst: newCoverPath, dir: newCoverDir})
+		_, err = queries.UpdateProjectCover(ctx, sqlc.UpdateProjectCoverParams{
+			CoverArtPath: sql.NullString{String: newCoverPath, Valid: true},
+			CoverArtMime: originalProject.CoverArtMime,
+			ID:           duplicateProject.ID,
+		})
+		if err != nil {
+			slog.Debug("failed to update cover path for duplicate project", "error", err)
 		}
 	}
 
@@ -429,14 +432,7 @@ func (h *ProjectsHandler) DuplicateProject(w http.ResponseWriter, r *http.Reques
 					fmt.Sprintf("tracks/%d/versions/%d", track.ID, version.ID),
 					fmt.Sprintf("tracks/%d/versions/%d", duplicateTrack.ID, newVersion.ID), 1)
 				newPath := filepath.Join(newDir, fileName)
-
-				if err := os.MkdirAll(newDir, 0o755); err != nil {
-					return apperr.NewInternal("failed to create version directory", err)
-				}
-
-				if err := copyFileForProject(oldPath, newPath); err != nil {
-					return apperr.NewInternal("failed to copy file", err)
-				}
+				filesToCopy = append(filesToCopy, fileCopyTask{src: oldPath, dst: newPath, dir: newDir})
 
 				newFile, err := queries.CreateTrackFile(ctx, sqlc.CreateTrackFileParams{
 					VersionID:         newVersion.ID,
@@ -500,6 +496,19 @@ func (h *ProjectsHandler) DuplicateProject(w http.ResponseWriter, r *http.Reques
 
 	if err := tx.Commit(); err != nil {
 		return apperr.NewInternal("failed to finalize duplication", err)
+	}
+
+	// Copy files outside the SQLite write transaction so DB is never locked during disk I/O
+	for _, task := range filesToCopy {
+		if err := os.MkdirAll(task.dir, 0o755); err != nil {
+			_ = h.db.Queries.DeleteProject(ctx, sqlc.DeleteProjectParams{ID: duplicateProject.ID, UserID: int64(userID)})
+			return apperr.NewInternal("failed to create directory", err)
+		}
+
+		if err := copyFileForProject(task.src, task.dst); err != nil {
+			_ = h.db.Queries.DeleteProject(ctx, sqlc.DeleteProjectParams{ID: duplicateProject.ID, UserID: int64(userID)})
+			return apperr.NewInternal("failed to copy file", err)
+		}
 	}
 
 	finalProject, err := h.service.GetProject(ctx, duplicateProject.PublicID, int64(userID))

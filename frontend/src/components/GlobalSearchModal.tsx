@@ -31,6 +31,8 @@ function ProjectSearchCover({ project }: { project: Project }) {
       src={imageUrl}
       alt={project.name}
       className="w-full h-full object-cover"
+      loading="lazy"
+      decoding="async"
     />
   );
 }
@@ -60,6 +62,8 @@ function TrackSearchCover({ track }: { track: any }) {
       src={imageUrl}
       alt={track.title}
       className="w-full h-full object-cover"
+      loading="lazy"
+      decoding="async"
       style={{
         WebkitMaskImage:
           "radial-gradient(circle, transparent 0%, transparent 19%, black 20%, black 100%)",

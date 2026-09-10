@@ -23,6 +23,7 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -257,9 +258,30 @@ public class MediaPlaybackService extends Service {
                 connection.setConnectTimeout(10000);
                 connection.setReadTimeout(10000);
                 connection.setDoInput(true);
-                try (InputStream stream = connection.getInputStream()) {
-                    loaded = BitmapFactory.decodeStream(stream);
+                byte[] bytes;
+                try (InputStream stream = connection.getInputStream();
+                     ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+                    byte[] data = new byte[8192];
+                    int nRead;
+                    while ((nRead = stream.read(data, 0, data.length)) != -1) {
+                        buffer.write(data, 0, nRead);
+                    }
+                    bytes = buffer.toByteArray();
                 }
+
+                BitmapFactory.Options boundsOptions = new BitmapFactory.Options();
+                boundsOptions.inJustDecodeBounds = true;
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.length, boundsOptions);
+
+                int maxDim = Math.max(boundsOptions.outWidth, boundsOptions.outHeight);
+                int sampleSize = 1;
+                while (maxDim / sampleSize > 512) {
+                    sampleSize *= 2;
+                }
+
+                BitmapFactory.Options decodeOptions = new BitmapFactory.Options();
+                decodeOptions.inSampleSize = sampleSize;
+                loaded = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, decodeOptions);
             } catch (Exception ignored) {
                 // Metadata remains useful even when remote artwork cannot be loaded.
             } finally {

@@ -247,7 +247,25 @@ export default function SharedTrackPlayer({
   };
 
   useEffect(() => {
-    const updateTime = () => {
+    if (!isPlaying && !isDragging) {
+      if (audioRef.current) {
+        const a = audioRef.current;
+        const audioDuration =
+          !Number.isNaN(a.duration) && a.duration > 0 ? a.duration : 0;
+        const actualTime = !Number.isNaN(a.currentTime) ? a.currentTime : 0;
+        setPreviewProgress(Math.min(actualTime, audioDuration));
+      }
+      return;
+    }
+
+    let lastTick = 0;
+    const updateTime = (now: number) => {
+      if (now - lastTick < 33) {
+        rafIdRef.current = requestAnimationFrame(updateTime);
+        return;
+      }
+      lastTick = now;
+
       if (!audioRef.current) {
         rafIdRef.current = requestAnimationFrame(updateTime);
         return;
@@ -277,7 +295,7 @@ export default function SharedTrackPlayer({
         rafIdRef.current = null;
       }
     };
-  }, [isDragging]);
+  }, [isPlaying, isDragging]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

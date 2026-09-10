@@ -261,6 +261,7 @@ function RootComponent() {
   useEffect(() => {
     if (Capacitor.getPlatform() !== "android") return;
 
+    let disposed = false;
     let listener: { remove: () => Promise<void> } | undefined;
 
     App.addListener("backButton", ({ canGoBack }) => {
@@ -293,11 +294,18 @@ function RootComponent() {
 
       App.exitApp();
     }).then((handle) => {
-      listener = handle;
+      if (disposed) {
+        void handle.remove();
+      } else {
+        listener = handle;
+      }
     });
 
     return () => {
-      listener?.remove();
+      disposed = true;
+      if (listener) {
+        void listener.remove();
+      }
     };
   }, [closeNowPlaying, isNowPlayingOpen, navigate]);
 

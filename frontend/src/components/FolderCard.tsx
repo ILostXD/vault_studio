@@ -51,8 +51,8 @@ function ProjectCoverThumbnail({ project }: { project: Project }) {
         alt={`${project.name} cover`}
         className="size-full object-cover border-(--card-border) border rounded-2xl"
         draggable={false}
-        loading="eager"
-        decoding="sync"
+        loading="lazy"
+        decoding="async"
       />
     );
   }
@@ -107,8 +107,8 @@ function SharedTrackCoverThumbnail({ track }: { track: SharedTrackResponse }) {
           alt={`${track.title} cover`}
           className="size-full object-cover border-(--card-border) border rounded-2xl"
           draggable={false}
-          loading="eager"
-          decoding="sync"
+          loading="lazy"
+          decoding="async"
         />
       ) : (
         <span className="text-(--text-0)/30 text-lg font-bold">
@@ -139,6 +139,8 @@ function IncomingItemCover({ project }: { project: Project }) {
         alt={`${project.name} cover`}
         className="size-full object-cover"
         draggable={false}
+        loading="lazy"
+        decoding="async"
       />
     );
   }

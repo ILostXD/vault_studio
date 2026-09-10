@@ -71,7 +71,14 @@ func writeProjectExportFile(ctx context.Context, zw *zip.Writer, file projectExp
 	if err != nil {
 		return err
 	}
-	header.Name, header.Method = file.name, zip.Deflate
+	header.Name = file.name
+	ext := strings.ToLower(filepath.Ext(file.name))
+	switch ext {
+	case ".mp3", ".flac", ".m4a", ".aac", ".ogg", ".opus", ".jpg", ".jpeg", ".png", ".webp", ".mp4", ".mov":
+		header.Method = zip.Store
+	default:
+		header.Method = zip.Deflate
+	}
 	writer, err := zw.CreateHeader(header)
 	if err != nil {
 		return err

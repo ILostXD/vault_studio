@@ -2,8 +2,23 @@ import { useEffect, useState } from 'react'
 import type { Project } from '@/types/api'
 import { fetchProjectCover, type CoverSize } from '@/api/projects'
 
+const MAX_CACHE_ENTRIES = 100
 const coverCache = new Map<string, string>()
-const coverRefCounts = new Map<string, number>()
+const activeRefCounts = new Map<string, number>()
+
+function trimCache() {
+  if (coverCache.size <= MAX_CACHE_ENTRIES) return
+  // Evict unreferenced covers starting from oldest inserted
+  for (const [key, url] of coverCache.entries()) {
+    if (coverCache.size <= MAX_CACHE_ENTRIES) break
+    const count = activeRefCounts.get(key) ?? 0
+    if (count <= 0) {
+      URL.revokeObjectURL(url)
+      coverCache.delete(key)
+      activeRefCounts.delete(key)
+    }
+  }
+}
 
 export function getCachedCoverUrl(
   project?: { public_id: string; cover_url?: string | null },
@@ -24,29 +39,12 @@ export function preloadCover(
 
   fetchProjectCover(project.public_id, project.cover_url, size)
     .then((blob) => {
+      if (coverCache.has(cacheKey)) return
       const url = URL.createObjectURL(blob)
-      retainCover(cacheKey, url)
+      coverCache.set(cacheKey, url)
+      trimCache()
     })
     .catch(() => {})
-}
-
-function retainCover(key: string, url: string) {
-  coverCache.set(key, url)
-  coverRefCounts.set(key, (coverRefCounts.get(key) ?? 0) + 1)
-}
-
-function releaseCover(key: string) {
-  const nextCount = (coverRefCounts.get(key) ?? 0) - 1
-  if (nextCount <= 0) {
-    coverRefCounts.delete(key)
-    const cachedUrl = coverCache.get(key)
-    if (cachedUrl) {
-      URL.revokeObjectURL(cachedUrl)
-      coverCache.delete(key)
-    }
-  } else {
-    coverRefCounts.set(key, nextCount)
-  }
 }
 
 export function useProjectCoverImage(
@@ -57,9 +55,6 @@ export function useProjectCoverImage(
     ? `${project.public_id}|${project.cover_url}|${size ?? 'default'}`
     : null
   const cachedValue = cacheKey ? coverCache.get(cacheKey) ?? null : null
-  if (cachedValue && cacheKey) {
-    retainCover(cacheKey, cachedValue)
-  }
   const [imageUrl, setImageUrl] = useState<string | null>(cachedValue)
   const [isLoading, setIsLoading] = useState(!cachedValue && !!cacheKey && !!project?.cover_url)
 
@@ -71,54 +66,53 @@ export function useProjectCoverImage(
     }
     const currentCacheKey = `${project.public_id}|${project.cover_url}|${size ?? 'default'}`
 
+    // Increment active consumer ref count
+    activeRefCounts.set(currentCacheKey, (activeRefCounts.get(currentCacheKey) ?? 0) + 1)
+
     const cached = coverCache.get(currentCacheKey)
     if (cached) {
-      if (cached !== imageUrl) {
-        retainCover(currentCacheKey, cached)
-        setImageUrl(cached)
-      }
+      setImageUrl(cached)
       setIsLoading(false)
-      return () => releaseCover(currentCacheKey)
-    }
-    if (imageUrl && !cached) {
-      setImageUrl(null)
+      return () => {
+        const next = (activeRefCounts.get(currentCacheKey) ?? 1) - 1
+        if (next <= 0) activeRefCounts.delete(currentCacheKey)
+        else activeRefCounts.set(currentCacheKey, next)
+        trimCache()
+      }
     }
 
     let cancelled = false
-    let localUrl: string | null = null
+    let createdUrl: string | null = null
     setIsLoading(true)
 
     fetchProjectCover(project.public_id, project.cover_url, size)
       .then((blob) => {
-        if (cancelled) {
-          return
-        }
-        localUrl = URL.createObjectURL(blob)
-        retainCover(currentCacheKey, localUrl)
-        setImageUrl(localUrl)
+        if (cancelled) return
+        createdUrl = URL.createObjectURL(blob)
+        coverCache.set(currentCacheKey, createdUrl)
+        setImageUrl(createdUrl)
+        trimCache()
       })
       .catch(() => {
-        if (!cancelled) {
-          setImageUrl(null)
-        }
+        if (!cancelled) setImageUrl(null)
       })
       .finally(() => {
-        if (!cancelled) {
-          setIsLoading(false)
-        }
+        if (!cancelled) setIsLoading(false)
       })
 
     return () => {
       cancelled = true
-      if (localUrl && !coverCache.has(currentCacheKey)) {
-        URL.revokeObjectURL(localUrl)
-      } else {
-        releaseCover(currentCacheKey)
+      const next = (activeRefCounts.get(currentCacheKey) ?? 1) - 1
+      if (next <= 0) activeRefCounts.delete(currentCacheKey)
+      else activeRefCounts.set(currentCacheKey, next)
+
+      // If cancelled before cached, revoke the temporary URL
+      if (createdUrl && !coverCache.has(currentCacheKey)) {
+        URL.revokeObjectURL(createdUrl)
       }
+      trimCache()
     }
   }, [project?.public_id, project?.cover_url, size])
 
-  return { imageUrl, isLoading }
+  return { imageUrl: imageUrl ?? cachedValue, isLoading }
 }
-
-

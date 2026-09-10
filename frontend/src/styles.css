@@ -9,8 +9,12 @@
 
 @font-face {
   font-family: "Overused Grotesk";
-  src: url("../fonts/OverusedGroteskRoman-VF.ttf") format("woff2-variations");
+  src:
+    url("../fonts/OverusedGroteskRoman-VF.woff2") format("woff2-variations"),
+    url("../fonts/OverusedGroteskRoman-VF.woff2") format("woff2"),
+    url("../fonts/OverusedGroteskRoman-VF.ttf") format("truetype");
   font-weight: 100 200 300 400 500 600 700 800 900;
+  font-display: swap;
 }
 
 html,

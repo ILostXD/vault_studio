@@ -22,8 +22,8 @@ interface TrackListItemProps {
   isPlaying?: boolean;
   isTranscoding?: boolean;
   className?: string;
-  onMoreClick?: () => void;
-  onClick?: () => void;
+  onMoreClick?: (id?: string) => void;
+  onClick?: (id?: string) => void;
   isDraggable?: boolean;
   isShared?: boolean;
   isSharedWithUsers?: boolean;
@@ -69,8 +69,8 @@ function TrackListItem({
           "peer flex-1 min-w-0 relative z-10 py-2 px-4",
           isTranscoding ? "cursor-default opacity-60" : "cursor-pointer",
         )}
-        onClick={isTranscoding ? undefined : () => { haptic.trigger("light"); onClick?.(); }}
-        onKeyDown={isTranscoding ? undefined : (e) => { if (e.key === "Enter" || e.key === " ") onClick?.(); }}
+        onClick={isTranscoding ? undefined : () => { haptic.trigger("light"); onClick?.(id); }}
+        onKeyDown={isTranscoding ? undefined : (e) => { if (e.key === "Enter" || e.key === " ") onClick?.(id); }}
         onMouseEnter={() => !isTranscoding && setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -115,8 +115,8 @@ function TrackListItem({
           role="button"
           tabIndex={0}
           className="relative z-10 py-2 mr-4 cursor-pointer hidden md:block"
-          onClick={onClick}
-          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick?.(); }}
+          onClick={() => onClick?.(id)}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick?.(id); }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
@@ -165,7 +165,7 @@ function TrackListItem({
             onClick={(e) => {
               e.stopPropagation();
               if (!isTranscoding) {
-                onMoreClick?.();
+                onMoreClick?.(id);
               }
             }}
           >

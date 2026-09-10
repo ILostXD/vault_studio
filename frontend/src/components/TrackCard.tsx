@@ -1,5 +1,6 @@
 "use client";
 
+import { Capacitor } from "@capacitor/core";
 import {
   Play,
   Pause,
@@ -13,7 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
 import { useColorExtractor } from "@/hooks/useColorExtractor";
-import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
+import { motion, useMotionValue, useSpring } from "motion/react";
 import { Filter } from "virtual:refractionFilter?width=48&height=48&radius=16&bezelWidth=12&glassThickness=40&refractiveIndex=1.45&bezelType=convex_squircle";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,31 @@ import {
 import type { Project } from "@/types/api";
 
 const EMPTY_FOLDER_ITEMS: any[] = [];
+
+function TrackPlayFilter({ id, pressed }: { id: string; pressed: boolean }) {
+  const blur = useSpring(0, { damping: 30, stiffness: 200 });
+  const scaleRatio = useSpring(0.44, { damping: 30, stiffness: 200 });
+  const specularOpacity = useMotionValue(0.6);
+  const specularSaturation = useMotionValue(12);
+
+  useEffect(() => {
+    blur.set(3);
+  }, [blur]);
+
+  useEffect(() => {
+    scaleRatio.set(pressed ? 0.99 : 0.44);
+  }, [scaleRatio, pressed]);
+
+  return (
+    <Filter
+      id={id}
+      blur={blur}
+      scaleRatio={scaleRatio}
+      specularOpacity={specularOpacity}
+      specularSaturation={specularSaturation}
+    />
+  );
+}
 
 export interface TrackCardData {
   public_id: string;
@@ -105,52 +131,14 @@ export function TrackCard({
   const prevHoverRef = useRef<boolean | undefined>(undefined);
   const { play, pause, isPlaying, currentTrack } = useAudioPlayer();
   const haptic = useWebHaptics();
-
-  const playButtonPointerDown = useMotionValue(0);
-  const playButtonIsUp = useTransform(
-    () => (playButtonPointerDown.get() > 0.5 ? 1 : 0) as number
-  );
-
-  const playButtonBlurBase = useMotionValue(0);
-  const playButtonBlur = useSpring(playButtonBlurBase, {
-    damping: 30,
-    stiffness: 200,
-  });
-  const playButtonSpecularOpacity = useMotionValue(0.6);
-  const playButtonSpecularSaturation = useMotionValue(12);
-  const playButtonRefractionBase = useMotionValue(1.1);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      playButtonBlurBase.set(3);
-    }, 280);
-    return () => clearTimeout(timer);
-  }, [playButtonBlurBase]);
-
-  const playButtonPressMultiplier = useTransform(
-    playButtonIsUp as any,
-    [0, 1],
-    [0.4, 0.9]
-  );
-
-  const playButtonScaleRatio = useSpring(
-    useTransform(
-      [playButtonPressMultiplier, playButtonRefractionBase],
-      ([m, base]) => (Number(m) || 0) * (Number(base) || 0)
-    )
-  );
-
-  const playButtonScaleSpring = useSpring(
-    useTransform(playButtonIsUp as any, [0, 1], [1, 0.95]),
-    { damping: 80, stiffness: 2000 }
-  );
-
-  const playButtonBackgroundOpacity = useMotionValue(0.7);
-
-  const playButtonBackgroundColor = useTransform(
-    playButtonBackgroundOpacity,
-    (op) => `rgba(40, 39, 39, ${op})`
-  );
+  const isAndroid =
+    Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android";
+  const [playButtonHovered, setPlayButtonHovered] = useState(false);
+  const [playButtonFocused, setPlayButtonFocused] = useState(false);
+  const [playButtonPressed, setPlayButtonPressed] = useState(false);
+  const showPlayFilter =
+    !isAndroid && !isDragging && !hoverAsFolder &&
+    (playButtonHovered || playButtonFocused || playButtonPressed);
 
   useEffect(() => {
     if (extractedColors.length > 0) {
@@ -394,46 +382,69 @@ export function TrackCard({
         )}
 
         {/* Glass filter for play/pause button */}
-        <Filter
-          id={`play-button-filter-${track.public_id}`}
-          blur={playButtonBlur}
-          scaleRatio={playButtonScaleRatio}
-          specularOpacity={playButtonSpecularOpacity}
-          specularSaturation={playButtonSpecularSaturation}
-        />
+        {showPlayFilter && (
+          <TrackPlayFilter
+            id={`play-button-filter-${track.public_id}`}
+            pressed={playButtonPressed}
+          />
+        )}
 
         {/* Play/Pause Button */}
-        <motion.button
+        <button
           type="button"
           aria-label={
             isPlaying && currentTrack?.id === track.public_id ? "Pause" : "Play"
           }
           className={cn(
-            "absolute -bottom-3 -right-3 z-30 shadow-md transition-opacity size-12 rounded-[16px] flex items-center justify-center",
+            "absolute -bottom-3 -right-3 z-30 border border-white/15 shadow-md transition-[opacity,transform] duration-150 active:scale-95 size-12 rounded-[16px] flex items-center justify-center",
             isDragging || hoverAsFolder
               ? "opacity-0 pointer-events-none"
               : undefined
           )}
           style={{
-            backdropFilter: `url(#play-button-filter-${track.public_id})`,
-            backgroundColor: playButtonBackgroundColor,
-            scale: playButtonScaleSpring,
+            backdropFilter: showPlayFilter
+              ? `url(#play-button-filter-${track.public_id})`
+              : undefined,
+            backgroundColor: isAndroid
+              ? "rgba(40, 39, 39, 0.9)"
+              : "rgba(40, 39, 39, 0.7)",
           }}
           onClick={(e) => {
             e.stopPropagation();
             handlePlayPause();
             haptic.trigger("medium");
           }}
-          onMouseDown={() => playButtonPointerDown.set(1)}
-          onMouseUp={() => playButtonPointerDown.set(0)}
-          onMouseLeave={() => playButtonPointerDown.set(0)}
+          onPointerEnter={(event) => {
+            if (!isAndroid && event.pointerType === "mouse") {
+              setPlayButtonHovered(true);
+            }
+          }}
+          onPointerLeave={() => {
+            setPlayButtonHovered(false);
+            setPlayButtonPressed(false);
+          }}
+          onPointerDown={() => {
+            if (!isAndroid) setPlayButtonPressed(true);
+          }}
+          onPointerUp={() => setPlayButtonPressed(false)}
+          onPointerCancel={() => {
+            setPlayButtonPressed(false);
+            setPlayButtonHovered(false);
+          }}
+          onFocus={() => {
+            if (!isAndroid) setPlayButtonFocused(true);
+          }}
+          onBlur={() => {
+            setPlayButtonFocused(false);
+            setPlayButtonPressed(false);
+          }}
         >
           {isPlaying && currentTrack?.id === track.public_id ? (
             <Pause className="size-5" fill="white" stroke="white" />
           ) : (
             <Play className="size-5" fill="white" stroke="white" />
           )}
-        </motion.button>
+        </button>
       </div>
 
       {/* Track Info */}

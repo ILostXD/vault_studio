@@ -1,6 +1,7 @@
 package tracks
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"log/slog"
@@ -9,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"bungleware/vault/internal/apperr"
 	sqlc "bungleware/vault/internal/db/sqlc"
@@ -219,9 +221,13 @@ func (h *TracksHandler) UploadTrack(w http.ResponseWriter, r *http.Request) erro
 		return apperr.NewInternal("failed to create track file record", err)
 	}
 
-	if _, err := service.AnalyzeTrack(ctx, h.db.Queries, track.ID, int64(userID), saveResult.Path); err != nil {
-		slog.Warn("automatic audio analysis failed", "track_id", track.ID, "error", err)
-	}
+	go func() {
+		analysisCtx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+		defer cancel()
+		if _, err := service.AnalyzeTrack(analysisCtx, h.db.Queries, track.ID, int64(userID), saveResult.Path); err != nil {
+			slog.Warn("automatic audio analysis failed", "track_id", track.ID, "error", err)
+		}
+	}()
 
 	if h.transcoder != nil {
 		err = h.transcoder.TranscodeVersion(ctx, transcoding.TranscodeVersionInput{

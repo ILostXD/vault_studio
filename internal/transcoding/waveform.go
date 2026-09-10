@@ -14,31 +14,6 @@ func GenerateWaveform(inputPath string, numBars int) ([]int, error) {
 		numBars = 200
 	}
 
-	metadata, err := ExtractMetadata(inputPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to extract metadata: %w", err)
-	}
-
-	if metadata.Duration <= 0 {
-		return nil, fmt.Errorf("invalid duration: %f", metadata.Duration)
-	}
-
-	samplesPerBar := int(math.Ceil(metadata.Duration * float64(metadata.SampleRate) / float64(numBars)))
-
-	cmd := exec.Command(
-		"ffmpeg",
-		"-i", inputPath,
-		"-af", fmt.Sprintf("aresample=8000,asetnsamples=%d,astats=metadata=1:reset=1", samplesPerBar),
-		"-f", "null",
-		"-",
-	)
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return generateWaveformFromPCM(inputPath, numBars)
-	}
-
-	_ = output
 	return generateWaveformFromPCM(inputPath, numBars)
 }
 

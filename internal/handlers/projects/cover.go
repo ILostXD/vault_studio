@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
 
 	"bungleware/vault/internal/apperr"
 	"bungleware/vault/internal/handlers/shared"
@@ -111,8 +112,8 @@ func (h *ProjectsHandler) GetProjectCover(w http.ResponseWriter, r *http.Request
 		w.Header().Set("Content-Type", stream.MimeType)
 		w.Header().Set("Content-Length", strconv.FormatInt(stream.Size, 10))
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-		if stream.HasUpdatedAt {
-			w.Header().Set("Last-Modified", stream.UpdatedAt.UTC().Format(http.TimeFormat))
+		if stream.HasUpdatedAt && checkCoverNotModified(w, r, stream.UpdatedAt) {
+			return nil
 		}
 		if _, err := io.Copy(w, stream.Reader); err != nil {
 			slog.Debug("failed to stream project cover", "error", err)
@@ -175,12 +176,25 @@ func (h *ProjectsHandler) GetProjectCover(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Length", strconv.FormatInt(stream.Size, 10))
 	// Use aggressive caching since URL includes timestamp for cache busting
 	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-	if stream.HasUpdatedAt {
-		w.Header().Set("Last-Modified", stream.UpdatedAt.UTC().Format(http.TimeFormat))
+	if stream.HasUpdatedAt && checkCoverNotModified(w, r, stream.UpdatedAt) {
+		return nil
 	}
 
 	if _, err := io.Copy(w, stream.Reader); err != nil {
 		slog.Debug("failed to stream project cover", "error", err)
 	}
 	return nil
+}
+
+func checkCoverNotModified(w http.ResponseWriter, r *http.Request, updatedAt time.Time) bool {
+	w.Header().Set("Last-Modified", updatedAt.UTC().Format(http.TimeFormat))
+	if ifModifiedSince := r.Header.Get("If-Modified-Since"); ifModifiedSince != "" {
+		if t, err := http.ParseTime(ifModifiedSince); err == nil {
+			if !updatedAt.UTC().Truncate(time.Second).After(t.UTC().Truncate(time.Second)) {
+				w.WriteHeader(http.StatusNotModified)
+				return true
+			}
+		}
+	}
+	return false
 }

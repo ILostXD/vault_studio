@@ -61,6 +61,8 @@ function QueueTrackCover({ track }: { track: QueueTrack }) {
 			src={coverUrl}
 			alt={track.title}
 			className="w-full h-full object-cover"
+			loading="lazy"
+			decoding="async"
 		/>
 	);
 }
@@ -208,7 +210,7 @@ export default function QueuePanel({
 									<Button
 										aria-label="Close queue manager"
 										className={cn(
-											"flex h-8 w-8 items-center justify-center p-0 text-center transition-all duration-200",
+											"flex h-8 w-8 items-center justify-center p-0 text-center transition-colors duration-200",
 											embedded
 												? "rounded-full bg-black/20 text-white/65 hover:bg-black/40 hover:text-white"
 												: "rounded-lg border border-(--card-border) bg-(--inner-card-bg) hover:bg-[#252525]",
@@ -227,7 +229,7 @@ export default function QueuePanel({
 								</div>
 								{queue.length > 0 && (
 									<Button
-										className="bg-(--inner-card-bg) border border-(--card-border) rounded-2xl px-3 py-1 text-(--text-0) text-xs h-auto hover:bg-[#252525] transition-all duration-200"
+										className="bg-(--inner-card-bg) border border-(--card-border) rounded-2xl px-3 py-1 text-(--text-0) text-xs h-auto hover:bg-[#252525] transition-colors duration-200"
 										onClick={handleClearQueue}
 									>
 										Clear
@@ -351,7 +353,7 @@ export default function QueuePanel({
 																					type="button"
 																					variant="ghost"
 																					size="icon-sm"
-																					className="h-7 w-7 shrink-0 rounded-lg hover:bg-white/10 transition-all opacity-70 hover:opacity-100"
+																					className="h-7 w-7 shrink-0 rounded-lg hover:bg-white/10 transition-[opacity,background-color] duration-150 opacity-70 hover:opacity-100"
 																					onPointerDown={(e) =>
 																						e.stopPropagation()
 																					}

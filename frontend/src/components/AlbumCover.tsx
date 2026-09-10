@@ -76,26 +76,21 @@ export default function AlbumCover({
 				return 128;
 			}
 
-			canvas.width = imageElement.naturalWidth;
-			canvas.height = imageElement.naturalHeight;
+			canvas.width = 16;
+			canvas.height = 16;
 
-			ctx.drawImage(imageElement, 0, 0);
-			const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+			ctx.drawImage(imageElement, 0, 0, 16, 16);
+			const imageData = ctx.getImageData(0, 0, 16, 16);
 			const data = imageData.data;
 
 			let totalBrightness = 0;
-			const maxTrials = 100;
-			const pixels = data.length / 4;
-			const numTrials = Math.min(pixels, maxTrials);
+			const totalPixels = 16 * 16;
 
-			for (let t = 0; t < numTrials; t++) {
-				const x = Math.random();
-				const i = Math.trunc((x * data.length) / 4) * 4;
+			for (let i = 0; i < data.length; i += 4) {
 				totalBrightness += getPixelBrightness(data, i);
 			}
 
-			const avgBrightness = totalBrightness / numTrials;
-			return avgBrightness;
+			return totalBrightness / totalPixels;
 		} catch (error) {
 			console.error("[AlbumCover] Error calculating brightness:", error);
 			return 128;

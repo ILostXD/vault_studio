@@ -29,7 +29,255 @@ import { useWebHaptics } from "web-haptics/react";
 import WaveformComments from "./WaveformComments";
 import { WaveformGraphic } from "./WaveformGraphic";
 import { usePreferences } from "../contexts/PreferencesContext";
+import { usePlaybackProgress } from "../contexts/PlaybackProgressContext";
 import { isEditableTarget } from "@/lib/keyboard";
+
+function formatTime(seconds: number) {
+  if (!Number.isFinite(seconds)) return "0:00";
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
+function MiniPlayerCurrentTime({
+  isCurrentTimeHovered,
+}: {
+  isCurrentTimeHovered: boolean;
+}) {
+  const currentTime = usePlaybackProgress();
+  return (
+    <span
+      className={`text-(--text-0) text-[12px] absolute transition-opacity duration-200 select-none ${
+        isCurrentTimeHovered
+          ? "opacity-0 pointer-events-none"
+          : "opacity-100"
+      }`}
+      style={{
+        fontFamily: '"IBM Plex Mono", monospace',
+        fontWeight: 300,
+      }}
+    >
+      {formatTime(currentTime)}
+    </span>
+  );
+}
+
+interface MiniPlayerScrubberProps {
+  currentTrack: any;
+  duration: number;
+  waveformBars: number[];
+  audioRef: React.RefObject<HTMLAudioElement | null>;
+  pendingSeekPositionRef: React.MutableRefObject<number | null>;
+  isDraggingRef: React.MutableRefObject<boolean>;
+  onProgressUpdate: (progress: number) => void;
+  shareToken: string | null;
+  sharePassword?: string;
+  commentsEnabled?: boolean;
+  isCommentsOpen: boolean;
+  setIsCommentsOpen: (open: boolean) => void;
+}
+
+function MiniPlayerScrubber({
+  currentTrack,
+  duration,
+  waveformBars,
+  audioRef,
+  pendingSeekPositionRef,
+  isDraggingRef,
+  onProgressUpdate,
+  shareToken,
+  sharePassword,
+  commentsEnabled = true,
+  isCommentsOpen,
+  setIsCommentsOpen,
+}: MiniPlayerScrubberProps) {
+  const currentTime = usePlaybackProgress();
+  const [isDragging, setIsDragging] = useState(false);
+  const waveformRef = useRef<HTMLDivElement | null>(null);
+
+  const progressForBars = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  const performPreviewSeek = useCallback(
+    (clientX: number) => {
+      if (!waveformRef.current || !duration) return;
+
+      const rect = waveformRef.current.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const clickPercentage = Math.max(
+        0,
+        Math.min(100, (x / rect.width) * 100),
+      );
+      const seekTime = (clickPercentage / 100) * duration;
+
+      pendingSeekPositionRef.current = seekTime;
+      onProgressUpdate(seekTime);
+    },
+    [duration, onProgressUpdate, pendingSeekPositionRef],
+  );
+
+  const handleWaveformMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+    isDraggingRef.current = true;
+    performPreviewSeek(e.clientX);
+  };
+
+  const handleWaveformTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+    isDraggingRef.current = true;
+    if (e.touches.length > 0) {
+      performPreviewSeek(e.touches[0].clientX);
+    }
+  };
+
+  const handleWaveformKeyDown = (
+    event: React.KeyboardEvent<HTMLDivElement>,
+  ) => {
+    if (!duration) return;
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+      event.preventDefault();
+      const delta = event.key === "ArrowLeft" ? -5 : 5;
+      const current = audioRef.current?.currentTime || currentTime;
+      const newTime = Math.max(0, Math.min(current + delta, duration));
+      if (audioRef.current) {
+        audioRef.current.currentTime = newTime;
+      }
+      pendingSeekPositionRef.current = null;
+      onProgressUpdate(newTime);
+    }
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    document.body.style.userSelect = "none";
+
+    const handleMouseMove = (e: MouseEvent) => {
+      e.preventDefault();
+      performPreviewSeek(e.clientX);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      if (e.touches.length > 0) {
+        performPreviewSeek(e.touches[0].clientX);
+      }
+    };
+
+    const handleMouseUp = (e: MouseEvent) => {
+      setIsDragging(false);
+      isDraggingRef.current = false;
+      document.body.style.userSelect = "";
+
+      performPreviewSeek(e.clientX);
+
+      if (waveformRef.current && duration && audioRef.current) {
+        const rect = waveformRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const clickPercentage = Math.max(
+          0,
+          Math.min(100, (x / rect.width) * 100),
+        );
+        const seekTime = (clickPercentage / 100) * duration;
+        audioRef.current.currentTime = seekTime;
+        pendingSeekPositionRef.current = null;
+        onProgressUpdate(seekTime);
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      setIsDragging(false);
+      isDraggingRef.current = false;
+      document.body.style.userSelect = "";
+
+      if (e.changedTouches.length > 0) {
+        const touch = e.changedTouches[0];
+        performPreviewSeek(touch.clientX);
+
+        if (waveformRef.current && duration && audioRef.current) {
+          const rect = waveformRef.current.getBoundingClientRect();
+          const x = touch.clientX - rect.left;
+          const clickPercentage = Math.max(
+            0,
+            Math.min(100, (x / rect.width) * 100),
+          );
+          const seekTime = (clickPercentage / 100) * duration;
+          audioRef.current.currentTime = seekTime;
+          pendingSeekPositionRef.current = null;
+          onProgressUpdate(seekTime);
+        }
+      }
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener("touchmove", handleTouchMove, { passive: false });
+    document.addEventListener("touchend", handleTouchEnd);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
+      document.body.style.userSelect = "";
+    };
+  }, [isDragging, duration, performPreviewSeek, isDraggingRef, pendingSeekPositionRef, audioRef, onProgressUpdate]);
+
+  return (
+    <>
+      {commentsEnabled && (
+        <WaveformComments
+          versionId={currentTrack?.versionId}
+          duration={duration}
+          currentTime={currentTime}
+          shareToken={shareToken}
+          sharePassword={sharePassword}
+          placement="miniPlayer"
+          isOpen={isCommentsOpen}
+          onOpenChange={setIsCommentsOpen}
+          showButton={false}
+          onSeek={(time) => {
+            if (audioRef.current) audioRef.current.currentTime = time;
+            onProgressUpdate(time);
+          }}
+        />
+      )}
+      <div
+        className="relative h-[50px] sm:h-[50px] border border-(--card-border) rounded-t-[22px] overflow-hidden shadow-md"
+        style={{ backgroundColor: "var(--waveform-bg)" }}
+      >
+        <div className="absolute inset-0 px-3 py-1 select-none">
+          <div
+            ref={waveformRef}
+            className="relative h-full"
+            style={{ cursor: isDragging ? "grabbing" : "grab" }}
+            onMouseDown={handleWaveformMouseDown}
+            onTouchStart={handleWaveformTouchStart}
+            role="slider"
+            tabIndex={0}
+            aria-label="Seek"
+            aria-valuemin={0}
+            aria-valuemax={Math.floor(duration)}
+            aria-valuenow={Math.floor(currentTime)}
+            onKeyDown={handleWaveformKeyDown}
+          >
+            <WaveformGraphic bars={waveformBars} progressPercent={progressForBars} />
+            <div
+              className="absolute top-0 bottom-0 rounded-full pointer-events-none -translate-x-1/2"
+              style={{
+                left: `${progressForBars}%`,
+              }}
+            >
+              <div className="hidden sm:block absolute inset-0 w-1 -left-0.5 bg-accent-blue/40 blur-sm" />
+              <div className="absolute inset-0 w-0.5 bg-accent-blue rounded-full" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
 
 interface MusicPlayerProps {
   hideControls?: boolean;
@@ -103,14 +351,12 @@ export default function MusicPlayer({
   const [previousVolumeBeforeMute, setPreviousVolumeBeforeMute] = useState<
     number | null
   >(null);
-  const [isDragging, setIsDragging] = useState(false);
   const [isVolumeDragging, setIsVolumeDragging] = useState(false);
   const [isQueueOpen, setIsQueueOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
   const [duration, setDuration] = useState(0);
-  const [previewProgress, setPreviewProgress] = useState(0);
-  const waveformRef = useRef<HTMLDivElement | null>(null);
+  const isDraggingRef = useRef(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const rafIdRef = useRef<number | null>(null);
   const pendingSeekPositionRef = useRef<number | null>(null);
@@ -440,9 +686,8 @@ export default function MusicPlayer({
             : 0;
 
         const clampedTime = Math.min(actualTime, audioDuration);
-        if (pendingSeekPositionRef.current === null && !isDragging) {
+        if (pendingSeekPositionRef.current === null && !isDraggingRef.current) {
           onProgressUpdate(clampedTime);
-          if (!isNowPlayingOpen) setPreviewProgress(clampedTime);
         }
       }
     };
@@ -460,10 +705,10 @@ export default function MusicPlayer({
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("timeupdate", handleTimeUpdate);
     };
-  }, [onPlayingChange, onEnded, onDurationChange, onProgressUpdate, isDragging, isNowPlayingOpen]);
+  }, [onPlayingChange, onEnded, onDurationChange, onProgressUpdate]);
 
   useEffect(() => {
-    if (!isPlaying && !isDragging) return;
+    if (!isPlaying) return;
     let lastUpdate = -Infinity;
     const updateTime = (timestamp: number) => {
       rafIdRef.current = requestAnimationFrame(updateTime);
@@ -477,12 +722,10 @@ export default function MusicPlayer({
       if (pendingSeekPositionRef.current !== null) {
         const preview = Math.min(pendingSeekPositionRef.current, audioDuration);
         onProgressUpdate(preview);
-        if (!isNowPlayingOpen) setPreviewProgress(preview);
-      } else if (!isDragging) {
+      } else if (!isDraggingRef.current) {
         const actualTime = !Number.isNaN(a.currentTime) ? a.currentTime : 0;
         const clampedTime = Math.min(actualTime, audioDuration);
         onProgressUpdate(clampedTime);
-        if (!isNowPlayingOpen) setPreviewProgress(clampedTime);
       }
     };
 
@@ -494,13 +737,13 @@ export default function MusicPlayer({
         rafIdRef.current = null;
       }
     };
-  }, [isDragging, isPlaying, isNowPlayingOpen, onProgressUpdate]);
+  }, [isPlaying, onProgressUpdate]);
 
   useEffect(() => {
     if (!isNowPlayingOpen && audioRef.current) {
-      setPreviewProgress(audioRef.current.currentTime || 0);
+      onProgressUpdate(audioRef.current.currentTime || 0);
     }
-  }, [isNowPlayingOpen]);
+  }, [isNowPlayingOpen, onProgressUpdate]);
 
   useEffect(() => {
     if (!audioUrl || !audioRef.current) return;
@@ -569,15 +812,6 @@ export default function MusicPlayer({
     audioPlayerRef.current = { audio: audioRef };
   });
 
-  const formatTime = (seconds: number) => {
-    if (!Number.isFinite(seconds)) return "0:00";
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  const progressForBars = duration > 0 ? (previewProgress / duration) * 100 : 0;
-
   const waveformBars = useMemo(() => {
     if (currentTrack?.waveform) {
       try {
@@ -596,54 +830,6 @@ export default function MusicPlayer({
     });
   }, [currentTrack?.id, currentTrack?.waveform, currentTrack?.title]);
 
-  const performPreviewSeek = useCallback(
-    (clientX: number) => {
-      if (!waveformRef.current || !duration) return;
-
-      const rect = waveformRef.current.getBoundingClientRect();
-      const x = clientX - rect.left;
-      const clickPercentage = Math.max(
-        0,
-        Math.min(100, (x / rect.width) * 100),
-      );
-      const seekTime = (clickPercentage / 100) * duration;
-
-      pendingSeekPositionRef.current = seekTime;
-      setPreviewProgress(seekTime);
-      onProgressUpdate(seekTime);
-    },
-    [duration, onProgressUpdate],
-  );
-
-  const handleWaveformMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(true);
-    performPreviewSeek(e.clientX);
-  };
-
-  const handleWaveformTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(true);
-    if (e.touches.length > 0) {
-      performPreviewSeek(e.touches[0].clientX);
-    }
-  };
-
-  const handleWaveformKeyDown = (
-    event: React.KeyboardEvent<HTMLDivElement>,
-  ) => {
-    if (!duration) return;
-    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-      event.preventDefault();
-      const delta = event.key === "ArrowLeft" ? -5 : 5;
-      const newTime = Math.max(0, Math.min(previewProgress + delta, duration));
-      if (audioRef.current) {
-        audioRef.current.currentTime = newTime;
-      }
-      pendingSeekPositionRef.current = null;
-    }
-  };
-
   const handleSkipSeconds = useCallback(
     (seconds: number) => {
       if (!audioRef.current) return;
@@ -652,8 +838,9 @@ export default function MusicPlayer({
         Math.min(audioRef.current.currentTime + seconds, duration),
       );
       audioRef.current.currentTime = newTime;
+      onProgressUpdate(newTime);
     },
-    [duration],
+    [duration, onProgressUpdate],
   );
 
   const updateVolumeSeekFromThumbPosition = useCallback(() => {
@@ -781,78 +968,6 @@ export default function MusicPlayer({
     volumeThumbY,
   ]);
 
-  useEffect(() => {
-    if (!isDragging) return;
-
-    document.body.style.userSelect = "none";
-
-    const handleMouseMove = (e: MouseEvent) => {
-      e.preventDefault();
-      performPreviewSeek(e.clientX);
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      e.preventDefault();
-      if (e.touches.length > 0) {
-        performPreviewSeek(e.touches[0].clientX);
-      }
-    };
-
-    const handleMouseUp = (e: MouseEvent) => {
-      setIsDragging(false);
-      document.body.style.userSelect = "";
-
-      performPreviewSeek(e.clientX);
-
-      if (waveformRef.current && duration && audioRef.current) {
-        const rect = waveformRef.current.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const clickPercentage = Math.max(
-          0,
-          Math.min(100, (x / rect.width) * 100),
-        );
-        const seekTime = (clickPercentage / 100) * duration;
-        audioRef.current.currentTime = seekTime;
-        pendingSeekPositionRef.current = null;
-      }
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      setIsDragging(false);
-      document.body.style.userSelect = "";
-
-      if (e.changedTouches.length > 0) {
-        const touch = e.changedTouches[0];
-        performPreviewSeek(touch.clientX);
-
-        if (waveformRef.current && duration && audioRef.current) {
-          const rect = waveformRef.current.getBoundingClientRect();
-          const x = touch.clientX - rect.left;
-          const clickPercentage = Math.max(
-            0,
-            Math.min(100, (x / rect.width) * 100),
-          );
-          const seekTime = (clickPercentage / 100) * duration;
-          audioRef.current.currentTime = seekTime;
-          pendingSeekPositionRef.current = null;
-        }
-      }
-    };
-
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-    document.addEventListener("touchmove", handleTouchMove, { passive: false });
-    document.addEventListener("touchend", handleTouchEnd);
-
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-      document.removeEventListener("touchmove", handleTouchMove);
-      document.removeEventListener("touchend", handleTouchEnd);
-      document.body.style.userSelect = "";
-    };
-  }, [isDragging, duration, performPreviewSeek]);
-
   const fallbackTrack =
     currentTrack ?? (queue.length > 0 ? queue[0] : undefined);
   const playerTitle = fallbackTrack?.title || "No track selected";
@@ -890,56 +1005,20 @@ export default function MusicPlayer({
                 : "translate-y-3 opacity-0"
           }`}
         >
-          {preferences?.comments_enabled !== false && (
-            <WaveformComments
-              versionId={currentTrack?.versionId}
-              duration={duration}
-              currentTime={previewProgress}
-              shareToken={shareToken}
-              sharePassword={sharePassword}
-              placement="miniPlayer"
-              isOpen={isCommentsOpen}
-              onOpenChange={setIsCommentsOpen}
-              showButton={false}
-              onSeek={(time) => {
-                if (audioRef.current) audioRef.current.currentTime = time;
-                setPreviewProgress(time);
-                onProgressUpdate(time);
-              }}
-            />
-          )}
-          <div
-            className="relative h-[50px] sm:h-[50px] border border-(--card-border) rounded-t-[22px] overflow-hidden shadow-md"
-            style={{ backgroundColor: "var(--waveform-bg)" }}
-          >
-            <div className="absolute inset-0 px-3 py-1 select-none">
-              <div
-                ref={waveformRef}
-                className="relative h-full"
-                style={{ cursor: isDragging ? "grabbing" : "grab" }}
-                onMouseDown={handleWaveformMouseDown}
-                onTouchStart={handleWaveformTouchStart}
-                role="slider"
-                tabIndex={0}
-                aria-label="Seek"
-                aria-valuemin={0}
-                aria-valuemax={Math.floor(duration)}
-                aria-valuenow={Math.floor(previewProgress)}
-                onKeyDown={handleWaveformKeyDown}
-              >
-                <WaveformGraphic bars={waveformBars} progressPercent={progressForBars} />
-                <div
-                  className="absolute top-0 bottom-0 rounded-full pointer-events-none -translate-x-1/2"
-                  style={{
-                    left: `${progressForBars}%`,
-                  }}
-                >
-                  <div className="hidden sm:block absolute inset-0 w-1 -left-0.5 bg-accent-blue/40 blur-sm" />
-                  <div className="absolute inset-0 w-0.5 bg-accent-blue rounded-full" />
-                </div>
-              </div>
-            </div>
-          </div>
+          <MiniPlayerScrubber
+            currentTrack={currentTrack}
+            duration={duration}
+            waveformBars={waveformBars}
+            audioRef={audioRef}
+            pendingSeekPositionRef={pendingSeekPositionRef}
+            isDraggingRef={isDraggingRef}
+            onProgressUpdate={onProgressUpdate}
+            shareToken={shareToken}
+            sharePassword={sharePassword}
+            commentsEnabled={preferences?.comments_enabled !== false}
+            isCommentsOpen={isCommentsOpen}
+            setIsCommentsOpen={setIsCommentsOpen}
+          />
 
           <div
             className="relative h-[50px] sm:h-[55px] grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-4 border border-(--card-border) border-t-0 rounded-b-[22px] shadow-md"
@@ -1023,19 +1102,7 @@ export default function MusicPlayer({
                 onMouseEnter={() => setIsCurrentTimeHovered(true)}
                 onMouseLeave={() => setIsCurrentTimeHovered(false)}
               >
-                <span
-                  className={`text-(--text-0) text-[12px] absolute transition-all duration-200 select-none ${
-                    isCurrentTimeHovered
-                      ? "opacity-0 pointer-events-none"
-                      : "opacity-100"
-                  }`}
-                  style={{
-                    fontFamily: '"IBM Plex Mono", monospace',
-                    fontWeight: 300,
-                  }}
-                >
-                  {formatTime(previewProgress)}
-                </span>
+                <MiniPlayerCurrentTime isCurrentTimeHovered={isCurrentTimeHovered} />
                 <button
                   type="button"
                   onClick={(e) => {
@@ -1043,7 +1110,7 @@ export default function MusicPlayer({
                     blurOnClick(e);
                   }}
                   onKeyDown={preventSpacebarDefault}
-                  className={`text-(--text-0) hover:text-gray-300 transition-all duration-200 cursor-pointer text-[12px] ${
+                  className={`text-(--text-0) hover:text-gray-300 transition-[opacity,color] duration-200 cursor-pointer text-[12px] ${
                     isCurrentTimeHovered
                       ? "opacity-100"
                       : "opacity-0 pointer-events-none"
@@ -1118,7 +1185,7 @@ export default function MusicPlayer({
                 onMouseLeave={() => setIsDurationHovered(false)}
               >
                 <span
-                  className={`text-(--text-0) text-[12px] absolute transition-all duration-200 select-none ${
+                  className={`text-(--text-0) text-[12px] absolute transition-opacity duration-200 select-none ${
                     isDurationHovered
                       ? "opacity-0 pointer-events-none"
                       : "opacity-100"
@@ -1137,7 +1204,7 @@ export default function MusicPlayer({
                     blurOnClick(e);
                   }}
                   onKeyDown={preventSpacebarDefault}
-                  className={`text-(--text-0) hover:text-gray-300 transition-all duration-200 cursor-pointer text-[12px] ${
+                  className={`text-(--text-0) hover:text-gray-300 transition-[opacity,color] duration-200 cursor-pointer text-[12px] ${
                     isDurationHovered
                       ? "opacity-100"
                       : "opacity-0 pointer-events-none"

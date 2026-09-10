@@ -4,6 +4,7 @@ import {
 	useCallback,
 	useContext,
 	useEffect,
+	useMemo,
 	useState,
 } from "react";
 import {
@@ -113,7 +114,7 @@ export function PreferencesProvider({
 		}
 	}, [isAuthenticated]);
 
-	const handleUpdatePreferences = async (data: UpdatePreferencesRequest) => {
+	const handleUpdatePreferences = useCallback(async (data: UpdatePreferencesRequest) => {
 		try {
 			const updated = await updatePrefs(data);
 			setPreferences(updated);
@@ -122,7 +123,7 @@ export function PreferencesProvider({
 			console.error("Failed to update preferences:", err);
 			throw err;
 		}
-	};
+	}, []);
 
 	useEffect(() => {
 		refreshPreferences();
@@ -167,17 +168,27 @@ export function PreferencesProvider({
 		setCachedAppearance(appearance);
 	}, [preferences]);
 
+	const contextValue = useMemo(
+		() => ({
+			preferences,
+			effectiveTheme,
+			accentColor,
+			isLoading,
+			updatePreferences: handleUpdatePreferences,
+			refreshPreferences,
+		}),
+		[
+			preferences,
+			effectiveTheme,
+			accentColor,
+			isLoading,
+			handleUpdatePreferences,
+			refreshPreferences,
+		],
+	);
+
 	return (
-		<PreferencesContext.Provider
-			value={{
-				preferences,
-				effectiveTheme,
-				accentColor,
-				isLoading,
-				updatePreferences: handleUpdatePreferences,
-				refreshPreferences,
-			}}
-		>
+		<PreferencesContext.Provider value={contextValue}>
 			{children}
 		</PreferencesContext.Provider>
 	);

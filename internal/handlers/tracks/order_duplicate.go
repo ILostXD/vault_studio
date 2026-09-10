@@ -137,6 +137,13 @@ func (h *TracksHandler) DuplicateTrack(w http.ResponseWriter, r *http.Request) e
 
 	var newActiveVersionID int64
 
+	type fileCopyTask struct {
+		src string
+		dst string
+		dir string
+	}
+	var filesToCopy []fileCopyTask
+
 	for _, version := range versions {
 		newVersion, err := queries.CreateTrackVersion(ctx, sqlc.CreateTrackVersionParams{
 			TrackID:         duplicateTrack.ID,
@@ -166,13 +173,7 @@ func (h *TracksHandler) DuplicateTrack(w http.ResponseWriter, r *http.Request) e
 				fmt.Sprintf("tracks/%d/versions/%d", duplicateTrack.ID, newVersion.ID), 1)
 			newPath := filepath.Join(newDir, fileName)
 
-			if err := os.MkdirAll(newDir, 0o755); err != nil {
-				return apperr.NewInternal("failed to create version directory", err)
-			}
-
-			if err := copyFile(oldPath, newPath); err != nil {
-				return apperr.NewInternal("failed to copy file", err)
-			}
+			filesToCopy = append(filesToCopy, fileCopyTask{src: oldPath, dst: newPath, dir: newDir})
 
 			newFile, err := queries.CreateTrackFile(ctx, sqlc.CreateTrackFileParams{
 				VersionID:         newVersion.ID,
@@ -213,6 +214,19 @@ func (h *TracksHandler) DuplicateTrack(w http.ResponseWriter, r *http.Request) e
 
 	if err := tx.Commit(); err != nil {
 		return apperr.NewInternal("failed to finalize duplication", err)
+	}
+
+	// Copy files outside the SQLite transaction so database locks are not held during disk I/O
+	for _, task := range filesToCopy {
+		if err := os.MkdirAll(task.dir, 0o755); err != nil {
+			_ = h.db.Queries.DeleteTrack(ctx, sqlc.DeleteTrackParams{ID: duplicateTrack.ID, UserID: int64(userID)})
+			return apperr.NewInternal("failed to create version directory", err)
+		}
+
+		if err := copyFile(task.src, task.dst); err != nil {
+			_ = h.db.Queries.DeleteTrack(ctx, sqlc.DeleteTrackParams{ID: duplicateTrack.ID, UserID: int64(userID)})
+			return apperr.NewInternal("failed to copy file", err)
+		}
 	}
 
 	return httputil.CreatedResult(w, convertTrack(duplicateTrack))

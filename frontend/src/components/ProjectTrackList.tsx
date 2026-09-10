@@ -1,4 +1,5 @@
 import type React from "react";
+import { useMemo, useCallback } from "react";
 import { Search, X, PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,6 +84,32 @@ export function ProjectTrackList({
   isDraggable,
   reveal = true,
 }: ProjectTrackListProps) {
+  const trackMap = useMemo(() => {
+    const map = new Map<string, Track>();
+    for (const t of tracks) {
+      map.set(t.public_id, t);
+    }
+    return map;
+  }, [tracks]);
+
+  const handleTrackItemClick = useCallback(
+    (id?: string) => {
+      if (!id) return;
+      const track = trackMap.get(id);
+      if (track) onTrackClick(track);
+    },
+    [trackMap, onTrackClick],
+  );
+
+  const handleTrackItemMoreClick = useCallback(
+    (id?: string) => {
+      if (!id) return;
+      const track = trackMap.get(id);
+      if (track) onMoreClick(track);
+    },
+    [trackMap, onMoreClick],
+  );
+
   return (
     <>
       <AnimatePresence>
@@ -225,8 +252,8 @@ export function ProjectTrackList({
                         track.lossy_transcoding_status !== null &&
                         track.lossy_transcoding_status !== undefined
                       }
-                      onClick={() => onTrackClick(track)}
-                      onMoreClick={() => onMoreClick(track)}
+                      onClick={handleTrackItemClick}
+                      onMoreClick={handleTrackItemMoreClick}
                       isShared={track.visibility_status === "public"}
                       isSharedWithUsers={
                         (track as any).is_shared && !(project as any).is_shared

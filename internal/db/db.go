@@ -30,8 +30,8 @@ func New(config Config) (*DB, error) {
 
 	dbPath := filepath.Join(config.DataDir, config.DBFile)
 
-	// WAL mode
-	db, err := sql.Open("sqlite3", fmt.Sprintf("%s?_foreign_keys=on&_journal_mode=WAL", dbPath))
+	// WAL mode with 5s busy timeout and immediate transactions to prevent deadlocks
+	db, err := sql.Open("sqlite3", fmt.Sprintf("%s?_foreign_keys=on&_journal_mode=WAL&_busy_timeout=5000&_txlock=immediate", dbPath))
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
@@ -43,6 +43,7 @@ func New(config Config) (*DB, error) {
 
 	db.SetMaxOpenConns(25)
 	db.SetMaxIdleConns(5)
+	applyPerformancePragmas(db)
 
 	wrapper := &DB{
 		DB:      db,
@@ -140,7 +141,7 @@ func (db *DB) Reconnect() error {
 	}
 
 	dbPath := filepath.Join(db.config.DataDir, db.config.DBFile)
-	newDB, err := sql.Open("sqlite3", fmt.Sprintf("%s?_foreign_keys=on&_journal_mode=WAL", dbPath))
+	newDB, err := sql.Open("sqlite3", fmt.Sprintf("%s?_foreign_keys=on&_journal_mode=WAL&_busy_timeout=5000&_txlock=immediate", dbPath))
 	if err != nil {
 		return fmt.Errorf("failed to reopen database: %w", err)
 	}
@@ -152,6 +153,7 @@ func (db *DB) Reconnect() error {
 
 	newDB.SetMaxOpenConns(25)
 	newDB.SetMaxIdleConns(5)
+	applyPerformancePragmas(newDB)
 
 	db.DB = newDB
 	db.Queries = sqlc.New(newDB)
@@ -161,4 +163,16 @@ func (db *DB) Reconnect() error {
 	}
 
 	return nil
+}
+
+func applyPerformancePragmas(db *sql.DB) {
+	pragmas := []string{
+		"PRAGMA synchronous = NORMAL",
+		"PRAGMA cache_size = -64000",
+		"PRAGMA mmap_size = 268435456",
+		"PRAGMA temp_store = MEMORY",
+	}
+	for _, p := range pragmas {
+		_, _ = db.Exec(p)
+	}
 }

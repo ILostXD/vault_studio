@@ -1,11 +1,13 @@
-import TrackDetailsModal from "@/components/modals/TrackDetailsModal";
-import TrackVersionsModal from "@/components/modals/TrackVersionsModal";
-import CoverArtOptionsModal from "@/components/modals/CoverArtOptionsModal";
+import { lazy, Suspense, useState, useEffect } from "react";
 import BaseModal from "@/components/modals/BaseModal";
-import NotesPanel from "@/components/NotesPanel";
-import GlobalSearchModal from "@/components/GlobalSearchModal";
-import MotionArtworkModal from "@/components/modals/MotionArtworkModal";
 import type { Track, Project, VisibilityStatus } from "@/types/api";
+
+const TrackDetailsModal = lazy(() => import("@/components/modals/TrackDetailsModal"));
+const TrackVersionsModal = lazy(() => import("@/components/modals/TrackVersionsModal"));
+const CoverArtOptionsModal = lazy(() => import("@/components/modals/CoverArtOptionsModal"));
+const MotionArtworkModal = lazy(() => import("@/components/modals/MotionArtworkModal"));
+const NotesPanel = lazy(() => import("@/components/NotesPanel"));
+const GlobalSearchModal = lazy(() => import("@/components/GlobalSearchModal"));
 
 interface TrackDetailsData {
 	title: string;
@@ -102,8 +104,24 @@ export function ProjectModals({
 	isGlobalSearchOpen,
 	onCloseGlobalSearch,
 }: ProjectModalsProps) {
+	const [hasOpenedCover, setHasOpenedCover] = useState(false);
+	const [hasOpenedMotion, setHasOpenedMotion] = useState(false);
+	const [hasOpenedSearch, setHasOpenedSearch] = useState(false);
+
+	useEffect(() => {
+		if (isCoverModalOpen) setHasOpenedCover(true);
+	}, [isCoverModalOpen]);
+
+	useEffect(() => {
+		if (isMotionArtworkOpen) setHasOpenedMotion(true);
+	}, [isMotionArtworkOpen]);
+
+	useEffect(() => {
+		if (isGlobalSearchOpen) setHasOpenedSearch(true);
+	}, [isGlobalSearchOpen]);
+
 	return (
-		<>
+		<Suspense fallback={null}>
 			{selectedTrack && trackDetailsData && (
 				<TrackDetailsModal
 					isOpen={isModalOpen}
@@ -141,30 +159,34 @@ export function ProjectModals({
 				/>
 			)}
 
-			<CoverArtOptionsModal
-				isOpen={isCoverModalOpen}
-				onClose={onCloseCoverModal}
-				onLibraryClick={onLibraryClick}
-				onExportClick={onExportCover}
-				onMotionClick={onOpenMotionArtwork}
-				hasExistingCover={hasExistingCover}
-				hasMotionArtwork={hasMotionArtwork}
-				canEdit={canEditCover}
-				canDownload={canDownloadCover}
-			/>
+			{hasOpenedCover && (
+				<CoverArtOptionsModal
+					isOpen={isCoverModalOpen}
+					onClose={onCloseCoverModal}
+					onLibraryClick={onLibraryClick}
+					onExportClick={onExportCover}
+					onMotionClick={onOpenMotionArtwork}
+					hasExistingCover={hasExistingCover}
+					hasMotionArtwork={hasMotionArtwork}
+					canEdit={canEditCover}
+					canDownload={canDownloadCover}
+				/>
+			)}
 
-			<MotionArtworkModal
-				isOpen={isMotionArtworkOpen}
-				onClose={onCloseMotionArtwork}
-				projectId={project.public_id}
-				projectName={project.name}
-				artistName={motionArtistName}
-				trackTitle={motionTrackTitle}
-				coverUrl={projectCoverImage}
-				canEdit={canEditCover}
-			/>
+			{hasOpenedMotion && (
+				<MotionArtworkModal
+					isOpen={isMotionArtworkOpen}
+					onClose={onCloseMotionArtwork}
+					projectId={project.public_id}
+					projectName={project.name}
+					artistName={motionArtistName}
+					trackTitle={motionTrackTitle}
+					coverUrl={projectCoverImage}
+					canEdit={canEditCover}
+				/>
+			)}
 
-			{isSmallScreen && (
+			{isSmallScreen && isNotesOpen && (
 				<BaseModal isOpen={isNotesOpen} onClose={onCloseNotes} maxWidth="lg">
 					<div className="p-6 min-h-[300px]">
 						{notesTrack ? (
@@ -184,10 +206,12 @@ export function ProjectModals({
 				</BaseModal>
 			)}
 
-			<GlobalSearchModal
-				isOpen={isGlobalSearchOpen}
-				onClose={onCloseGlobalSearch}
-			/>
-		</>
+			{hasOpenedSearch && (
+				<GlobalSearchModal
+					isOpen={isGlobalSearchOpen}
+					onClose={onCloseGlobalSearch}
+				/>
+			)}
+		</Suspense>
 	);
 }

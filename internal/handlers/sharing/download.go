@@ -134,7 +134,21 @@ func (h *SharingHandler) DownloadShared(w http.ResponseWriter, r *http.Request) 
 			continue
 		}
 
-		zipEntry, err := zipWriter.Create(track.Title + "." + trackFile.Format)
+		info, err := file.Stat()
+		if err != nil {
+			file.Close()
+			continue
+		}
+
+		header, err := zip.FileInfoHeader(info)
+		if err != nil {
+			file.Close()
+			continue
+		}
+		header.Name = track.Title + "." + trackFile.Format
+		header.Method = zip.Store
+
+		zipEntry, err := zipWriter.CreateHeader(header)
 		if err != nil {
 			file.Close()
 			continue

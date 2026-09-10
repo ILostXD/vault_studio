@@ -47,16 +47,22 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useTracks } from "@/hooks/useTracks";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { useProjectCoverImage } from "@/hooks/useProjectCoverImage";
+import { lazy, Suspense } from "react";
 import { useProjectMotionAssets } from "@/hooks/useProjectMotionAssets";
 import DeleteProjectModal from "@/components/modals/DeleteProjectModal";
 import LeaveProjectModal from "@/components/modals/LeaveProjectModal";
 import MoveProjectModal from "@/components/modals/MoveProjectModal";
 import ShareModal from "@/components/modals/ShareModal";
-import { PrepareReleaseModal } from "@/components/distribution/PrepareReleaseModal";
 import { toast } from "@/routes/__root";
 import * as sharingApi from "@/api/sharing";
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+
+const PrepareReleaseModal = lazy(() =>
+  import("@/components/distribution/PrepareReleaseModal").then((m) => ({
+    default: m.PrepareReleaseModal,
+  }))
+);
 
 export const Route = createFileRoute("/project/$projectId")({
   component: ProjectLayout,
@@ -445,12 +451,14 @@ function ProjectLayout() {
         />
       )}
 
-      {project && isProjectOwned && (
-        <PrepareReleaseModal
-          isOpen={showPrepareRelease}
-          onClose={() => setShowPrepareRelease(false)}
-          projectId={project.id}
-        />
+      {project && isProjectOwned && showPrepareRelease && (
+        <Suspense fallback={null}>
+          <PrepareReleaseModal
+            isOpen={showPrepareRelease}
+            onClose={() => setShowPrepareRelease(false)}
+            projectId={project.id}
+          />
+        </Suspense>
       )}
     </>
   );

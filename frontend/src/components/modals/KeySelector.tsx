@@ -1,6 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import * as Tone from "tone";
+import type * as ToneType from "tone";
+
+let toneModulePromise: Promise<typeof import("tone")> | null = null;
+function getTone(): Promise<typeof import("tone")> {
+  if (!toneModulePromise) {
+    toneModulePromise = import("tone");
+  }
+  return toneModulePromise;
+}
 
 interface KeySelectorProps {
   value?: string;
@@ -106,8 +114,8 @@ const getNoteConfig = (
 };
 
 export default function KeySelector({ value, onChange }: KeySelectorProps) {
-  const playersRef = useRef<Map<string, Tone.Player>>(new Map());
-  const currentPlayerRef = useRef<Tone.Player | null>(null);
+  const playersRef = useRef<Map<string, ToneType.Player>>(new Map());
+  const currentPlayerRef = useRef<ToneType.Player | null>(null);
 
   const parsed = parseKey(value);
   const [selectedNote, setSelectedNote] = useState<Note | null>(
@@ -124,29 +132,35 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
   }, [value]);
 
   useEffect(() => {
+    let active = true;
     const soundFiles = [
       "/piano/piano-c3.mp3",
       "/piano/piano-e3.mp3",
       "/piano/piano-a3.mp3",
     ];
 
-    soundFiles.forEach((file) => {
-      if (!playersRef.current.has(file)) {
-        const player = new Tone.Player(file).toDestination();
-        player.volume.value = 0;
-        player.fadeIn = 0.01;
-        player.fadeOut = 0.05;
-        playersRef.current.set(file, player);
-      }
+    getTone().then((Tone) => {
+      if (!active) return;
+      soundFiles.forEach((file) => {
+        if (!playersRef.current.has(file)) {
+          const player = new Tone.Player(file).toDestination();
+          player.volume.value = 0;
+          player.fadeIn = 0.01;
+          player.fadeOut = 0.05;
+          playersRef.current.set(file, player);
+        }
+      });
     });
 
     return () => {
+      active = false;
       playersRef.current.forEach((player) => player.dispose());
       playersRef.current.clear();
     };
   }, []);
 
   const playNoteSound = async (note: Note) => {
+    const Tone = await getTone();
     if (Tone.context.state !== "running") {
       await Tone.start();
     }
@@ -156,7 +170,14 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
     }
 
     const { soundFile, semitoneOffset } = getNoteConfig(note);
-    const player = playersRef.current.get(soundFile);
+    let player = playersRef.current.get(soundFile);
+    if (!player) {
+      player = new Tone.Player(soundFile).toDestination();
+      player.volume.value = 0;
+      player.fadeIn = 0.01;
+      player.fadeOut = 0.05;
+      playersRef.current.set(soundFile, player);
+    }
 
     if (player && player.loaded) {
       player.playbackRate = Math.pow(2, semitoneOffset / 12);
@@ -167,6 +188,7 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
 
   const playChord = async () => {
     if (!selectedNote) return;
+    const Tone = await getTone();
 
     if (Tone.context.state !== "running") {
       await Tone.start();
@@ -217,6 +239,7 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
 
   const playArpeggio = async () => {
     if (!selectedNote) return;
+    const Tone = await getTone();
 
     if (Tone.context.state !== "running") {
       await Tone.start();

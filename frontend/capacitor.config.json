@@ -6,6 +6,7 @@
     "hostname": "localhost",
     "androidScheme": "http"
   },
+  "backgroundColor": "#181818",
   "plugins": {
     "Fullscreen": {
       "activateOnLoad": false

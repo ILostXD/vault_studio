@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useMemo } from "react";
+import { useState, useEffect, useLayoutEffect, useMemo, useCallback } from "react";
 import { DotIcon, Play, Pause, MoreHorizontal, Download } from "lucide-react";
 import AlbumCover from "@/components/AlbumCover";
 import TrackListItem from "@/components/TrackListItem";
@@ -251,6 +251,32 @@ export default function SharedProjectView({
     }
   };
 
+  const trackMap = useMemo(() => {
+    const map = new Map<string, Track>();
+    for (const t of tracks) {
+      if (t) map.set(t.public_id, t);
+    }
+    return map;
+  }, [tracks]);
+
+  const handleItemClick = useCallback(
+    (id?: string) => {
+      if (!id) return;
+      const track = trackMap.get(id);
+      if (track) handleTrackClick(track);
+    },
+    [trackMap],
+  );
+
+  const handleItemPlay = useCallback(
+    (id?: string) => {
+      if (!id) return;
+      const track = trackMap.get(id);
+      if (track) handleTrackPlay(track);
+    },
+    [trackMap, handleTrackPlay],
+  );
+
   const handleDownloadProject = async () => {
     if (!allowDownloads) {
       toast.error("Downloads are not allowed for this project");
@@ -453,8 +479,8 @@ export default function SharedProjectView({
                           track.lossy_transcoding_status &&
                             track.lossy_transcoding_status !== "completed",
                         )}
-                        onClick={() => handleTrackPlay(track)}
-                        onMoreClick={() => handleTrackClick(track)}
+                        onClick={handleItemPlay}
+                        onMoreClick={handleItemClick}
                         isShared={track.visibility_status === "public"}
                         isSharedWithUsers={(track as any).is_shared}
                         isDraggable={false}

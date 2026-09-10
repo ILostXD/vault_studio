@@ -1,5 +1,6 @@
 import * as React from "react";
 import * as SwitchPrimitive from "@radix-ui/react-switch";
+import { Capacitor } from "@capacitor/core";
 import {
   mix,
   motion,
@@ -20,6 +21,8 @@ function Switch({
   ...props
 }: React.ComponentProps<typeof SwitchPrimitive.Root>) {
   const { accentColor } = usePreferences();
+  const isAndroid =
+    Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android";
 
   // CONSTANTS (layout + optics)
   const sliderHeight = 20;
@@ -96,7 +99,7 @@ function Switch({
   );
 
   const backgroundOpacity = useSpring(
-    useTransform(active, (v) => 1 - 0.9 * v),
+    useTransform(active, (v) => (isAndroid ? 1 : 1 - 0.9 * v)),
     { damping: 75, stiffness: 1800 },
   );
 
@@ -108,7 +111,9 @@ function Switch({
     { damping: 75, stiffness: 1800 },
   );
 
-  const scaleRatio = useSpring(useTransform(() => 0.4 + 0.5 * active.get()));
+  const scaleRatio = useSpring(
+    useTransform(() => (isAndroid ? 0.4 : 0.4 + 0.5 * active.get())),
+  );
 
   const considerChecked = useTransform(() => {
     const x = xDragRatio.get();
@@ -188,13 +193,15 @@ function Switch({
           }
         }}
       >
-        <Filter
-          id={`thumb-filter-${filterId}`}
-          blur={0.2}
-          scaleRatio={scaleRatio}
-          specularOpacity={0.15}
-          specularSaturation={1.5}
-        />
+        {!isAndroid && (
+          <Filter
+            id={`thumb-filter-${filterId}`}
+            blur={0.2}
+            scaleRatio={scaleRatio}
+            specularOpacity={0.15}
+            specularSaturation={1.5}
+          />
+        )}
         <motion.div
           className="absolute"
           onTouchStart={(e) => {
@@ -221,7 +228,9 @@ function Switch({
             y: "-50%",
             borderRadius: thumbRadius,
             top: sliderHeight / 2,
-            backdropFilter: `url(#thumb-filter-${filterId})`,
+            backdropFilter: isAndroid
+              ? undefined
+              : `url(#thumb-filter-${filterId})`,
             scale: thumbScale,
             backgroundColor: useTransform(
               backgroundOpacity,
