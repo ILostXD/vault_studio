@@ -108,7 +108,6 @@ function TrackDetailsModal({
   const { addToQueue, currentTrack, stop } = useAudioPlayer();
   const queryClient = useQueryClient();
   const prevTrackIdRef = useRef(trackId);
-  const closeTimeoutRef = useRef<number | null>(null);
   const trackRef = useRef(track);
   const displayedKey = usePreferredKey(track.key);
   const prefetchProjects = usePrefetchProjects();
@@ -172,11 +171,6 @@ function TrackDetailsModal({
     if (isOpen) {
       prefetchProjects();
 
-      if (closeTimeoutRef.current !== null) {
-        clearTimeout(closeTimeoutRef.current);
-        closeTimeoutRef.current = null;
-      }
-
       if (trackChanged) {
         setModalState("details");
       } else {
@@ -193,14 +187,6 @@ function TrackDetailsModal({
 
     prevTrackIdRef.current = trackId;
   }, [isOpen, trackId]);
-
-  useEffect(() => {
-    return () => {
-      if (closeTimeoutRef.current !== null) {
-        clearTimeout(closeTimeoutRef.current);
-      }
-    };
-  }, []);
 
   useEffect(() => {
     if (modalState === "details") {
@@ -222,6 +208,11 @@ function TrackDetailsModal({
 
   useBodyScrollLock(modalState !== "closed");
 
+  const handleClose = useCallback(() => {
+    setModalState("closed");
+    onClose();
+  }, [onClose]);
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -236,11 +227,7 @@ function TrackDetailsModal({
     return () => {
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [modalState]);
-
-  const handleClose = () => {
-    setModalState("closed");
-  };
+  }, [modalState, handleClose]);
 
   const handleMoreInfo = () => {
     setModalState("versions");
@@ -400,13 +387,7 @@ function TrackDetailsModal({
     <>
       {createPortal(
         <>
-          <AnimatePresence
-            onExitComplete={() => {
-              if (modalState === "closed") {
-                onClose();
-              }
-            }}
-          >
+          <AnimatePresence>
             {modalState !== "closed" && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -456,6 +437,8 @@ function TrackDetailsModal({
                         className={`sticky top-0 z-10 ${isSharedView ? "pt-0 px-6 pb-4 md:pb-4 bg-none" : "pt-6 px-6 pb-2 md:static md:p-0 bg-linear-to-b from-(--surface-overlay-from) from-70% to-transparent md:bg-none"}`}
                       >
                         <Button
+                          type="button"
+                          aria-label="Close track details"
                           size="icon-lg"
                           onClick={handleClose}
                           className={`self-start ${isSharedView ? "mb-2" : "mb-2 md:mb-6"}`}
@@ -778,13 +761,7 @@ function TrackDetailsModal({
   );
 }
 
-export default memo(TrackDetailsModal, (prevProps, nextProps) => {
-  return (
-    prevProps.isOpen === nextProps.isOpen &&
-    prevProps.trackId === nextProps.trackId &&
-    prevProps.projectId === nextProps.projectId
-  );
-});
+export default memo(TrackDetailsModal);
 
 interface ActionButtonProps {
   icon: React.ElementType;

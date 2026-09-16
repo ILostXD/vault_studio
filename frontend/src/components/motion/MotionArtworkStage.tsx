@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from "motion/react";
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 export type MotionArtworkPresentation = "fill" | "apple-portrait" | "square";
@@ -8,6 +9,7 @@ interface MotionArtworkStageProps {
 	assetUrl?: string | null;
 	coverUrl?: string | null;
 	className?: string;
+	active?: boolean;
 }
 
 interface MotionArtworkFlowBackgroundProps {
@@ -22,18 +24,35 @@ interface ArtworkSourceProps {
 	assetUrl?: string | null;
 	coverUrl?: string | null;
 	className: string;
+	active?: boolean;
 }
 
-function ArtworkSource({ assetUrl, coverUrl, className }: ArtworkSourceProps) {
+function ArtworkSource({ assetUrl, coverUrl, className, active = true }: ArtworkSourceProps) {
+	const videoRef = useRef<HTMLVideoElement>(null);
+	const reduceMotion = useReducedMotion();
+
+	useEffect(() => {
+		const video = videoRef.current;
+		if (!video) return;
+		// Decorative media must be silent before playback starts in WebView.
+		video.defaultMuted = true;
+		video.muted = true;
+		video.volume = 0;
+		if (active && !reduceMotion) void video.play().catch(() => undefined);
+		else video.pause();
+		return () => video.pause();
+	}, [assetUrl, active, reduceMotion]);
+
 	return (
 		<>
 			{coverUrl && <img src={coverUrl} alt="" className={className} />}
 			{assetUrl && (
 				<video
+					ref={videoRef}
 					key={assetUrl}
 					src={assetUrl}
 					poster={coverUrl ?? undefined}
-					autoPlay
+					preload="none"
 					muted
 					loop
 					playsInline
@@ -128,6 +147,7 @@ export function MotionArtworkFlowBackground({
 						)}
 					>
 						<ArtworkSource
+							active={!paused}
 							assetUrl={assetUrl}
 							coverUrl={coverUrl}
 							className="absolute inset-0 size-full object-cover"
@@ -145,6 +165,7 @@ export default function MotionArtworkStage({
 	assetUrl,
 	coverUrl,
 	className,
+	active = true,
 }: MotionArtworkStageProps) {
 	if (presentation === "fill") {
 		return (
@@ -152,6 +173,7 @@ export default function MotionArtworkStage({
 				className={cn("absolute inset-0 overflow-hidden bg-black", className)}
 			>
 				<ArtworkSource
+					active={active}
 					assetUrl={assetUrl}
 					coverUrl={coverUrl}
 					className="absolute inset-0 size-full object-cover"
@@ -164,6 +186,7 @@ export default function MotionArtworkStage({
 		<div className={cn("absolute inset-0 overflow-hidden bg-black", className)}>
 			<div className="absolute inset-0 overflow-hidden bg-black">
 				<ArtworkSource
+					active={active}
 					assetUrl={coverUrl ? undefined : assetUrl}
 					coverUrl={coverUrl}
 					className="absolute -inset-[14%] size-[128%] scale-110 object-cover blur-[34px] brightness-[0.48] saturate-125"
@@ -181,6 +204,7 @@ export default function MotionArtworkStage({
 					}}
 				>
 					<ArtworkSource
+						active={active}
 						assetUrl={assetUrl}
 						coverUrl={coverUrl}
 						className="absolute inset-0 size-full object-cover"
@@ -189,6 +213,7 @@ export default function MotionArtworkStage({
 			) : (
 				<div className="absolute inset-x-[7%] top-[8%] aspect-square overflow-hidden rounded-[7%] shadow-2xl">
 					<ArtworkSource
+						active={active}
 						assetUrl={assetUrl}
 						coverUrl={coverUrl}
 						className="absolute inset-0 size-full object-cover"

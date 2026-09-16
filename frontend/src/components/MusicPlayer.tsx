@@ -95,6 +95,11 @@ function MiniPlayerScrubber({
   const [isDragging, setIsDragging] = useState(false);
   const waveformRef = useRef<HTMLDivElement | null>(null);
 
+  useEffect(() => () => {
+    isDraggingRef.current = false;
+    pendingSeekPositionRef.current = null;
+  }, [isDraggingRef, pendingSeekPositionRef]);
+
   const progressForBars = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   const performPreviewSeek = useCallback(
@@ -609,7 +614,7 @@ export default function MusicPlayer({
 
     volumeControl.addEventListener("wheel", handleWheel, { passive: false });
     return () => volumeControl.removeEventListener("wheel", handleWheel);
-  }, [currentTrack, hideControls, queue.length]);
+  }, [currentTrack, hideControls, isNowPlayingOpen, queue.length]);
 
   useEffect(() => {
     const hasContent = currentTrack || queue.length > 0;
@@ -995,7 +1000,7 @@ export default function MusicPlayer({
         playsInline
       />
 
-      {!hideControls && (
+      {!hideControls && !isNowPlayingOpen && (
         <div
           className={`mini-player fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] sm:bottom-6 left-1/2 -translate-x-1/2 z-110 w-[calc(100%-1rem)] sm:w-[calc(100%-3rem)] max-w-[800px] transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
             isNowPlayingOpen

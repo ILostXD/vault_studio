@@ -60,7 +60,7 @@ interface AudioPlayerContextType {
     autoPlay?: boolean,
     forceReload?: boolean,
     queue?: Track[],
-  ) => void;
+  ) => Promise<void>;
   pause: () => void;
   resume: () => void;
   stop: () => void;
@@ -133,6 +133,7 @@ export function AudioPlayerProvider({
   const preloadedTrackIdRef = useRef<string | null>(null);
   const preloadAudioRef = useRef<HTMLAudioElement | null>(null);
   const playRequestIdRef = useRef(0);
+  const pendingPlayRequestIdRef = useRef<number | null>(null);
   const preloadRequestIdRef = useRef(0);
   const { preferences } = usePreferences();
   const qualityPreference = preferences?.default_quality || DEFAULT_AUDIO_QUALITY;
@@ -444,14 +445,15 @@ export function AudioPlayerProvider({
       forceReload: boolean = false,
       queueTracks?: Track[],
     ) => {
-      const requestId = ++playRequestIdRef.current;
-
       if (
         track.lossy_transcoding_status &&
         track.lossy_transcoding_status !== "completed"
       ) {
         return;
       }
+
+      const requestId = ++playRequestIdRef.current;
+      pendingPlayRequestIdRef.current = requestId;
 
       if (projectTracks) {
         setCurrentProjectTracks(projectTracks);
@@ -485,61 +487,51 @@ export function AudioPlayerProvider({
         preloadAudioRef.current = null;
       }
 
-      if (preloadedStreamUrl) {
-        setCurrentTrack(track);
-        setAudioUrl(preloadedStreamUrl);
-        setIsPlaying(autoPlay);
-
-        void ensureTrackWaveform(track).then((trackWithWaveform) => {
-          if (playRequestIdRef.current !== requestId) return;
-          setCurrentTrack((activeTrack) =>
-            activeTrack?.id === track.id ? trackWithWaveform : activeTrack,
-          );
-        });
-
-        setTimeout(() => preloadNextTrack(), 100);
-        return;
-      }
-
-      let trackToPlay = track;
-      trackToPlay = await ensureTrackWaveform(trackToPlay);
-
-      setCurrentTrack(trackToPlay);
-
       const quality = qualityPreference;
-
-      if (playRequestIdRef.current !== requestId) {
-        return;
-      }
-
       let streamUrl: string;
 
-      if (shareTokenRef.current) {
+      if (preloadedStreamUrl) {
+        streamUrl = preloadedStreamUrl;
+      } else if (shareTokenRef.current) {
         streamUrl = resolveApiUrl(
-          `/api/share/${shareTokenRef.current}/stream/${trackToPlay.id}`,
+          `/api/share/${shareTokenRef.current}/stream/${track.id}`,
         );
       } else {
         try {
-          const signed = await getStreamUrl(trackToPlay.id, {
+          const signed = await getStreamUrl(track.id, {
             quality,
-            versionId: trackToPlay.versionId ?? undefined,
+            versionId: track.versionId ?? undefined,
           });
           streamUrl = resolveApiUrl(signed.url);
         } catch (error) {
+          if (pendingPlayRequestIdRef.current === requestId) pendingPlayRequestIdRef.current = null;
           console.error("[AudioPlayer] Failed to get signed stream URL", error);
           return;
         }
       }
 
+      if (playRequestIdRef.current !== requestId) return;
+      pendingPlayRequestIdRef.current = null;
+      setCurrentTrack(track);
       setAudioUrl(streamUrl);
       setIsPlaying(autoPlay);
 
-      setTimeout(() => preloadNextTrack(), 100);
+      // Waveform metadata must not delay audio, or replace a newer selection.
+      void ensureTrackWaveform(track).then((trackWithWaveform) => {
+        if (playRequestIdRef.current !== requestId) return;
+        setCurrentTrack((activeTrack) =>
+          activeTrack?.id === track.id ? trackWithWaveform : activeTrack,
+        );
+      });
     },
-    [preloadNextTrack, isShuffled, ensureTrackWaveform, cacheWaveforms],
+    [qualityPreference, isShuffled, ensureTrackWaveform, cacheWaveforms],
   );
 
   const pause = useCallback(() => {
+    if (pendingPlayRequestIdRef.current !== null) {
+      ++playRequestIdRef.current;
+      pendingPlayRequestIdRef.current = null;
+    }
     setIsPlaying(false);
     if (audioPlayerRef.current?.audio?.current) {
       audioPlayerRef.current.audio.current.pause();
@@ -554,6 +546,8 @@ export function AudioPlayerProvider({
   }, []);
 
   const stop = useCallback(() => {
+    ++playRequestIdRef.current;
+    pendingPlayRequestIdRef.current = null;
     setIsPlaying(false);
     setIsNowPlayingOpen(false);
     setCurrentTrack(null);
@@ -1058,6 +1052,8 @@ export function AudioPlayerProvider({
 
   useEffect(() => {
     if (!isAuthenticated) {
+      ++playRequestIdRef.current;
+      pendingPlayRequestIdRef.current = null;
       setIsPlaying(false);
       if (audioPlayerRef.current?.audio?.current) {
         audioPlayerRef.current.audio.current.pause();

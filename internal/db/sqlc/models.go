@@ -141,6 +141,13 @@ type Project struct {
 	DistributorNotes        sql.NullString `json:"distributor_notes"`
 }
 
+type ProjectAudioMetadatum struct {
+	ProjectID   int64  `json:"project_id"`
+	AlbumArtist string `json:"album_artist"`
+	Genre       string `json:"genre"`
+	Year        string `json:"year"`
+}
+
 type ProjectMotionAsset struct {
 	ProjectID       int64     `json:"project_id"`
 	Kind            string    `json:"kind"`

@@ -25,10 +25,11 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-it.each(["/", "/project/album-b", "/profile"])("opens the playing album independently of the route at %s", async (path) => {
+it.each(["/", "/project/album-b", "/profile"])("opens immediately from cached track data while the project is loading at %s", (path) => {
   window.history.replaceState({}, "", path);
   const view = render(<FullscreenPlayer />);
-  expect((await screen.findByText("Playing album")).getAttribute("data-project")).toBe("album-a");
+  expect(screen.getByText("Playing album").getAttribute("data-project")).toBe("album-a");
+  expect(screen.queryByLabelText("Loading Now Playing")).toBeNull();
   expect(screen.getByRole("dialog").getAttribute("data-cover")).toBe("/cover-a.jpg");
   expect(loadProject).toHaveBeenCalledWith("album-a");
   state.isNowPlayingOpen = false;

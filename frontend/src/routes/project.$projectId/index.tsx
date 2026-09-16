@@ -166,6 +166,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 		setProjectTracks,
 		toggleShuffle,
 		isShuffled,
+		isNowPlayingOpen,
 	} = useAudioPlayer();
 
 	const tracks = useMemo(() => apiTracks || [], [apiTracks]);
@@ -214,6 +215,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 		if (!video || !isMobilePortrait) return;
 
 		if (
+			isNowPlayingOpen ||
 			isModalOpen ||
 			isCoverModalOpen ||
 			isMotionArtworkOpen ||
@@ -241,6 +243,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 		isCoverModalOpen,
 		isMobilePortrait,
 		isModalOpen,
+		isNowPlayingOpen,
 		isMotionArtworkOpen,
 		isNotesOpen,
 		isVersionsModalOpen,
@@ -585,7 +588,6 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 
 	const handleCloseModal = useCallback(() => {
 		setIsModalOpen(false);
-		setSelectedTrack(null);
 	}, []);
 
 	useEffect(() => {

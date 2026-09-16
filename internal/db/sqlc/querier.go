@@ -15,6 +15,7 @@ type Querier interface {
 	ClearProjectCover(ctx context.Context, id int64) (Project, error)
 	ClearTrackAnalysis(ctx context.Context, id int64) error
 	ConsumeProviderOAuthState(ctx context.Context, arg ConsumeProviderOAuthStateParams) (ProviderOauthState, error)
+	CopyProjectAudioMetadata(ctx context.Context, arg CopyProjectAudioMetadataParams) error
 	CountProjectsInFolder(ctx context.Context, folderID sql.NullInt64) (int64, error)
 	CountSubfoldersInFolder(ctx context.Context, parentID sql.NullInt64) (int64, error)
 	CountTrackVersions(ctx context.Context, trackID int64) (int64, error)
@@ -116,6 +117,7 @@ type Querier interface {
 	GetNotesByProject(ctx context.Context, projectID sql.NullInt64) ([]Note, error)
 	GetNotesByTrack(ctx context.Context, trackID sql.NullInt64) ([]Note, error)
 	GetProject(ctx context.Context, arg GetProjectParams) (Project, error)
+	GetProjectAudioMetadata(ctx context.Context, projectID int64) (ProjectAudioMetadatum, error)
 	GetProjectByID(ctx context.Context, id int64) (Project, error)
 	GetProjectByPublicID(ctx context.Context, arg GetProjectByPublicIDParams) (GetProjectByPublicIDRow, error)
 	GetProjectByPublicIDNoFilter(ctx context.Context, publicID string) (GetProjectByPublicIDNoFilterRow, error)
@@ -164,6 +166,7 @@ type Querier interface {
 	ListAllFoldersByUser(ctx context.Context, userID int64) ([]Folder, error)
 	ListAllTrackFiles(ctx context.Context) ([]TrackFile, error)
 	ListAllUsers(ctx context.Context) ([]User, error)
+	ListAudioMetadataTracks(ctx context.Context, projectID int64) ([]ListAudioMetadataTracksRow, error)
 	ListDistributionHistory(ctx context.Context, arg ListDistributionHistoryParams) ([]DistributionHistory, error)
 	ListDistributionTracks(ctx context.Context, arg ListDistributionTracksParams) ([]ListDistributionTracksRow, error)
 	ListFederationTokensByOrigin(ctx context.Context, arg ListFederationTokensByOriginParams) ([]FederationToken, error)
@@ -216,6 +219,7 @@ type Querier interface {
 	RevokeRefreshTokensByUser(ctx context.Context, userID int64) error
 	SaveDistributionPreparation(ctx context.Context, arg SaveDistributionPreparationParams) (int64, error)
 	SaveDistributionProfile(ctx context.Context, arg SaveDistributionProfileParams) error
+	SaveProjectAudioMetadata(ctx context.Context, arg SaveProjectAudioMetadataParams) error
 	SaveProviderConnection(ctx context.Context, arg SaveProviderConnectionParams) error
 	SaveProviderOAuthState(ctx context.Context, arg SaveProviderOAuthStateParams) error
 	SaveProviderSetting(ctx context.Context, arg SaveProviderSettingParams) error
@@ -232,6 +236,7 @@ type Querier interface {
 	UpdateInstanceName(ctx context.Context, name string) (InstanceSetting, error)
 	UpdateNote(ctx context.Context, arg UpdateNoteParams) (Note, error)
 	UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error)
+	UpdateProjectAudioIdentity(ctx context.Context, arg UpdateProjectAudioIdentityParams) (int64, error)
 	UpdateProjectCover(ctx context.Context, arg UpdateProjectCoverParams) (Project, error)
 	UpdateProjectCustomOrder(ctx context.Context, arg UpdateProjectCustomOrderParams) (Project, error)
 	UpdateProjectFolder(ctx context.Context, arg UpdateProjectFolderParams) (Project, error)

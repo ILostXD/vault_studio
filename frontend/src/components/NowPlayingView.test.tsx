@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	FULLSCREEN_DESKTOP_QUEUE_KEY,
@@ -28,6 +28,7 @@ const mockPlay = vi.fn();
 const mockClearQueue = vi.fn();
 const mockRemoveFromQueue = vi.fn();
 let motionAssets: ProjectMotionAsset[] = [];
+let realPresence = false;
 
 const sampleTrack = {
 	id: "trk_123",
@@ -90,7 +91,9 @@ vi.mock("motion/react", async (importOriginal) => {
 	const actual = await importOriginal<typeof import("motion/react")>();
 	return {
 		...actual,
-		AnimatePresence: ({ children }: any) => <>{children}</>,
+		AnimatePresence: ({ children, ...props }: any) => realPresence
+			? <actual.AnimatePresence {...props}>{children}</actual.AnimatePresence>
+			: <>{children}</>,
 	};
 });
 
@@ -166,6 +169,7 @@ describe("NowPlayingView Fullscreen QoL", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		motionAssets = [];
+		realPresence = false;
 		storage = createStorage();
 		Object.defineProperty(window, "localStorage", {
 			configurable: true,
@@ -177,9 +181,24 @@ describe("NowPlayingView Fullscreen QoL", () => {
 		cleanup();
 	});
 
+	it.each(["mobile", "desktop"] as const)("mounts the next %s panel without waiting for the previous panel to exit", async (variant) => {
+		realPresence = true;
+		window.localStorage.setItem(FULLSCREEN_DESKTOP_QUEUE_KEY, "false");
+		render(<NowPlayingView projectId="proj_abc" projectName="Astro Album" variant={variant} />);
+		fireEvent.click(screen.getByRole("button", { name: variant === "mobile" ? "Notes" : "Show notes" }));
+		const transport = screen.getByRole("button", { name: "Pause" });
+		expect(transport).toBeTruthy();
+		await screen.findByTestId("notes-panel");
+		fireEvent.click(screen.getByRole("button", { name: variant === "mobile" ? "Open queue" : "Show queue" }));
+		const panelId = variant === "mobile" ? "mobile-active-panel" : "fullscreen-side-panel";
+		expect(screen.getAllByTestId(panelId)).toHaveLength(2);
+		expect(screen.getByRole("button", { name: "Pause" })).toBe(transport);
+		await waitFor(() => expect(screen.getAllByTestId(panelId)).toHaveLength(1));
+	});
+
 	it.each(["Open queue", "Notes", "Comments"])(
 		"uses the flowing background for %s over portrait artwork and restores the video on close",
-		(button) => {
+		async (button) => {
 			motionAssets = [{ kind: "apple_portrait", preview_url: "/portrait.mp4" } as ProjectMotionAsset];
 			window.localStorage.setItem(NOW_PLAYING_ARTWORK_MODE_KEY, "apple_portrait");
 			render(<NowPlayingView projectId="proj_abc" projectName="Astro Album" variant="mobile" />);
@@ -188,6 +207,7 @@ describe("NowPlayingView Fullscreen QoL", () => {
 			const waveform = screen.getByTestId("mobile-playback-waveform");
 			const toggle = screen.getByRole("button", { name: button });
 			fireEvent.click(toggle);
+			if (button === "Notes") await screen.findByTestId("notes-panel");
 			expect(screen.getByTestId("motion-artwork-bg").getAttribute("data-max-layers")).toBe("1");
 			expect(screen.getByTestId("mobile-transport-controls")).toBe(transports);
 			expect(screen.getByTestId("mobile-playback-waveform")).toBe(waveform);
@@ -312,7 +332,7 @@ describe("NowPlayingView Fullscreen QoL", () => {
 	});
 
 	describe("Comments & Notes in Fullscreen", () => {
-		it("7. provides Notes button and displays NotesPanel on desktop", () => {
+		it("7. provides Notes button and displays NotesPanel on desktop", async () => {
 			render(
 				<NowPlayingView
 					projectId="proj_abc"
@@ -327,7 +347,7 @@ describe("NowPlayingView Fullscreen QoL", () => {
 			fireEvent.click(notesBtn);
 
 			// Notes panel should be visible with track info
-			expect(screen.getByTestId("notes-panel")).toBeDefined();
+			expect(await screen.findByTestId("notes-panel")).toBeDefined();
 			expect(screen.getByText("Notes for Cosmic Odyssey")).toBeDefined();
 
 			// Closing notes via close button
@@ -357,7 +377,7 @@ describe("NowPlayingView Fullscreen QoL", () => {
 			expect(waveformComments.getAttribute("data-fill-embedded")).toBe("false");
 		});
 
-		it("9. closes the active panel before collapsing fullscreen", () => {
+		it("9. closes the active panel before collapsing fullscreen", async () => {
 			render(
 				<NowPlayingView
 					projectId="proj_abc"
@@ -368,7 +388,7 @@ describe("NowPlayingView Fullscreen QoL", () => {
 
 			// Open notes
 			fireEvent.click(screen.getByRole("button", { name: "Show notes" }));
-			expect(screen.getByTestId("notes-panel")).toBeDefined();
+			expect(await screen.findByTestId("notes-panel")).toBeDefined();
 
 			// Escape closes notes first
 			fireEvent.keyDown(window, { key: "Escape" });
@@ -382,7 +402,7 @@ describe("NowPlayingView Fullscreen QoL", () => {
 			expect(mockCloseNowPlaying).toHaveBeenCalledTimes(1);
 		});
 
-		it("10. supports Comments and Notes on mobile variant", () => {
+		it("10. supports Comments and Notes on mobile variant", async () => {
 			render(
 				<NowPlayingView
 					projectId="proj_abc"
@@ -411,7 +431,7 @@ describe("NowPlayingView Fullscreen QoL", () => {
 
 			// Tapping Notes on mobile opens NotesPanel
 			fireEvent.click(notesBtn);
-			expect(screen.getByTestId("notes-panel")).toBeDefined();
+			expect(await screen.findByTestId("notes-panel")).toBeDefined();
 			expect(screen.getByText("Notes for Cosmic Odyssey")).toBeDefined();
 			expect(screen.getByTestId("mobile-active-panel")).toBeDefined();
 			expect(
@@ -450,7 +470,7 @@ describe("NowPlayingView Fullscreen QoL", () => {
 			expect(screen.getByTestId("mobile-panel-controls")).toBe(panelControls);
 		});
 
-		it("11. uses one integrated right rail for queue, notes, and comments", () => {
+		it("11. uses one integrated right rail for queue, notes, and comments", async () => {
 			render(
 				<NowPlayingView
 					projectId="proj_abc"
@@ -464,7 +484,7 @@ describe("NowPlayingView Fullscreen QoL", () => {
 			fireEvent.click(screen.getByRole("button", { name: "Show notes" }));
 			expect(screen.queryByText("Playing next")).toBeNull();
 			expect(
-				screen.getByTestId("notes-panel").getAttribute("data-embedded"),
+				(await screen.findByTestId("notes-panel")).getAttribute("data-embedded"),
 			).toBe("true");
 			expect(screen.getAllByTestId("fullscreen-side-panel")).toHaveLength(1);
 

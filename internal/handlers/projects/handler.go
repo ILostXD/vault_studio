@@ -334,6 +334,9 @@ func (h *ProjectsHandler) DuplicateProject(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return apperr.NewInternal("failed to create duplicate project", err)
 	}
+	if err := queries.CopyProjectAudioMetadata(ctx, sqlc.CopyProjectAudioMetadataParams{DestinationID: duplicateProject.ID, SourceID: originalProject.ID}); err != nil {
+		return apperr.NewInternal("failed to copy project audio metadata", err)
+	}
 
 	if originalProject.FolderID.Valid {
 		duplicateProject, err = queries.UpdateProjectFolderWithTimestamp(ctx, sqlc.UpdateProjectFolderWithTimestampParams{

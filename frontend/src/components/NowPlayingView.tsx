@@ -29,8 +29,11 @@ import {
 	motion,
 	type PanInfo,
 	useDragControls,
+	useIsPresent,
 } from "motion/react";
 import {
+	lazy,
+	Suspense,
 	type KeyboardEvent as ReactKeyboardEvent,
 	type PointerEvent as ReactPointerEvent,
 	useCallback,
@@ -43,7 +46,6 @@ import MotionArtworkStage, {
 	MotionArtworkFlowBackground,
 	type MotionArtworkPresentation,
 } from "@/components/motion/MotionArtworkStage";
-import NotesPanel from "@/components/NotesPanel";
 import QueuePanel from "@/components/QueuePanel";
 import { Button } from "@/components/ui/button";
 import {
@@ -74,6 +76,12 @@ import {
 } from "@/lib/motionArtwork";
 import { cn } from "@/lib/utils";
 import type { Track } from "@/types/api";
+
+const loadNotesPanel = () => import("@/components/NotesPanel");
+const NotesPanel = lazy(loadNotesPanel);
+const preloadNotesPanel = () => {
+	void loadNotesPanel().catch(() => undefined);
+};
 
 interface NowPlayingViewProps {
 	projectId: string;
@@ -231,6 +239,9 @@ export default function NowPlayingView({
 	} = useAudioPlayer();
 	const navigate = useNavigate();
 	const { preferences } = usePreferences();
+	const isPresent = useIsPresent();
+	const [hasEntered, setHasEntered] = useState(false);
+	const artworkActive = hasEntered && isPresent;
 	const { data: motionAssets = [] } = useProjectMotionAssets(projectId);
 	const [preferredArtworkMode, setPreferredArtworkMode] =
 		useState<NowPlayingArtworkMode>(() => {
@@ -370,6 +381,7 @@ export default function NowPlayingView({
 			<motion.section
 				initial={{ y: "100%" }}
 				animate={{ y: 0 }}
+				onAnimationComplete={() => setHasEntered(true)}
 				exit={{
 					y: "100%",
 					transition: { duration: 0.24, ease: [0.32, 0.72, 0, 1] },
@@ -382,6 +394,7 @@ export default function NowPlayingView({
 			>
 				<div className="pointer-events-none absolute inset-0 overflow-hidden bg-black">
 					<MotionArtworkFlowBackground
+						paused={!artworkActive}
 						coverUrl={coverUrl ?? currentTrack.coverUrl}
 						maxLayers={2}
 					/>
@@ -413,6 +426,7 @@ export default function NowPlayingView({
 						>
 							<div className="relative size-[min(54dvh,32vw,36rem)] max-w-full shrink-0 overflow-hidden rounded-lg shadow-2xl">
 								<MotionArtworkStage
+									active={artworkActive}
 									presentation="fill"
 									assetUrl={squareAsset?.preview_url}
 									coverUrl={coverUrl ?? currentTrack.coverUrl}
@@ -447,6 +461,9 @@ export default function NowPlayingView({
 											isNotesOpen && "bg-white/15 text-white",
 										)}
 										onClick={() => togglePanel("notes")}
+										onPointerEnter={preloadNotesPanel}
+										onPointerDown={preloadNotesPanel}
+										onFocus={preloadNotesPanel}
 										aria-label={isNotesOpen ? "Hide notes" : "Show notes"}
 										aria-pressed={isNotesOpen}
 										title={isNotesOpen ? "Hide notes" : "Show notes"}
@@ -562,7 +579,7 @@ export default function NowPlayingView({
 						</motion.div>
 
 						<div className="pointer-events-none absolute inset-y-0 right-0 flex w-[min(38rem,40vw)] items-center">
-							<AnimatePresence initial={false} mode="wait">
+							<AnimatePresence initial={false} mode="popLayout">
 								{isQueueOpen && (
 									<motion.aside
 										key="fullscreen-queue-panel"
@@ -570,7 +587,7 @@ export default function NowPlayingView({
 										animate={{ opacity: 1, x: 0 }}
 										exit={{ opacity: 0, x: 24 }}
 										transition={{
-											duration: 0.35,
+											duration: 0.2,
 											ease: [0.22, 1, 0.36, 1],
 										}}
 										className="pointer-events-auto flex max-h-[72dvh] w-full flex-col overflow-hidden"
@@ -794,16 +811,18 @@ export default function NowPlayingView({
 										initial={{ opacity: 0, x: 32 }}
 										animate={{ opacity: 1, x: 0 }}
 										exit={{ opacity: 0, x: 24 }}
-										transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+										transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
 										className="pointer-events-auto flex max-h-[72dvh] w-full flex-col overflow-hidden"
 										data-testid="fullscreen-side-panel"
 									>
-										<NotesPanel
-											mode="track"
-											selectedTrack={activeTrack}
-											onClose={closeActivePanel}
-											embedded
-										/>
+										<Suspense fallback={<p role="status" className="p-2 text-sm text-white/55">Loading notes...</p>}>
+											<NotesPanel
+												mode="track"
+												selectedTrack={activeTrack}
+												onClose={closeActivePanel}
+												embedded
+											/>
+										</Suspense>
 									</motion.aside>
 								)}
 								{isCommentsOpen && (
@@ -812,7 +831,7 @@ export default function NowPlayingView({
 										initial={{ opacity: 0, x: 32 }}
 										animate={{ opacity: 1, x: 0 }}
 										exit={{ opacity: 0, x: 24 }}
-										transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+										transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
 										className="pointer-events-auto flex max-h-[72dvh] w-full overflow-hidden"
 										data-testid="fullscreen-side-panel"
 									>
@@ -836,6 +855,7 @@ export default function NowPlayingView({
 			<motion.section
 				initial={{ y: "100%" }}
 				animate={{ y: 0 }}
+				onAnimationComplete={() => setHasEntered(true)}
 				exit={{
 					y: "100%",
 					transition: { duration: 0.24, ease: [0.32, 0.72, 0, 1] },
@@ -859,12 +879,14 @@ export default function NowPlayingView({
 			>
 				{isTallArtwork && !activePanel ? (
 					<MotionArtworkStage
+						active={artworkActive}
 						presentation={mobilePresentation}
 						assetUrl={activeMobileAsset?.preview_url}
 						coverUrl={coverUrl ?? currentTrack.coverUrl}
 					/>
 				) : (
 					<MotionArtworkFlowBackground
+						paused={!artworkActive}
 						coverUrl={coverUrl ?? currentTrack.coverUrl}
 						maxLayers={1}
 					/>
@@ -959,7 +981,7 @@ export default function NowPlayingView({
 
 					<div
 						className={cn(
-							"flex min-h-0 w-full py-4",
+							"relative flex min-h-0 w-full py-4",
 							activePanel
 								? "flex-col items-start overflow-hidden"
 								: "items-center justify-center",
@@ -976,13 +998,14 @@ export default function NowPlayingView({
 								}}
 							>
 								<MotionArtworkStage
+									active={artworkActive}
 									presentation="fill"
 									assetUrl={activeMobileAsset?.preview_url}
 									coverUrl={coverUrl ?? currentTrack.coverUrl}
 								/>
 							</motion.div>
 						)}
-						<AnimatePresence initial={false} mode="wait">
+						<AnimatePresence initial={false} mode="popLayout">
 							{activePanel && (
 								<motion.div
 									key={activePanel}
@@ -997,12 +1020,14 @@ export default function NowPlayingView({
 										<div ref={setMobileQueueTarget} className="h-full" />
 									)}
 									{isNotesOpen && (
-										<NotesPanel
-											mode="track"
-											selectedTrack={activeTrack}
-											onClose={closeActivePanel}
-											embedded
-										/>
+										<Suspense fallback={<p role="status" className="p-2 text-sm text-white/55">Loading notes...</p>}>
+											<NotesPanel
+												mode="track"
+												selectedTrack={activeTrack}
+												onClose={closeActivePanel}
+												embedded
+											/>
+										</Suspense>
 									)}
 									{isCommentsOpen && (
 										<div ref={setCommentsPanelTarget} className="h-full" />
@@ -1146,7 +1171,10 @@ export default function NowPlayingView({
 									"bg-black/25 backdrop-blur-sm hover:bg-black/45",
 									isNotesOpen && "bg-white/15 text-white",
 								)}
-								onClick={() => togglePanel("notes")}
+									onClick={() => togglePanel("notes")}
+									onPointerEnter={preloadNotesPanel}
+									onPointerDown={preloadNotesPanel}
+									onFocus={preloadNotesPanel}
 								aria-label="Notes"
 								title="Notes"
 							>

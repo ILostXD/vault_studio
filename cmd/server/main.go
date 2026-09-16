@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"bungleware/vault/internal/audiometadata"
 	"bungleware/vault/internal/auth"
 	"bungleware/vault/internal/db"
 	"bungleware/vault/internal/distribution"
@@ -274,6 +275,7 @@ func main() {
 	notesHandler := handlers.NewNotesHandler(database)
 	organizationHandler := handlers.NewOrganizationHandler(database)
 	distributionService := distribution.NewService(database.Queries, config.DataDir)
+	audioMetadataHandler := handlers.NewAudioMetadataHandler(audiometadata.NewService(database, config.DataDir))
 	distributionHandler := handlers.NewDistributionHandler(distributionService)
 	tooLostHandler := handlers.NewTooLostHandler(database.Queries, distributionService, config.TooLost)
 	updateHandler := handlers.NewUpdateHandler(database, Version, config.Updates)
@@ -389,6 +391,9 @@ func main() {
 	mux.Handle("POST /api/projects/{id}/duplicate", authMW(httputil.Wrap(projectsHandler.DuplicateProject)))
 	mux.Handle("GET /api/projects/{id}/export", authMW(httputil.Wrap(projectsHandler.ExportProject)))
 	mux.Handle("GET /api/projects/{id}/release-preparation", authMW(httputil.Wrap(distributionHandler.GetPreparation)))
+	mux.Handle("GET /api/projects/{id}/audio-metadata", authMW(httputil.Wrap(audioMetadataHandler.Get)))
+	mux.Handle("PUT /api/projects/{id}/audio-metadata", authMW(httputil.Wrap(audioMetadataHandler.Save)))
+	mux.Handle("GET /api/projects/{id}/tracks/{trackId}/tagged-download", authMW(httputil.Wrap(audioMetadataHandler.Download)))
 	mux.Handle("PUT /api/projects/{id}/release-preparation", authMW(httputil.Wrap(distributionHandler.SavePreparation)))
 	mux.Handle("POST /api/projects/{id}/release-package", authMW(httputil.Wrap(distributionHandler.ExportPackage)))
 	mux.Handle("GET /api/projects/{id}/distribution-history", authMW(httputil.Wrap(distributionHandler.History)))

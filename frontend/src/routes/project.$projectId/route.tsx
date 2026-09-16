@@ -13,6 +13,7 @@ import {
   Trash2,
   Film,
   PackageCheck,
+  Tags,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -63,6 +64,7 @@ const PrepareReleaseModal = lazy(() =>
     default: m.PrepareReleaseModal,
   }))
 );
+const ProjectMetadataModal = lazy(() => import("@/components/modals/ProjectMetadataModal"));
 
 export const Route = createFileRoute("/project/$projectId")({
   component: ProjectLayout,
@@ -90,6 +92,7 @@ function ProjectLayout() {
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showPrepareRelease, setShowPrepareRelease] = useState(false);
+  const [showMetadata, setShowMetadata] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
   const projectArtist =
     project?.author_override || project?.owner_username || user?.username;
@@ -361,6 +364,12 @@ function ProjectLayout() {
                     Prepare release
                   </DropdownMenuItem>
                 )}
+                {isProjectOwned && (
+                  <DropdownMenuItem onSelect={() => setShowMetadata(true)}>
+                    <Tags className="ml-1 mr-1.5 size-4.5" />
+                    Project metadata
+                  </DropdownMenuItem>
+                )}
                 {canDownloadProject && (
                   <DropdownMenuItem onSelect={handleExportProject}>
                     <Download className="ml-1 mr-1.5 size-4.5" />
@@ -458,6 +467,11 @@ function ProjectLayout() {
             onClose={() => setShowPrepareRelease(false)}
             projectId={project.id}
           />
+        </Suspense>
+      )}
+      {project && isProjectOwned && showMetadata && (
+        <Suspense fallback={null}>
+          <ProjectMetadataModal projectId={project.id} coverUrl={projectCoverImage} onClose={() => setShowMetadata(false)} />
         </Suspense>
       )}
     </>

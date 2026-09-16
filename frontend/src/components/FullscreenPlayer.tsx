@@ -1,26 +1,10 @@
 import { AnimatePresence } from "motion/react";
-import { lazy, Suspense, useEffect, useState } from "react";
-import { ChevronDown, LoaderCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { useProjectCoverImage } from "@/hooks/useProjectCoverImage";
 import { useProject } from "@/hooks/useProjects";
 import { useTracks } from "@/hooks/useTracks";
-import { Button } from "./ui/button";
-
-const loadNowPlaying = () => import("./NowPlayingView");
-const NowPlayingView = lazy(loadNowPlaying);
-
-function LoadingPlayer() {
-  const { closeNowPlaying } = useAudioPlayer();
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black text-white" role="dialog" aria-modal="true" aria-label="Loading Now Playing">
-      <Button onClick={closeNowPlaying} variant="ghost" size="icon-lg" aria-label="Collapse Now Playing" className="absolute left-6 top-[max(env(safe-area-inset-top),1.5rem)] text-white">
-        <ChevronDown />
-      </Button>
-      <LoaderCircle className="size-6 animate-spin motion-reduce:animate-none" aria-label="Loading" />
-    </div>
-  );
-}
+import NowPlayingView from "./NowPlayingView";
 
 function CurrentNowPlaying() {
   const { currentTrack } = useAudioPlayer();
@@ -50,14 +34,9 @@ function CurrentNowPlaying() {
 
 export default function FullscreenPlayer() {
   const { currentTrack, isNowPlayingOpen } = useAudioPlayer();
-  useEffect(() => {
-    if (currentTrack) void loadNowPlaying().catch(() => {});
-  }, [currentTrack?.id]);
   return (
-    <Suspense fallback={<LoadingPlayer />}>
-      <AnimatePresence initial={false}>
-        {isNowPlayingOpen && currentTrack && <CurrentNowPlaying key="now-playing" />}
-      </AnimatePresence>
-    </Suspense>
+    <AnimatePresence initial={false}>
+      {isNowPlayingOpen && currentTrack && <CurrentNowPlaying key="now-playing" />}
+    </AnimatePresence>
   );
 }

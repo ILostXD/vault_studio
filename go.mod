@@ -11,7 +11,8 @@ require (
 require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/joho/godotenv v1.5.1
-	golang.org/x/sys v0.41.0
+	go.senan.xyz/taglib v0.14.0
+	golang.org/x/term v0.40.0
 	golang.org/x/time v0.14.0
 )
 
@@ -19,13 +20,14 @@ require (
 	github.com/bokwoon95/wgo v0.6.3 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	golang.org/x/term v0.40.0 // indirect
+	github.com/tetratelabs/wazero v1.11.1-0.20260428013916-2bbd517b7633 // indirect
+	golang.org/x/sys v0.43.0 // indirect
 )
 
 require (
 	github.com/chai2010/webp v1.1.1
 	github.com/disintegration/imaging v1.6.2
-	golang.org/x/image v0.30.0 // indirect
+	golang.org/x/image v0.30.0
 )
 
 tool github.com/bokwoon95/wgo
