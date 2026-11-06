@@ -33,6 +33,8 @@ func TestAudioMetadataAPI(t *testing.T) {
 	mux.Handle("GET /api/projects/{id}/audio-metadata", httputil.Wrap(h.Get))
 	mux.Handle("PUT /api/projects/{id}/audio-metadata", httputil.Wrap(h.Save))
 	mux.Handle("GET /api/projects/{id}/tracks/{trackId}/tagged-download", httputil.Wrap(h.Download))
+	mux.Handle("GET /api/projects/{id}/tagged-download", httputil.Wrap(h.DownloadAlbum))
+	mux.Handle("POST /api/projects/{id}/music-library", httputil.Wrap(h.Publish))
 	call := func(method, url, body string, user int) *httptest.ResponseRecorder {
 		t.Helper()
 		r := httptest.NewRequest(method, url, strings.NewReader(body))
@@ -44,6 +46,21 @@ func TestAudioMetadataAPI(t *testing.T) {
 		return w
 	}
 	endpoint := "/api/projects/1/audio-metadata"
+	for _, method := range []string{"GET", "POST"} {
+		url := "/api/projects/1/tagged-download"
+		if method == "POST" {
+			url = "/api/projects/1/music-library"
+		}
+		if w := call(method, url, `{"revision":"x"}`, 0); w.Code != 401 {
+			t.Fatalf("album auth: %d", w.Code)
+		}
+		if w := call(method, url, `{"revision":"x"}`, 2); w.Code != 404 {
+			t.Fatalf("album ownership: %d", w.Code)
+		}
+		if w := call(method, url, `{"revision":"x"}`, 1); w.Code != 400 {
+			t.Fatalf("album revision: %d", w.Code)
+		}
+	}
 	if w := call("GET", endpoint, "", 0); w.Code != 401 {
 		t.Fatalf("auth: %d", w.Code)
 	}

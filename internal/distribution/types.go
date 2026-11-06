@@ -20,6 +20,7 @@ type Credit struct {
 type ArtistProfile struct {
 	DisplayName    string   `json:"display_name"`
 	LegalName      string   `json:"legal_name"`
+	UsualGenre     string   `json:"usual_genre"`
 	DefaultCredits []Credit `json:"default_credits"`
 }
 

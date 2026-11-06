@@ -1,0 +1,12 @@
+# Optional: docker compose -f docker-compose.yml -f docker-compose.music-library.yml up -d --build
+# MUSIC_LIBRARY_HOST_DIR must point to an existing writable folder on the host.
+services:
+  vault-server:
+    environment:
+      - MUSIC_LIBRARY_DIR=/music-library
+    volumes:
+      - type: bind
+        source: ${MUSIC_LIBRARY_HOST_DIR:?Set MUSIC_LIBRARY_HOST_DIR to your music library folder}
+        target: /music-library
+        bind:
+          create_host_path: false

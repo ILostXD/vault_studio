@@ -15,6 +15,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	appdb "bungleware/vault/internal/db"
 	"go.senan.xyz/taglib"
@@ -55,7 +56,7 @@ func TestResolutionAndStorage(t *testing.T) {
 		t.Fatal(state.Tracks)
 	}
 	unrelated, err := s.Resolve(ctx, 1, 2)
-	if err != nil || unrelated.Metadata.Artist != "" || unrelated.Metadata.Genre != "" {
+	if err != nil || unrelated.Metadata.Artist != "owner" || unrelated.Metadata.AlbumArtist != "owner" || unrelated.Metadata.Year != time.Now().Format("2006") || unrelated.Metadata.Genre != "" {
 		t.Fatalf("global metadata leaked: %#v %v", unrelated, err)
 	}
 	fields := Fields{Album: "Renamed", Artist: "DiRO", AlbumArtist: "Collective", Genre: "Rap", Year: "2026"}
@@ -74,7 +75,7 @@ func TestResolutionAndStorage(t *testing.T) {
 		t.Fatal(err)
 	}
 	state, err = s.Resolve(ctx, 1, 1)
-	if err != nil || state.Metadata.Artist != "" || state.Metadata.Genre != "" || state.Metadata.Year != "" {
+	if err != nil || state.Metadata.Artist != "owner" || state.Metadata.Genre != "" || state.Metadata.Year != "" {
 		t.Fatalf("explicit clears inherited old values: %#v %v", state, err)
 	}
 	for _, bad := range []Fields{{Album: ""}, {Album: "Album", Year: "20261"}, {Album: "Album", Year: "0000"}, {Album: "Album", Artist: "a\tb"}, {Album: strings.Repeat("a", 513)}} {
@@ -98,6 +99,27 @@ func TestResolutionAndStorage(t *testing.T) {
 	var count int
 	if err = s.db.QueryRow("SELECT COUNT(*) FROM project_audio_metadata").Scan(&count); err != nil || count != 0 {
 		t.Fatalf("cascade: %d %v", count, err)
+	}
+}
+
+func TestUsualGenreInheritance(t *testing.T) {
+	s, run := fixture(t)
+	ctx := context.Background()
+	run(`INSERT INTO distribution_artist_profiles(user_id,profile_json) VALUES (1,'{"usual_genre":"Trap"}')`)
+	state, err := s.Resolve(ctx, 1, 1)
+	if err != nil || state.Metadata.Genre != "Trap" || state.Tracks[0].Genre != "Trap" {
+		t.Fatalf("default genre: %#v %v", state, err)
+	}
+	if err = s.Save(ctx, 1, 1, Fields{Album: "Album", Genre: "Jazz"}); err != nil {
+		t.Fatal(err)
+	}
+	state, err = s.Resolve(ctx, 1, 1)
+	if err != nil || state.Metadata.Genre != "Jazz" {
+		t.Fatalf("explicit genre lost: %#v %v", state, err)
+	}
+	other, err := s.Resolve(ctx, 1, 2)
+	if err != nil || other.Metadata.Genre != "Trap" {
+		t.Fatalf("other album default: %#v %v", other, err)
 	}
 }
 
@@ -148,6 +170,9 @@ func TestTaggedCopiesFormatsAndOriginalIsolation(t *testing.T) {
 			if tc.format == "aac" && (result.Track.Format != "m4a" || result.Track.Conversion == "") {
 				t.Fatal("missing AAC remux disclosure")
 			}
+			if (tc.format == "wav" || tc.format == "aiff") && (result.Track.Format != "flac" || result.Track.Conversion == "") {
+				t.Fatalf("missing %s conversion disclosure: %#v", tc.format, result.Track)
+			}
 			tags, err := taglib.ReadTags(result.Path)
 			if err != nil || !reflect.DeepEqual(tags[taglib.Title], []string{"Canonical title"}) || !reflect.DeepEqual(tags[taglib.TrackNumber], []string{"2"}) {
 				t.Fatalf("tags: %#v %v", tags, err)
@@ -181,7 +206,7 @@ func TestTaggedCopiesFormatsAndOriginalIsolation(t *testing.T) {
 					t.Fatalf("tagging altered decoded audio: source %d bytes (%x), tagged %d bytes (%x)", len(a), sha256.Sum256(a), len(b), sha256.Sum256(b))
 				}
 			}
-			// Blank fields remove stale core tags and absent project artwork removes old pictures.
+			// Cleared genre/year remove stale tags; cleared artist returns to the album-page fallback.
 			run("UPDATE projects SET cover_art_path=NULL WHERE id=1")
 			if err = s.Save(ctx, 1, 1, Fields{Album: "Album"}); err != nil {
 				t.Fatal(err)
@@ -200,7 +225,7 @@ func TestTaggedCopiesFormatsAndOriginalIsolation(t *testing.T) {
 			}
 			defer cleared.Cleanup()
 			clearedTags, err := taglib.ReadTags(cleared.Path)
-			if err != nil || len(clearedTags[taglib.Artist]) > 0 {
+			if err != nil || !reflect.DeepEqual(clearedTags[taglib.Artist], []string{"owner"}) || len(clearedTags[taglib.Genre]) > 0 || len(clearedTags[taglib.Date]) > 0 {
 				t.Fatalf("cleared tags: %#v %v", clearedTags, err)
 			}
 			picture, err := taglib.ReadImage(cleared.Path)
@@ -232,5 +257,73 @@ func TestStorageBoundaryAndCancellation(t *testing.T) {
 	cancel()
 	if _, err := s.Resolve(ctx, 1, 1); !errors.Is(err, context.Canceled) {
 		t.Fatalf("cancellation: %v", err)
+	}
+}
+
+func TestFloatingPointWAVPreservesSamples(t *testing.T) {
+	if _, err := exec.LookPath("ffmpeg"); err != nil {
+		t.Skip("ffmpeg required for generated audio fixtures")
+	}
+	s, run := fixture(t)
+	ctx := context.Background()
+	source := filepath.Join(s.root, "float_master.wav")
+	args := []string{"-nostdin", "-v", "error", "-f", "lavfi", "-i", "sine=frequency=440:duration=0.1", "-c:a", "pcm_f32le", source}
+	if out, err := exec.Command("ffmpeg", args...).CombinedOutput(); err != nil {
+		t.Fatalf("fixture: %v %s", err, out)
+	}
+	original, err := os.ReadFile(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+	run("INSERT INTO track_files (version_id,quality,file_path,file_size,format,transcoding_status,original_filename) VALUES (1,'source',?,?,?,'completed','float_master.wav')", source, len(original), "wav")
+	coverPath := filepath.Join(s.root, "cover.png")
+	img := image.NewNRGBA(image.Rect(0, 0, 8, 8))
+	img.Set(0, 0, color.NRGBA{R: 255, G: 128, A: 255})
+	var cover bytes.Buffer
+	if err = png.Encode(&cover, img); err != nil {
+		t.Fatal(err)
+	}
+	if err = os.WriteFile(coverPath, cover.Bytes(), 0600); err != nil {
+		t.Fatal(err)
+	}
+	run("UPDATE projects SET cover_art_path=? WHERE id=1", coverPath)
+
+	state, err := s.Resolve(ctx, 1, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var track *Track
+	for i := range state.Tracks {
+		if state.Tracks[i].TrackID == 1 {
+			track = &state.Tracks[i]
+			break
+		}
+	}
+	if track == nil || track.Format != "wav" || !strings.Contains(track.Conversion, "quantization") {
+		t.Fatalf("expected floating-point preservation disclosure: %#v", track)
+	}
+
+	result, err := s.BuildTrack(ctx, 1, 1, 1, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer result.Cleanup()
+
+	if !strings.HasSuffix(result.Filename, ".wav") {
+		t.Fatalf("expected .wav filename, got %s", result.Filename)
+	}
+	embedded, err := taglib.ReadImage(result.Path)
+	if err != nil || len(embedded) == 0 {
+		t.Fatalf("embedded artwork missing from floating-point copy: %v", err)
+	}
+	decode := func(path string) []byte {
+		data, err := exec.Command("ffmpeg", "-v", "error", "-i", path, "-f", "f64le", "-c:a", "pcm_f64le", "-").Output()
+		if err != nil {
+			t.Fatal(err)
+		}
+		return data
+	}
+	if !bytes.Equal(decode(source), decode(result.Path)) {
+		t.Fatal("floating-point samples changed")
 	}
 }

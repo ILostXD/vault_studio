@@ -60,6 +60,10 @@ func (s *Service) GetProfile(ctx context.Context, userID int64) (ArtistProfile, 
 func (s *Service) SaveProfile(ctx context.Context, userID int64, p ArtistProfile) (ArtistProfile, error) {
 	p.DisplayName = strings.TrimSpace(p.DisplayName)
 	p.LegalName = strings.TrimSpace(p.LegalName)
+	p.UsualGenre = strings.TrimSpace(p.UsualGenre)
+	if len(p.UsualGenre) > 512 || strings.ContainsAny(p.UsualGenre, "\r\n\t\x00") {
+		return p, ErrInvalid
+	}
 	p.DefaultCredits = cleanCredits(p.DefaultCredits)
 	data, err := encodeInput(p)
 	if err != nil {
@@ -140,7 +144,11 @@ func (s *Service) Resolve(ctx context.Context, userID, projectID int64) (Release
 	r.ReleaseDate = value(o.ReleaseDate, project.EstimatedReleaseDate.String)
 	r.OriginalReleaseDate = value(o.OriginalReleaseDate, "")
 	r.Language = value(o.Language, "")
-	r.Genres = genres(o.Genres, nil)
+	var defaultGenres []string
+	if profile.UsualGenre != "" {
+		defaultGenres = []string{profile.UsualGenre}
+	}
+	r.Genres = genres(o.Genres, defaultGenres)
 	r.Copyright = value(o.Copyright, "")
 	r.PhonographicCopyright = value(o.PhonographicCopyright, "")
 	r.Label = value(o.Label, "")
@@ -574,7 +582,7 @@ func creditsCSV(r Release) ([]byte, error) {
 }
 func readme(r Release, v Validation) string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "%s — %s\n\nThis package was prepared by { vault.studio } from the project's active source masters. Original files in { vault } were not modified.\n\nComplete distributor-specific settings such as stores, territories, licenses, and final submission in your distributor.\n", r.Title, r.Artist)
+	fmt.Fprintf(&b, "%s — %s\n\nThis package was prepared by { vault.studio } from the project's active source masters. Original files in { vault.studio } were not modified.\n\nComplete distributor-specific settings such as stores, territories, licenses, and final submission in your distributor.\n", r.Title, r.Artist)
 	if len(v.Issues) > 0 {
 		b.WriteString("\nNeeds attention:\n")
 		for _, i := range v.Issues {
