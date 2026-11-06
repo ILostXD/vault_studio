@@ -13,6 +13,7 @@
 			"**/index.html",
 			"**/vite.config.js",
 			"!**/src/routeTree.gen.ts",
+			"!**/android/**",
 			"!**/src/styles.css"
 		]
 	},

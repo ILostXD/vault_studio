@@ -1,0 +1,10 @@
+* text=auto eol=lf
+*.bat text eol=crlf
+*.png binary
+*.gif binary
+*.webp binary
+*.jpg binary
+*.ico binary
+*.woff2 binary
+*.mp3 binary
+*.apk binary
