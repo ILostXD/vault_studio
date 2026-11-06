@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import LinkNotAvailable from "@/components/LinkNotAvailable";
 
 export const Route = createFileRoute("/$error")({
-  component: NotFoundPage,
+	component: NotFoundPage,
 });
 
 function NotFoundPage() {
-  return <LinkNotAvailable />;
+	return <LinkNotAvailable />;
 }

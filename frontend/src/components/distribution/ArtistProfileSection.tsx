@@ -9,8 +9,8 @@ import {
 	saveArtistProfile,
 } from "@/api/distribution";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { DisclosureSummary } from "@/components/ui/disclosure-summary";
+import { Input } from "@/components/ui/input";
 import { CreditsEditor } from "./CreditsEditor";
 
 const creditsDisclosureKey = "vault:artist-profile:credits-open";
@@ -95,7 +95,13 @@ export function ArtistProfileSection() {
 								</label>
 								<label className="space-y-1 text-sm sm:col-span-2">
 									<span>Usual genre</span>
-									<Input value={profile.usual_genre ?? ""} maxLength={512} onChange={(event) => setDraft({ ...profile, usual_genre: event.target.value })} />
+									<Input
+										value={profile.usual_genre ?? ""}
+										maxLength={512}
+										onChange={(event) =>
+											setDraft({ ...profile, usual_genre: event.target.value })
+										}
+									/>
 								</label>
 							</div>
 							<details
@@ -109,9 +115,7 @@ export function ArtistProfileSection() {
 									);
 								}}
 							>
-								<DisclosureSummary>
-									Reusable credits
-								</DisclosureSummary>
+								<DisclosureSummary>Reusable credits</DisclosureSummary>
 								<p className="mt-3 mb-3 text-sm text-(--text-1)">
 									These fill every track by default. Individual tracks can
 									override them during release preparation.

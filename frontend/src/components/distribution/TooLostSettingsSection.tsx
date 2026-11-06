@@ -79,9 +79,9 @@ export function TooLostSettingsSection() {
 				<div className="min-w-0">
 					<p className="text-base text-(--text-0)">Too Lost distribution</p>
 					<p className="mt-1 text-sm text-(--text-2)">
-						Register this {"{ vault.studio }"} instance in the Too Lost Developer Portal, then
-						enter its OAuth details here. Release Package exports need no
-						registration.
+						Register this {"{ vault.studio }"} instance in the Too Lost
+						Developer Portal, then enter its OAuth details here. Release Package
+						exports need no registration.
 					</p>
 				</div>
 				<span className="shrink-0 rounded-full border border-(--card-border) px-2.5 py-1 text-xs text-(--text-1)">
@@ -186,9 +186,10 @@ export function TooLostSettingsSection() {
 						</code>
 					</div>
 					<p className="text-xs text-(--text-2)">
-						The public URL must reach this {"{ vault.studio }"} instance over HTTPS. {"{ vault.studio }"}{" "}
-						encrypts the client secret and connected-account tokens using the
-						instance secret; no separate encryption-key setup is required.
+						The public URL must reach this {"{ vault.studio }"} instance over
+						HTTPS. {"{ vault.studio }"} encrypts the client secret and
+						connected-account tokens using the instance secret; no separate
+						encryption-key setup is required.
 					</p>
 					<div className="flex flex-wrap gap-2">
 						<Button

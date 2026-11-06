@@ -1,8 +1,16 @@
 import { Capacitor } from "@capacitor/core";
 import { Keyboard } from "@capacitor/keyboard";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { LoaderCircle } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+	useCallback,
+	useEffect,
+	useId,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import { checkUsersExist } from "../../api/auth";
 import { ApiError } from "../../api/client";
 import { getServerUrl, setServerUrl } from "../../api/server";
@@ -11,7 +19,6 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { useAuth } from "../../contexts/AuthContext";
-import { LoaderCircle } from "lucide-react";
 
 export const Route = createFileRoute("/login/")({
 	component: LoginPage,
@@ -41,7 +48,10 @@ function LoginPage() {
 		(e: React.FocusEvent) => {
 			const target = e.target;
 			if (
-				!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)
+				!(
+					target instanceof HTMLInputElement ||
+					target instanceof HTMLTextAreaElement
+				)
 			) {
 				return;
 			}
@@ -73,7 +83,10 @@ function LoginPage() {
 		(e: React.FocusEvent) => {
 			const target = e.target;
 			if (
-				!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)
+				!(
+					target instanceof HTMLInputElement ||
+					target instanceof HTMLTextAreaElement
+				)
 			) {
 				return;
 			}
@@ -126,10 +139,15 @@ function LoginPage() {
 		}
 
 		const vv = typeof window !== "undefined" ? window.visualViewport : null;
-		let lastVvHeight = vv?.height ?? (typeof window !== "undefined" ? window.innerHeight : 0);
-		let lastWindowHeight = typeof window !== "undefined" ? window.innerHeight : 0;
+		let lastVvHeight =
+			vv?.height ?? (typeof window !== "undefined" ? window.innerHeight : 0);
+		let lastWindowHeight =
+			typeof window !== "undefined" ? window.innerHeight : 0;
 
-		const checkKeyboardDismiss = (currentVvHeight: number, currentWindowHeight: number) => {
+		const checkKeyboardDismiss = (
+			currentVvHeight: number,
+			currentWindowHeight: number,
+		) => {
 			const vvDelta = currentVvHeight - lastVvHeight;
 			const winDelta = currentWindowHeight - lastWindowHeight;
 			lastVvHeight = currentVvHeight;
@@ -146,7 +164,10 @@ function LoginPage() {
 		};
 
 		const handleWindowResize = () => {
-			checkKeyboardDismiss(vv?.height ?? window.innerHeight, window.innerHeight);
+			checkKeyboardDismiss(
+				vv?.height ?? window.innerHeight,
+				window.innerHeight,
+			);
 		};
 
 		vv?.addEventListener("resize", handleVvResize);
@@ -163,7 +184,9 @@ function LoginPage() {
 	// Verify server connection with fast timeout
 	const verifyServer = useCallback(
 		async (urlToCheck?: string) => {
-			const targetUrl = (urlToCheck !== undefined ? urlToCheck : getServerUrl()).trim();
+			const targetUrl = (
+				urlToCheck !== undefined ? urlToCheck : getServerUrl()
+			).trim();
 
 			if (isNative && !targetUrl) {
 				setHasCheckedUsers(true);
@@ -391,7 +414,10 @@ function LoginPage() {
 							>
 								<div className="flex items-center justify-center gap-2.5 text-(--text-1)">
 									<LoaderCircle className="size-5 animate-spin text-(--accent)" />
-									<span className="text-sm font-light" style={{ fontFamily: '"IBM Plex Mono", monospace' }}>
+									<span
+										className="text-sm font-light"
+										style={{ fontFamily: '"IBM Plex Mono", monospace' }}
+									>
 										Connecting to server...
 									</span>
 								</div>
@@ -408,14 +434,16 @@ function LoginPage() {
 								<div
 									className="p-4 border border-red-500/30 rounded-2xl"
 									style={{
-										background: "linear-gradient(0deg, #2a1515 0%, rgba(40, 20, 20, 0.3) 100%)",
+										background:
+											"linear-gradient(0deg, #2a1515 0%, rgba(40, 20, 20, 0.3) 100%)",
 									}}
 								>
 									<p
 										className="text-red-400 text-sm text-center font-light whitespace-pre-line leading-relaxed"
 										style={{ fontFamily: '"IBM Plex Mono", monospace' }}
 									>
-										{connectionErrorMessage || "Unable to connect to the server"}
+										{connectionErrorMessage ||
+											"Unable to connect to the server"}
 									</p>
 								</div>
 								<Button

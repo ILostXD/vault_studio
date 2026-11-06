@@ -1,471 +1,488 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "motion/react";
 import { X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import { updatePreferences } from "@/api/preferences";
+import CDDiscBadge from "@/components/CDDiscBadge";
 import { Button } from "@/components/ui/button";
 import ColorPicker, { hexToHsl } from "@/components/ui/ColorPicker";
 import DotPattern from "@/components/ui/DotPattern";
-import CDDiscBadge from "@/components/CDDiscBadge";
 import { cn } from "@/lib/utils";
-import { updatePreferences } from "@/api/preferences";
 
 interface EditProfileModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  currentUsername: string;
-  userCreatedAt?: string;
-  currentDiscColors?: string[];
-  currentColorSpread?: number;
-  currentGradientSpread?: number;
-  currentColorShiftRotation?: number;
-  onSave: (username: string) => Promise<void>;
+	isOpen: boolean;
+	onClose: () => void;
+	currentUsername: string;
+	userCreatedAt?: string;
+	currentDiscColors?: string[];
+	currentColorSpread?: number;
+	currentGradientSpread?: number;
+	currentColorShiftRotation?: number;
+	onSave: (username: string) => Promise<void>;
 }
 
 function calculateInitialAngleAndRadius(
-  color: string,
-  maxLight: number = 90,
-  RADIUS: number = 120,
+	color: string,
+	maxLight: number = 90,
+	RADIUS: number = 120,
 ): { angle: number; radius: number } {
-  const hsl = hexToHsl(color);
-  const angle = (hsl.h * Math.PI) / 180;
-  const radius = (hsl.l / maxLight) * RADIUS;
-  return { angle, radius };
+	const hsl = hexToHsl(color);
+	const angle = (hsl.h * Math.PI) / 180;
+	const radius = (hsl.l / maxLight) * RADIUS;
+	return { angle, radius };
 }
 
 function applyColorShift(colors: string[], shiftAmount: number): string[] {
-  if (colors.length === 0 || shiftAmount === 0) return colors;
-  const normalizedShift =
-    ((shiftAmount % colors.length) + colors.length) % colors.length;
-  return [
-    ...colors.slice(-normalizedShift),
-    ...colors.slice(0, -normalizedShift),
-  ];
+	if (colors.length === 0 || shiftAmount === 0) return colors;
+	const normalizedShift =
+		((shiftAmount % colors.length) + colors.length) % colors.length;
+	return [
+		...colors.slice(-normalizedShift),
+		...colors.slice(0, -normalizedShift),
+	];
 }
 
 export default function EditProfileModal({
-  isOpen,
-  onClose,
-  currentUsername,
-  userCreatedAt,
-  currentDiscColors,
-  currentColorSpread,
-  currentGradientSpread,
-  currentColorShiftRotation,
-  onSave,
+	isOpen,
+	onClose,
+	currentUsername,
+	userCreatedAt,
+	currentDiscColors,
+	currentColorSpread,
+	currentGradientSpread,
+	currentColorShiftRotation,
+	onSave,
 }: EditProfileModalProps) {
-  const defaultColors = ["#36a8ff", "#36d8ff", "#3678ff"];
-  const DEFAULT_COLOR_SHIFT = 2;
-  const DEFAULT_COLOR_SPREAD = 100;
-  const DEFAULT_GRADIENT_SPREAD = 14;
-  const PICKER_SIZE = 280;
-  const PICKER_PADDING = 20;
-  const PICKER_RADIUS = PICKER_SIZE / 2 - PICKER_PADDING;
-  const MAX_LIGHT = 90;
+	const defaultColors = ["#36a8ff", "#36d8ff", "#3678ff"];
+	const DEFAULT_COLOR_SHIFT = 2;
+	const DEFAULT_COLOR_SPREAD = 100;
+	const DEFAULT_GRADIENT_SPREAD = 14;
+	const PICKER_SIZE = 280;
+	const PICKER_PADDING = 20;
+	const PICKER_RADIUS = PICKER_SIZE / 2 - PICKER_PADDING;
+	const MAX_LIGHT = 90;
 
-  const [username, setUsername] = useState(currentUsername);
-  const [discColors, setDiscColors] = useState<string[]>(defaultColors);
-  const [colorShift, setColorShift] = useState(DEFAULT_COLOR_SHIFT);
-  const [numPoints, setNumPoints] = useState(3);
-  const [colorSpread, setColorSpread] = useState(DEFAULT_COLOR_SPREAD);
-  const [gradientSpread, setGradientSpread] = useState(DEFAULT_GRADIENT_SPREAD);
-  const [isSaving, setIsSaving] = useState(false);
+	const [username, setUsername] = useState(currentUsername);
+	const [discColors, setDiscColors] = useState<string[]>(defaultColors);
+	const [colorShift, setColorShift] = useState(DEFAULT_COLOR_SHIFT);
+	const [numPoints, setNumPoints] = useState(3);
+	const [colorSpread, setColorSpread] = useState(DEFAULT_COLOR_SPREAD);
+	const [gradientSpread, setGradientSpread] = useState(DEFAULT_GRADIENT_SPREAD);
+	const [isSaving, setIsSaving] = useState(false);
 
-  const initialAngleAndRadius = useMemo(() => {
-    const colorsToUse =
-      currentDiscColors && currentDiscColors.length > 0
-        ? currentDiscColors
-        : defaultColors;
-    const shift =
-      currentDiscColors && currentDiscColors.length > 0
-        ? (currentColorShiftRotation ?? 0)
-        : DEFAULT_COLOR_SHIFT;
-    const unshiftAmount =
-      colorsToUse.length - (shift % colorsToUse.length);
-    const unshiftedColors = applyColorShift(colorsToUse, unshiftAmount);
-    const mainColor = unshiftedColors[Math.floor(unshiftedColors.length / 2)];
-    return calculateInitialAngleAndRadius(mainColor, MAX_LIGHT, PICKER_RADIUS);
-  }, [currentDiscColors, currentColorShiftRotation, MAX_LIGHT, PICKER_RADIUS]);
+	const initialAngleAndRadius = useMemo(() => {
+		const colorsToUse =
+			currentDiscColors && currentDiscColors.length > 0
+				? currentDiscColors
+				: defaultColors;
+		const shift =
+			currentDiscColors && currentDiscColors.length > 0
+				? (currentColorShiftRotation ?? 0)
+				: DEFAULT_COLOR_SHIFT;
+		const unshiftAmount = colorsToUse.length - (shift % colorsToUse.length);
+		const unshiftedColors = applyColorShift(colorsToUse, unshiftAmount);
+		const mainColor = unshiftedColors[Math.floor(unshiftedColors.length / 2)];
+		return calculateInitialAngleAndRadius(mainColor, MAX_LIGHT, PICKER_RADIUS);
+	}, [currentDiscColors, currentColorShiftRotation, MAX_LIGHT, PICKER_RADIUS]);
 
-  useEffect(() => {
-    setUsername(currentUsername);
-    const hasUserColors = currentDiscColors && currentDiscColors.length > 0;
-    if (hasUserColors) {
-      setDiscColors(currentDiscColors);
-      setNumPoints(Math.min(currentDiscColors.length, 3));
-      setColorSpread(currentColorSpread ?? DEFAULT_COLOR_SPREAD);
-      setGradientSpread(currentGradientSpread ?? DEFAULT_GRADIENT_SPREAD);
-      setColorShift(currentColorShiftRotation ?? DEFAULT_COLOR_SHIFT);
-    } else {
-      setDiscColors(defaultColors);
-      setNumPoints(3);
-      setColorSpread(DEFAULT_COLOR_SPREAD);
-      setGradientSpread(DEFAULT_GRADIENT_SPREAD);
-      setColorShift(DEFAULT_COLOR_SHIFT);
-    }
-  }, [
-    currentUsername,
-    currentDiscColors,
-    currentColorSpread,
-    currentGradientSpread,
-    currentColorShiftRotation,
-    isOpen,
-  ]);
+	useEffect(() => {
+		setUsername(currentUsername);
+		const hasUserColors = currentDiscColors && currentDiscColors.length > 0;
+		if (hasUserColors) {
+			setDiscColors(currentDiscColors);
+			setNumPoints(Math.min(currentDiscColors.length, 3));
+			setColorSpread(currentColorSpread ?? DEFAULT_COLOR_SPREAD);
+			setGradientSpread(currentGradientSpread ?? DEFAULT_GRADIENT_SPREAD);
+			setColorShift(currentColorShiftRotation ?? DEFAULT_COLOR_SHIFT);
+		} else {
+			setDiscColors(defaultColors);
+			setNumPoints(3);
+			setColorSpread(DEFAULT_COLOR_SPREAD);
+			setGradientSpread(DEFAULT_GRADIENT_SPREAD);
+			setColorShift(DEFAULT_COLOR_SHIFT);
+		}
+	}, [
+		currentUsername,
+		currentDiscColors,
+		currentColorSpread,
+		currentGradientSpread,
+		currentColorShiftRotation,
+		isOpen,
+	]);
 
-  const handleCancel = useCallback(() => {
-    setUsername(currentUsername);
-    onClose();
-  }, [currentUsername, onClose]);
+	const handleCancel = useCallback(() => {
+		setUsername(currentUsername);
+		onClose();
+	}, [currentUsername, onClose]);
 
-  const handleColorChange = useCallback(
-    (colors: string[]) => {
-      setDiscColors(applyColorShift(colors, colorShift));
-    },
-    [colorShift],
-  );
+	const handleColorChange = useCallback(
+		(colors: string[]) => {
+			setDiscColors(applyColorShift(colors, colorShift));
+		},
+		[colorShift],
+	);
 
-  const handleShiftColors = useCallback(() => {
-    setColorShift((prev) => (prev + 1) % Math.max(numPoints, 1));
-    setDiscColors((prev) => {
-      const active = prev.slice(0, numPoints);
-      if (active.length <= 1) return prev;
-      return [...active.slice(-1), ...active.slice(0, -1)];
-    });
-  }, [numPoints]);
+	const handleShiftColors = useCallback(() => {
+		setColorShift((prev) => (prev + 1) % Math.max(numPoints, 1));
+		setDiscColors((prev) => {
+			const active = prev.slice(0, numPoints);
+			if (active.length <= 1) return prev;
+			return [...active.slice(-1), ...active.slice(0, -1)];
+		});
+	}, [numPoints]);
 
-  const handleSave = useCallback(async () => {
-    const colorsToSave = discColors.slice(0, numPoints);
-    console.log("[EditProfileModal] disc colors after edit:", colorsToSave);
-    const colorsChanged =
-      JSON.stringify(colorsToSave) !==
-      JSON.stringify(currentDiscColors || defaultColors);
-    const hasUserColors = currentDiscColors && currentDiscColors.length > 0;
-    const prevColorSpread = hasUserColors ? (currentColorSpread ?? DEFAULT_COLOR_SPREAD) : DEFAULT_COLOR_SPREAD;
-    const prevGradientSpread = hasUserColors ? (currentGradientSpread ?? DEFAULT_GRADIENT_SPREAD) : DEFAULT_GRADIENT_SPREAD;
-    const colorSpreadChanged = colorSpread !== prevColorSpread;
-    const gradientSpreadChanged = gradientSpread !== prevGradientSpread;
-    const usernameChanged = username !== currentUsername;
+	const handleSave = useCallback(async () => {
+		const colorsToSave = discColors.slice(0, numPoints);
+		console.log("[EditProfileModal] disc colors after edit:", colorsToSave);
+		const colorsChanged =
+			JSON.stringify(colorsToSave) !==
+			JSON.stringify(currentDiscColors || defaultColors);
+		const hasUserColors = currentDiscColors && currentDiscColors.length > 0;
+		const prevColorSpread = hasUserColors
+			? (currentColorSpread ?? DEFAULT_COLOR_SPREAD)
+			: DEFAULT_COLOR_SPREAD;
+		const prevGradientSpread = hasUserColors
+			? (currentGradientSpread ?? DEFAULT_GRADIENT_SPREAD)
+			: DEFAULT_GRADIENT_SPREAD;
+		const colorSpreadChanged = colorSpread !== prevColorSpread;
+		const gradientSpreadChanged = gradientSpread !== prevGradientSpread;
+		const usernameChanged = username !== currentUsername;
 
-    if (
-      !usernameChanged &&
-      !colorsChanged &&
-      !colorSpreadChanged &&
-      !gradientSpreadChanged
-    ) {
-      onClose();
-      return;
-    }
+		if (
+			!usernameChanged &&
+			!colorsChanged &&
+			!colorSpreadChanged &&
+			!gradientSpreadChanged
+		) {
+			onClose();
+			return;
+		}
 
-    setIsSaving(true);
-    try {
-      if (
-        colorsChanged ||
-        colorSpreadChanged ||
-        gradientSpreadChanged ||
-        colorShift !== (hasUserColors ? (currentColorShiftRotation ?? DEFAULT_COLOR_SHIFT) : DEFAULT_COLOR_SHIFT)
-      ) {
-        await updatePreferences({
-          disc_colors: colorsToSave,
-          color_spread: colorSpread,
-          gradient_spread: gradientSpread,
-          color_shift_rotation: colorShift,
-        });
-      }
+		setIsSaving(true);
+		try {
+			if (
+				colorsChanged ||
+				colorSpreadChanged ||
+				gradientSpreadChanged ||
+				colorShift !==
+					(hasUserColors
+						? (currentColorShiftRotation ?? DEFAULT_COLOR_SHIFT)
+						: DEFAULT_COLOR_SHIFT)
+			) {
+				await updatePreferences({
+					disc_colors: colorsToSave,
+					color_spread: colorSpread,
+					gradient_spread: gradientSpread,
+					color_shift_rotation: colorShift,
+				});
+			}
 
-      if (usernameChanged) {
-        await onSave(username.trim() || "User");
-      } else if (colorsChanged || colorSpreadChanged || gradientSpreadChanged) {
-        await onSave(currentUsername);
-      }
+			if (usernameChanged) {
+				await onSave(username.trim() || "User");
+			} else if (colorsChanged || colorSpreadChanged || gradientSpreadChanged) {
+				await onSave(currentUsername);
+			}
 
-      onClose();
-    } catch (error) {
-      console.error("Failed to save profile:", error);
-    } finally {
-      setIsSaving(false);
-    }
-  }, [
-    discColors,
-    numPoints,
-    currentDiscColors,
-    defaultColors,
-    colorSpread,
-    currentColorSpread,
-    gradientSpread,
-    currentGradientSpread,
-    username,
-    currentUsername,
-    onClose,
-    onSave,
-  ]);
+			onClose();
+		} catch (error) {
+			console.error("Failed to save profile:", error);
+		} finally {
+			setIsSaving(false);
+		}
+	}, [
+		discColors,
+		numPoints,
+		currentDiscColors,
+		defaultColors,
+		colorSpread,
+		currentColorSpread,
+		gradientSpread,
+		currentGradientSpread,
+		username,
+		currentUsername,
+		onClose,
+		onSave,
+	]);
 
-  useEffect(() => {
-    if (!isOpen) return;
+	useEffect(() => {
+		if (!isOpen) return;
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        handleCancel();
-      }
-    };
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === "Escape") {
+				handleCancel();
+			}
+		};
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, handleCancel]);
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [isOpen, handleCancel]);
 
-  return createPortal(
-    <>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
-            className="fixed inset-0 z-1000 overlay-backdrop"
-            onClick={handleCancel}
-          />
-        )}
-      </AnimatePresence>
+	return createPortal(
+		<>
+			<AnimatePresence>
+				{isOpen && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
+						className="fixed inset-0 z-1000 overlay-backdrop"
+						onClick={handleCancel}
+					/>
+				)}
+			</AnimatePresence>
 
-      <AnimatePresence>
-        {isOpen && (
-          <div className="fixed inset-0 z-1000 flex items-stretch md:items-center justify-center p-0 md:p-4 pointer-events-none overflow-y-auto overscroll-contain">
-            <div className="flex min-h-full w-full flex-col items-center gap-0 py-0 pointer-events-auto md:min-h-0 md:w-auto md:flex-row md:items-start md:gap-8 md:py-4">
-              <motion.div
-                layoutId="profile-disc-badge"
-                className="hidden md:flex flex-col items-center"
-                initial={false}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              >
-                <CDDiscBadge
-                  label={username}
-                  placeholder="User"
-                  sublabel={
-                    userCreatedAt
-                      ? `Created ${new Date(userCreatedAt).toLocaleDateString(
-                          "en-US",
-                          {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          },
-                        )}`
-                      : "{ vault.studio }"
-                  }
-                  colors={discColors.slice(0, numPoints)}
-                  colorSpread={colorSpread}
-                  editable
-                  onLabelChange={setUsername}
-                  onLabelKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleSave();
-                    }
-                  }}
-                />
-              </motion.div>
+			<AnimatePresence>
+				{isOpen && (
+					<div className="fixed inset-0 z-1000 flex items-stretch md:items-center justify-center p-0 md:p-4 pointer-events-none overflow-y-auto overscroll-contain">
+						<div className="flex min-h-full w-full flex-col items-center gap-0 py-0 pointer-events-auto md:min-h-0 md:w-auto md:flex-row md:items-start md:gap-8 md:py-4">
+							<motion.div
+								layoutId="profile-disc-badge"
+								className="hidden md:flex flex-col items-center"
+								initial={false}
+								transition={{ type: "spring", stiffness: 300, damping: 30 }}
+							>
+								<CDDiscBadge
+									label={username}
+									placeholder="User"
+									sublabel={
+										userCreatedAt
+											? `Created ${new Date(userCreatedAt).toLocaleDateString(
+													"en-US",
+													{
+														year: "numeric",
+														month: "short",
+														day: "numeric",
+													},
+												)}`
+											: "{ vault.studio }"
+									}
+									colors={discColors.slice(0, numPoints)}
+									colorSpread={colorSpread}
+									editable
+									onLabelChange={setUsername}
+									onLabelKeyDown={(e) => {
+										if (e.key === "Enter") {
+											handleSave();
+										}
+									}}
+								/>
+							</motion.div>
 
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 400,
-                  damping: 35,
-                  mass: 0.8,
-                }}
-                className="relative z-10 w-full max-w-full md:max-w-[500px] min-h-[100dvh] md:min-h-0 border-0 md:border border-(--card-border) rounded-none md:rounded-[34px] shadow-2xl overflow-visible md:overflow-hidden overlay-surface text-(--text-0)"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="p-4 sm:p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-medium text-(--text-0)">
-                      Edit Profile
-                    </h2>
-                    <button
-                      onClick={handleCancel}
-                      className="text-(--text-1) hover:text-(--text-0) transition-colors"
-                    >
-                      <X className="size-5" />
-                    </button>
-                  </div>
+							<motion.div
+								initial={{ opacity: 0, x: 20 }}
+								animate={{ opacity: 1, x: 0 }}
+								exit={{ opacity: 0, x: 20 }}
+								transition={{
+									type: "spring",
+									stiffness: 400,
+									damping: 35,
+									mass: 0.8,
+								}}
+								className="relative z-10 w-full max-w-full md:max-w-[500px] min-h-[100dvh] md:min-h-0 border-0 md:border border-(--card-border) rounded-none md:rounded-[34px] shadow-2xl overflow-visible md:overflow-hidden overlay-surface text-(--text-0)"
+								onClick={(e) => e.stopPropagation()}
+							>
+								<div className="p-4 sm:p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+									<div className="flex items-center justify-between mb-6">
+										<h2 className="text-2xl font-medium text-(--text-0)">
+											Edit Profile
+										</h2>
+										<button
+											onClick={handleCancel}
+											className="text-(--text-1) hover:text-(--text-0) transition-colors"
+										>
+											<X className="size-5" />
+										</button>
+									</div>
 
-                  <div className="space-y-6">
-                    <div className="md:hidden">
-                      <label htmlFor="edit-profile-username" className="text-(--text-1) text-sm mb-2 block">
-                        Username
-                      </label>
-                      <input
-                        id="edit-profile-username"
-                        type="text"
-                        value={username}
-                        placeholder="User"
-                        onChange={(e) => setUsername(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleSave();
-                        }}
-                        className="w-full bg-(--inner-card-bg) border border-(--card-border) rounded-[12px] px-4 py-3 text-(--text-0) text-base outline-none focus:border-[#555] transition-colors placeholder:text-(--text-2)"
-                        style={{ caretColor: "white" }}
-                      />
-                    </div>
+									<div className="space-y-6">
+										<div className="md:hidden">
+											<label
+												htmlFor="edit-profile-username"
+												className="text-(--text-1) text-sm mb-2 block"
+											>
+												Username
+											</label>
+											<input
+												id="edit-profile-username"
+												type="text"
+												value={username}
+												placeholder="User"
+												onChange={(e) => setUsername(e.target.value)}
+												onKeyDown={(e) => {
+													if (e.key === "Enter") handleSave();
+												}}
+												className="w-full bg-(--inner-card-bg) border border-(--card-border) rounded-[12px] px-4 py-3 text-(--text-0) text-base outline-none focus:border-[#555] transition-colors placeholder:text-(--text-2)"
+												style={{ caretColor: "white" }}
+											/>
+										</div>
 
-                    <div>
-                      <label className="text-(--text-1) text-sm mb-2 block">
-                        Disc Colors
-                      </label>
-                      <div className="bg-(--inner-card-bg) border border-(--card-border) rounded-[12px] p-3 sm:p-6 relative overflow-hidden">
-                        <DotPattern
-                          width={10}
-                          height={10}
-                          className={cn(
-                            "mask-[radial-gradient(200px_circle_at_50%_140px,white,transparent)] z-0",
-                          )}
-                        />
-                        <div className="flex flex-col items-center gap-4 relative z-10">
-                          <ColorPicker
-                            size={Math.max(180, Math.min(280, typeof window === "undefined" ? 280 : window.innerWidth - 88))}
-                            padding={20}
-                            bulletRadius={24}
-                            spreadFactor={gradientSpread / 100}
-                            numPoints={numPoints}
-                            showColorWheel={false}
-                            initialAngle={initialAngleAndRadius?.angle}
-                            initialRadius={initialAngleAndRadius?.radius}
-                            onColorChange={handleColorChange}
-                          />
+										<div>
+											<label className="text-(--text-1) text-sm mb-2 block">
+												Disc Colors
+											</label>
+											<div className="bg-(--inner-card-bg) border border-(--card-border) rounded-[12px] p-3 sm:p-6 relative overflow-hidden">
+												<DotPattern
+													width={10}
+													height={10}
+													className={cn(
+														"mask-[radial-gradient(200px_circle_at_50%_140px,white,transparent)] z-0",
+													)}
+												/>
+												<div className="flex flex-col items-center gap-4 relative z-10">
+													<ColorPicker
+														size={Math.max(
+															180,
+															Math.min(
+																280,
+																typeof window === "undefined"
+																	? 280
+																	: window.innerWidth - 88,
+															),
+														)}
+														padding={20}
+														bulletRadius={24}
+														spreadFactor={gradientSpread / 100}
+														numPoints={numPoints}
+														showColorWheel={false}
+														initialAngle={initialAngleAndRadius?.angle}
+														initialRadius={initialAngleAndRadius?.radius}
+														onColorChange={handleColorChange}
+													/>
 
-                          <div className="flex gap-2 items-center">
-                            <button
-                              onClick={() =>
-                                setNumPoints(Math.max(1, numPoints - 1))
-                              }
-                              disabled={numPoints <= 1}
-                              className="text-(--text-1) disabled:text-[#484848] size-7 rounded text-2xl hover:bg-[#252525] disabled:hover:bg-transparent transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
-                            >
-                              -
-                            </button>
-                            <span className="text-(--text-1) text-sm w-16 text-center">
-                              {numPoints} {numPoints === 1 ? "color" : "colors"}
-                            </span>
-                            <button
-                              onClick={() =>
-                                setNumPoints(Math.min(3, numPoints + 1))
-                              }
-                              disabled={numPoints >= 3}
-                              className="text-(--text-1) disabled:text-[#484848] size-7 rounded text-2xl hover:bg-[#252525] disabled:hover:bg-transparent transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
-                            >
-                              +
-                            </button>
-                            <div className="w-px h-5 bg-[#353333] mx-1"></div>
-                            <button
-                              onClick={handleShiftColors}
-                              disabled={numPoints <= 1}
-                              title="Rotate color order"
-                              className="text-(--text-1) disabled:text-[#484848] px-3 py-1 rounded flex gap-1 items-center hover:bg-[#252525] disabled:hover:bg-transparent transition-all cursor-pointer disabled:cursor-not-allowed"
-                            >
-                              {Array.from({ length: numPoints }).map((_, i) => (
-                                <div
-                                  key={i}
-                                  className={`w-2 h-2 rounded-full transition-colors ${
-                                    i === colorShift % numPoints
-                                      ? "bg-white"
-                                      : "bg-[#484848]"
-                                  }`}
-                                />
-                              ))}
-                            </button>
-                          </div>
+													<div className="flex gap-2 items-center">
+														<button
+															onClick={() =>
+																setNumPoints(Math.max(1, numPoints - 1))
+															}
+															disabled={numPoints <= 1}
+															className="text-(--text-1) disabled:text-[#484848] size-7 rounded text-2xl hover:bg-[#252525] disabled:hover:bg-transparent transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
+														>
+															-
+														</button>
+														<span className="text-(--text-1) text-sm w-16 text-center">
+															{numPoints} {numPoints === 1 ? "color" : "colors"}
+														</span>
+														<button
+															onClick={() =>
+																setNumPoints(Math.min(3, numPoints + 1))
+															}
+															disabled={numPoints >= 3}
+															className="text-(--text-1) disabled:text-[#484848] size-7 rounded text-2xl hover:bg-[#252525] disabled:hover:bg-transparent transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center"
+														>
+															+
+														</button>
+														<div className="w-px h-5 bg-[#353333] mx-1"></div>
+														<button
+															onClick={handleShiftColors}
+															disabled={numPoints <= 1}
+															title="Rotate color order"
+															className="text-(--text-1) disabled:text-[#484848] px-3 py-1 rounded flex gap-1 items-center hover:bg-[#252525] disabled:hover:bg-transparent transition-all cursor-pointer disabled:cursor-not-allowed"
+														>
+															{Array.from({ length: numPoints }).map((_, i) => (
+																<div
+																	key={i}
+																	className={`w-2 h-2 rounded-full transition-colors ${
+																		i === colorShift % numPoints
+																			? "bg-white"
+																			: "bg-[#484848]"
+																	}`}
+																/>
+															))}
+														</button>
+													</div>
 
-                          <div className="w-full flex flex-col gap-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-(--text-1) text-xs">
-                                Gradient Spread
-                              </span>
-                              <span className="text-(--text-1) text-xs">
-                                {gradientSpread}%
-                              </span>
-                            </div>
-                            <input
-                              type="range"
-                              min="0"
-                              max="200"
-                              value={gradientSpread}
-                              onChange={(e) =>
-                                setGradientSpread(Number(e.target.value))
-                              }
-                              className="w-full h-1 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0"
-                            />
-                            <div className="flex items-center justify-between text-[10px] text-[#5a5a5a]">
-                              <span>Narrow</span>
-                              <span>Wide</span>
-                            </div>
-                          </div>
+													<div className="w-full flex flex-col gap-2">
+														<div className="flex items-center justify-between">
+															<span className="text-(--text-1) text-xs">
+																Gradient Spread
+															</span>
+															<span className="text-(--text-1) text-xs">
+																{gradientSpread}%
+															</span>
+														</div>
+														<input
+															type="range"
+															min="0"
+															max="200"
+															value={gradientSpread}
+															onChange={(e) =>
+																setGradientSpread(Number(e.target.value))
+															}
+															className="w-full h-1 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0"
+														/>
+														<div className="flex items-center justify-between text-[10px] text-[#5a5a5a]">
+															<span>Narrow</span>
+															<span>Wide</span>
+														</div>
+													</div>
 
-                          <div className="w-full flex flex-col gap-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-(--text-1) text-xs">
-                                Color Spread
-                              </span>
-                              <span className="text-(--text-1) text-xs">
-                                {colorSpread}%
-                              </span>
-                            </div>
-                            <input
-                              type="range"
-                              min="0"
-                              max="100"
-                              value={colorSpread}
-                              onChange={(e) =>
-                                setColorSpread(Number(e.target.value))
-                              }
-                              className="w-full h-1 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0"
-                            />
-                            <div className="flex items-center justify-between text-[10px] text-[#5a5a5a]">
-                              <span>Tight</span>
-                              <span>Wide</span>
-                            </div>
-                          </div>
+													<div className="w-full flex flex-col gap-2">
+														<div className="flex items-center justify-between">
+															<span className="text-(--text-1) text-xs">
+																Color Spread
+															</span>
+															<span className="text-(--text-1) text-xs">
+																{colorSpread}%
+															</span>
+														</div>
+														<input
+															type="range"
+															min="0"
+															max="100"
+															value={colorSpread}
+															onChange={(e) =>
+																setColorSpread(Number(e.target.value))
+															}
+															className="w-full h-1 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0"
+														/>
+														<div className="flex items-center justify-between text-[10px] text-[#5a5a5a]">
+															<span>Tight</span>
+															<span>Wide</span>
+														</div>
+													</div>
 
-                          <div
-                            className="w-full h-12 rounded"
-                            style={{
-                              background:
-                                numPoints === 1
-                                  ? discColors[0]
-                                  : numPoints === 2
-                                    ? `linear-gradient(90deg, ${discColors[0]} 0%, ${discColors[1]} 100%)`
-                                    : `linear-gradient(90deg, ${discColors[0]} 0%, ${discColors[1]} 50%, ${discColors[2]} 100%)`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
+													<div
+														className="w-full h-12 rounded"
+														style={{
+															background:
+																numPoints === 1
+																	? discColors[0]
+																	: numPoints === 2
+																		? `linear-gradient(90deg, ${discColors[0]} 0%, ${discColors[1]} 100%)`
+																		: `linear-gradient(90deg, ${discColors[0]} 0%, ${discColors[1]} 50%, ${discColors[2]} 100%)`,
+														}}
+													/>
+												</div>
+											</div>
+										</div>
 
-                    <div className="flex items-center gap-4 pt-2">
-                      <Button
-                        onClick={handleCancel}
-                        className="flex-1 bg-[#1e1e1e] border border-[#2e2e2e] hover:bg-[#252525] active:bg-[#2a2a2a] text-(--text-0) rounded-xl h-[41px]"
-                        disabled={isSaving}
-                      >
-                        <span className="text-sm font-semibold">Cancel</span>
-                      </Button>
-                      <Button
-                        onClick={handleSave}
-                        variant={"hot"}
-                        haptic="success"
-                        className="flex-1 bg-[#e0e0e0] hover:bg-[#d5d5d5] active:bg-[#cacaca] text-black rounded-xl h-[41px]"
-                        disabled={isSaving || !username.trim()}
-                      >
-                        <span className="text-sm font-semibold">Save</span>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        )}
-      </AnimatePresence>
-    </>,
-    document.body,
-  );
+										<div className="flex items-center gap-4 pt-2">
+											<Button
+												onClick={handleCancel}
+												className="flex-1 bg-[#1e1e1e] border border-[#2e2e2e] hover:bg-[#252525] active:bg-[#2a2a2a] text-(--text-0) rounded-xl h-[41px]"
+												disabled={isSaving}
+											>
+												<span className="text-sm font-semibold">Cancel</span>
+											</Button>
+											<Button
+												onClick={handleSave}
+												variant={"hot"}
+												haptic="success"
+												className="flex-1 bg-[#e0e0e0] hover:bg-[#d5d5d5] active:bg-[#cacaca] text-black rounded-xl h-[41px]"
+												disabled={isSaving || !username.trim()}
+											>
+												<span className="text-sm font-semibold">Save</span>
+											</Button>
+										</div>
+									</div>
+								</div>
+							</motion.div>
+						</div>
+					</div>
+				)}
+			</AnimatePresence>
+		</>,
+		document.body,
+	);
 }

@@ -1,307 +1,313 @@
 import {
-  Outlet,
-  createFileRoute,
-  useNavigate,
-  useRouterState,
+	createFileRoute,
+	Link,
+	Outlet,
+	useNavigate,
+	useRouterState,
 } from "@tanstack/react-router";
-import { Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, useRef } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { SearchIcon, UserIcon, ChevronLeft, LoaderCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useFolder, useAllFolders, useUpdateFolder } from "@/hooks/useFolders";
-import type { Folder } from "@/types/api";
-import { toast } from "@/routes/__root";
-import GlobalSearchModal from "@/components/GlobalSearchModal";
-import { BrandWordmark } from "@/components/BrandWordmark";
+import { ChevronLeft, LoaderCircle, SearchIcon, UserIcon } from "lucide-react";
 import { motion } from "motion/react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { BrandWordmark } from "@/components/BrandWordmark";
+import GlobalSearchModal from "@/components/GlobalSearchModal";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAllFolders, useFolder, useUpdateFolder } from "@/hooks/useFolders";
+import { toast } from "@/routes/__root";
+import type { Folder } from "@/types/api";
 
 export const Route = createFileRoute("/_main")({
-  component: MainLayout,
+	component: MainLayout,
 });
 
 function MainLayout() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const navigate = useNavigate();
-  const routerState = useRouterState();
+	const { isAuthenticated, isLoading } = useAuth();
+	const navigate = useNavigate();
+	const routerState = useRouterState();
 
-  const isFolderRoute = routerState.location.pathname.startsWith("/folder/");
-  const folderIdMatch = routerState.location.pathname.match(/^\/folder\/(\d+)/);
-  const folderId = folderIdMatch ? parseInt(folderIdMatch[1], 10) : undefined;
+	const isFolderRoute = routerState.location.pathname.startsWith("/folder/");
+	const folderIdMatch = routerState.location.pathname.match(/^\/folder\/(\d+)/);
+	const folderId = folderIdMatch ? parseInt(folderIdMatch[1], 10) : undefined;
 
-  const { data: folder, isLoading: folderLoading } = useFolder(folderId);
-  const { data: allFolders } = useAllFolders();
-  const updateFolder = useUpdateFolder();
+	const { data: folder, isLoading: folderLoading } = useFolder(folderId);
+	const { data: allFolders } = useAllFolders();
+	const updateFolder = useUpdateFolder();
 
-  const [folderName, setFolderName] = useState("");
-  const folderNameInputRef = useRef<HTMLInputElement>(null);
+	const [folderName, setFolderName] = useState("");
+	const folderNameInputRef = useRef<HTMLInputElement>(null);
 
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const searchButtonRef = useRef<HTMLButtonElement>(null);
+	const [isSearchOpen, setIsSearchOpen] = useState(false);
+	const searchButtonRef = useRef<HTMLButtonElement>(null);
 
-  const breadcrumb = useMemo(() => {
-    if (!isFolderRoute || !folder || !allFolders) return [];
+	const breadcrumb = useMemo(() => {
+		if (!isFolderRoute || !folder || !allFolders) return [];
 
-    const folderMap = new Map<number, Folder>();
-    allFolders.forEach((f) => folderMap.set(f.id, f));
+		const folderMap = new Map<number, Folder>();
+		allFolders.forEach((f) => folderMap.set(f.id, f));
 
-    const path: Folder[] = [];
-    let currentFolder: Folder | undefined = folder;
+		const path: Folder[] = [];
+		let currentFolder: Folder | undefined = folder;
 
-    while (currentFolder) {
-      path.unshift(currentFolder); // Add to beginning
-      if (currentFolder.parent_id) {
-        currentFolder = folderMap.get(currentFolder.parent_id);
-      } else {
-        break;
-      }
-    }
+		while (currentFolder) {
+			path.unshift(currentFolder); // Add to beginning
+			if (currentFolder.parent_id) {
+				currentFolder = folderMap.get(currentFolder.parent_id);
+			} else {
+				break;
+			}
+		}
 
-    return path;
-  }, [isFolderRoute, folder, allFolders]);
+		return path;
+	}, [isFolderRoute, folder, allFolders]);
 
-  const handleBreadcrumbClick = (targetFolderId: number | null) => {
-    if (targetFolderId === null) {
-      navigate({ to: "/" });
-    } else {
-      navigate({
-        to: "/folder/$folderId",
-        params: { folderId: String(targetFolderId) },
-      });
-    }
-  };
+	const handleBreadcrumbClick = (targetFolderId: number | null) => {
+		if (targetFolderId === null) {
+			navigate({ to: "/" });
+		} else {
+			navigate({
+				to: "/folder/$folderId",
+				params: { folderId: String(targetFolderId) },
+			});
+		}
+	};
 
-  const handleBack = () => {
-    if (!folder) return;
-    if (folder.parent_id) {
-      navigate({
-        to: "/folder/$folderId",
-        params: { folderId: String(folder.parent_id) },
-      });
-    } else {
-      navigate({ to: "/" });
-    }
-  };
+	const handleBack = () => {
+		if (!folder) return;
+		if (folder.parent_id) {
+			navigate({
+				to: "/folder/$folderId",
+				params: { folderId: String(folder.parent_id) },
+			});
+		} else {
+			navigate({ to: "/" });
+		}
+	};
 
-  const folderDepth = breadcrumb.length;
-  const isDeeplyNested = folderDepth >= 2;
+	const folderDepth = breadcrumb.length;
+	const isDeeplyNested = folderDepth >= 2;
 
-  const isFolderNameSet = useMemo(() => {
-    if (!folder) return false;
-    if (!folder.name || !folder.name.trim()) return false;
-    const createdAt = new Date(folder.created_at).getTime();
-    const updatedAt = new Date(folder.updated_at).getTime();
-    return Math.abs(updatedAt - createdAt) > 1000;
-  }, [folder?.created_at, folder?.updated_at, folder?.name]);
+	const isFolderNameSet = useMemo(() => {
+		if (!folder) return false;
+		if (!folder.name || !folder.name.trim()) return false;
+		const createdAt = new Date(folder.created_at).getTime();
+		const updatedAt = new Date(folder.updated_at).getTime();
+		return Math.abs(updatedAt - createdAt) > 1000;
+	}, [folder?.created_at, folder?.updated_at, folder?.name]);
 
-  useEffect(() => {
-    if (folder) {
-      setFolderName(isFolderNameSet ? folder.name : "");
-    }
-  }, [folder?.id, folder?.name, isFolderNameSet]);
+	useEffect(() => {
+		if (folder) {
+			setFolderName(isFolderNameSet ? folder.name : "");
+		}
+	}, [folder?.id, folder?.name, isFolderNameSet]);
 
-  const handleSaveFolderName = async () => {
-    if (!folder || !folderId) return;
+	const handleSaveFolderName = async () => {
+		if (!folder || !folderId) return;
 
-    const trimmedName = folderName.trim();
+		const trimmedName = folderName.trim();
 
-    const nameToSave = trimmedName || "New Folder";
+		const nameToSave = trimmedName || "New Folder";
 
-    if (nameToSave === (folder.name || "").trim()) {
-      if (!trimmedName) {
-        setFolderName("New Folder");
-      }
-      return;
-    }
+		if (nameToSave === (folder.name || "").trim()) {
+			if (!trimmedName) {
+				setFolderName("New Folder");
+			}
+			return;
+		}
 
-    try {
-      await updateFolder.mutateAsync({
-        id: folderId,
-        data: { name: nameToSave },
-      });
-      setFolderName(nameToSave);
-    } catch (_error) {
-      toast.error("Failed to update folder name");
-      setFolderName(folder.name || "New Folder");
-    }
-  };
+		try {
+			await updateFolder.mutateAsync({
+				id: folderId,
+				data: { name: nameToSave },
+			});
+			setFolderName(nameToSave);
+		} catch (_error) {
+			toast.error("Failed to update folder name");
+			setFolderName(folder.name || "New Folder");
+		}
+	};
 
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      navigate({ to: "/login", replace: true });
-    }
-  }, [isLoading, isAuthenticated, navigate]);
+	useEffect(() => {
+		if (!isLoading && !isAuthenticated) {
+			navigate({ to: "/login", replace: true });
+		}
+	}, [isLoading, isAuthenticated, navigate]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.code === "KeyF") {
-        e.preventDefault();
-        setIsSearchOpen((prev) => !prev);
-        return;
-      }
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.code === "KeyF") {
+				e.preventDefault();
+				setIsSearchOpen((prev) => !prev);
+				return;
+			}
 
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
-      ) {
-        return;
-      }
-    };
+			if (
+				e.target instanceof HTMLInputElement ||
+				e.target instanceof HTMLTextAreaElement
+			) {
+				return;
+			}
+		};
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, []);
 
-  if (isLoading || !isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3">
-        <BrandWordmark className="text-2xl font-medium text-foreground" />
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <LoaderCircle className="size-3.5 animate-spin" />
-          <span>Connecting...</span>
-        </div>
-      </div>
-    );
-  }
+	if (isLoading || !isAuthenticated) {
+		return (
+			<div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3">
+				<BrandWordmark className="text-2xl font-medium text-foreground" />
+				<div className="flex items-center gap-2 text-xs text-muted-foreground">
+					<LoaderCircle className="size-3.5 animate-spin" />
+					<span>Connecting...</span>
+				</div>
+			</div>
+		);
+	}
 
-  return (
-    <>
-      <motion.header
-        initial={{ opacity: 0, y: -14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{
-          type: "spring",
-          stiffness: 360,
-          damping: 32,
-          delay: 0.04,
-        }}
-        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between text-(--text-0) md:p-10 p-6 gap-4"
-      >
-        {isFolderRoute ? (
-          isDeeplyNested ? (
-            <div className="flex items-center gap-2 md:ml-4 ml-0.5 min-w-0 flex-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                haptic="light"
-                data-breadcrumb-drop={folder?.parent_id ? `folder-${folder.parent_id}` : "root"}
-                className="flex items-center gap-1 text-(--text-0) hover:text-(--text-0)/80 -ml-2 rounded-md transition-all duration-150 data-[drag-over=true]:bg-white/15 data-[drag-over=true]:text-(--text-0) data-[drag-over=true]:scale-105 data-[drag-over=true]:ring-1 data-[drag-over=true]:ring-white/30"
-                onClick={handleBack}
-              >
-                <ChevronLeft className="size-4" />
-              </Button>
-              {folderLoading ? (
-                <span className="text-2xl font-medium">...</span>
-              ) : (
-                <input
-                  ref={folderNameInputRef}
-                  type="text"
-                  tabIndex={0}
-                  value={folderName}
-                  onChange={(e) => setFolderName(e.target.value)}
-                  onBlur={handleSaveFolderName}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.currentTarget.blur();
-                    }
-                  }}
-                  className="text-2xl font-medium bg-transparent border-none p-0 m-0 h-auto outline-none text-(--text-0) placeholder:text-(--text-0)/50 focus:outline-none focus:ring-0 truncate"
-                  placeholder="New Folder"
-                />
-              )}
-            </div>
-          ) : (
-            <nav className="flex items-center gap-2 text-sm md:ml-4 ml-0.5 min-w-0 flex-1 overflow-x-auto">
-              <Button
-                variant="ghost"
-                size="sm"
-                data-breadcrumb-drop="root"
-                className="h-auto p-1 -m-1 text-(--text-0)/50 hover:text-(--text-0) text-2xl font-medium shrink-0 rounded-md transition-all duration-150 data-[drag-over=true]:bg-white/15 data-[drag-over=true]:text-(--text-0) data-[drag-over=true]:scale-105 data-[drag-over=true]:ring-1 data-[drag-over=true]:ring-white/30"
-                onClick={() => handleBreadcrumbClick(null)}
-              >
-                <BrandWordmark />
-              </Button>
-              {folderLoading ? (
-                <>
-                  <span className="text-(--text-0)/50 text-2xl shrink-0">{" / "}</span>
-                  <span className="text-(--text-0)/70">...</span>
-                </>
-              ) : (
-                breadcrumb.map((folderItem, _index) => {
-                  const isCurrentFolder = folderItem.id === folder?.id;
-                  return (
-                    <span
-                      key={folderItem.id}
-                      className="flex items-center gap-2 min-w-0"
-                    >
-                      <span className="text-(--text-0)/50 text-2xl shrink-0">{" / "}</span>
-                      {isCurrentFolder ? (
-                        <input
-                          ref={folderNameInputRef}
-                          type="text"
-                          tabIndex={0}
-                          value={folderName}
-                          onChange={(e) => setFolderName(e.target.value)}
-                          onBlur={handleSaveFolderName}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.currentTarget.blur();
-                            }
-                          }}
-                          className="text-2xl font-medium bg-transparent border-none p-0 m-0 h-auto outline-none text-(--text-0) placeholder:text-(--text-0)/50 focus:outline-none focus:ring-0 truncate"
-                          placeholder="New Folder"
-                        />
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          data-breadcrumb-drop={`folder-${folderItem.id}`}
-                          className="h-auto p-1 -m-1 text-(--text-0) hover:text-(--text-0)/80 text-2xl font-medium truncate rounded-md transition-all duration-150 data-[drag-over=true]:bg-white/15 data-[drag-over=true]:text-(--text-0) data-[drag-over=true]:scale-105 data-[drag-over=true]:ring-1 data-[drag-over=true]:ring-white/30"
-                          onClick={() => handleBreadcrumbClick(folderItem.id)}
-                        >
-                          {folderItem.name}
-                        </Button>
-                      )}
-                    </span>
-                  );
-                })
-              )}
-            </nav>
-          )
-        ) : (
-          <h1 className="md:ml-4 ml-0.5 text-xl font-semibold">
-            <Link to="/">
-              <BrandWordmark className="text-2xl font-medium" />
-            </Link>
-          </h1>
-        )}
-        <div className="flex items-center gap-2.5">
-          {/* TODO: Implement notifications feature */}
-          {/* <Button variant="default" size="icon-lg">
+	return (
+		<>
+			<motion.header
+				initial={{ opacity: 0, y: -14 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{
+					type: "spring",
+					stiffness: 360,
+					damping: 32,
+					delay: 0.04,
+				}}
+				className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between text-(--text-0) md:p-10 p-6 gap-4"
+			>
+				{isFolderRoute ? (
+					isDeeplyNested ? (
+						<div className="flex items-center gap-2 md:ml-4 ml-0.5 min-w-0 flex-1">
+							<Button
+								variant="ghost"
+								size="sm"
+								haptic="light"
+								data-breadcrumb-drop={
+									folder?.parent_id ? `folder-${folder.parent_id}` : "root"
+								}
+								className="flex items-center gap-1 text-(--text-0) hover:text-(--text-0)/80 -ml-2 rounded-md transition-all duration-150 data-[drag-over=true]:bg-white/15 data-[drag-over=true]:text-(--text-0) data-[drag-over=true]:scale-105 data-[drag-over=true]:ring-1 data-[drag-over=true]:ring-white/30"
+								onClick={handleBack}
+							>
+								<ChevronLeft className="size-4" />
+							</Button>
+							{folderLoading ? (
+								<span className="text-2xl font-medium">...</span>
+							) : (
+								<input
+									ref={folderNameInputRef}
+									type="text"
+									tabIndex={0}
+									value={folderName}
+									onChange={(e) => setFolderName(e.target.value)}
+									onBlur={handleSaveFolderName}
+									onKeyDown={(e) => {
+										if (e.key === "Enter") {
+											e.currentTarget.blur();
+										}
+									}}
+									className="text-2xl font-medium bg-transparent border-none p-0 m-0 h-auto outline-none text-(--text-0) placeholder:text-(--text-0)/50 focus:outline-none focus:ring-0 truncate"
+									placeholder="New Folder"
+								/>
+							)}
+						</div>
+					) : (
+						<nav className="flex items-center gap-2 text-sm md:ml-4 ml-0.5 min-w-0 flex-1 overflow-x-auto">
+							<Button
+								variant="ghost"
+								size="sm"
+								data-breadcrumb-drop="root"
+								className="h-auto p-1 -m-1 text-(--text-0)/50 hover:text-(--text-0) text-2xl font-medium shrink-0 rounded-md transition-all duration-150 data-[drag-over=true]:bg-white/15 data-[drag-over=true]:text-(--text-0) data-[drag-over=true]:scale-105 data-[drag-over=true]:ring-1 data-[drag-over=true]:ring-white/30"
+								onClick={() => handleBreadcrumbClick(null)}
+							>
+								<BrandWordmark />
+							</Button>
+							{folderLoading ? (
+								<>
+									<span className="text-(--text-0)/50 text-2xl shrink-0">
+										{" / "}
+									</span>
+									<span className="text-(--text-0)/70">...</span>
+								</>
+							) : (
+								breadcrumb.map((folderItem, _index) => {
+									const isCurrentFolder = folderItem.id === folder?.id;
+									return (
+										<span
+											key={folderItem.id}
+											className="flex items-center gap-2 min-w-0"
+										>
+											<span className="text-(--text-0)/50 text-2xl shrink-0">
+												{" / "}
+											</span>
+											{isCurrentFolder ? (
+												<input
+													ref={folderNameInputRef}
+													type="text"
+													tabIndex={0}
+													value={folderName}
+													onChange={(e) => setFolderName(e.target.value)}
+													onBlur={handleSaveFolderName}
+													onKeyDown={(e) => {
+														if (e.key === "Enter") {
+															e.currentTarget.blur();
+														}
+													}}
+													className="text-2xl font-medium bg-transparent border-none p-0 m-0 h-auto outline-none text-(--text-0) placeholder:text-(--text-0)/50 focus:outline-none focus:ring-0 truncate"
+													placeholder="New Folder"
+												/>
+											) : (
+												<Button
+													variant="ghost"
+													size="sm"
+													data-breadcrumb-drop={`folder-${folderItem.id}`}
+													className="h-auto p-1 -m-1 text-(--text-0) hover:text-(--text-0)/80 text-2xl font-medium truncate rounded-md transition-all duration-150 data-[drag-over=true]:bg-white/15 data-[drag-over=true]:text-(--text-0) data-[drag-over=true]:scale-105 data-[drag-over=true]:ring-1 data-[drag-over=true]:ring-white/30"
+													onClick={() => handleBreadcrumbClick(folderItem.id)}
+												>
+													{folderItem.name}
+												</Button>
+											)}
+										</span>
+									);
+								})
+							)}
+						</nav>
+					)
+				) : (
+					<h1 className="md:ml-4 ml-0.5 text-xl font-semibold">
+						<Link to="/">
+							<BrandWordmark className="text-2xl font-medium" />
+						</Link>
+					</h1>
+				)}
+				<div className="flex items-center gap-2.5">
+					{/* TODO: Implement notifications feature */}
+					{/* <Button variant="default" size="icon-lg">
             <BellIcon fill="white" className="size-4.5"></BellIcon>
           </Button> */}
-          <Button
-            ref={searchButtonRef}
-            variant="default"
-            size="icon-lg"
-            haptic="light"
-            onClick={() => setIsSearchOpen(true)}
-          >
-            <SearchIcon strokeWidth={3} className="size-4.5"></SearchIcon>
-          </Button>
-          <Link to="/profile">
-            <Button variant="default" size="icon-lg" haptic="light">
-              <UserIcon fill="white" className="size-4.5"></UserIcon>
-            </Button>
-          </Link>
-        </div>
-      </motion.header>
-      <Outlet />
+					<Button
+						ref={searchButtonRef}
+						variant="default"
+						size="icon-lg"
+						haptic="light"
+						onClick={() => setIsSearchOpen(true)}
+					>
+						<SearchIcon strokeWidth={3} className="size-4.5"></SearchIcon>
+					</Button>
+					<Link to="/profile">
+						<Button variant="default" size="icon-lg" haptic="light">
+							<UserIcon fill="white" className="size-4.5"></UserIcon>
+						</Button>
+					</Link>
+				</div>
+			</motion.header>
+			<Outlet />
 
-      <GlobalSearchModal
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-      />
-    </>
-  );
+			<GlobalSearchModal
+				isOpen={isSearchOpen}
+				onClose={() => setIsSearchOpen(false)}
+			/>
+		</>
+	);
 }

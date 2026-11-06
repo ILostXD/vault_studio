@@ -1,605 +1,607 @@
 "use client";
 
+import { Filter } from "virtual:refractionFilter?width=48&height=48&radius=16&bezelWidth=12&glassThickness=40&refractiveIndex=1.45&bezelType=convex_squircle";
 import { Capacitor } from "@capacitor/core";
 import {
-  Play,
-  Pause,
-  Users,
-  MoreHorizontal,
-  ListPlus,
-  FolderInput,
-  Download,
-  LogOut,
+	Download,
+	FolderInput,
+	ListPlus,
+	LogOut,
+	MoreHorizontal,
+	Pause,
+	Play,
+	Users,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useState, useRef, useEffect } from "react";
-import { useColorExtractor } from "@/hooks/useColorExtractor";
 import { motion, useMotionValue, useSpring } from "motion/react";
-import { Filter } from "virtual:refractionFilter?width=48&height=48&radius=16&bezelWidth=12&glassThickness=40&refractiveIndex=1.45&bezelType=convex_squircle";
-import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
-import { Button } from "@/components/ui/button";
+import { useEffect, useRef, useState } from "react";
 import { useWebHaptics } from "web-haptics/react";
-import { useProjectCoverImage } from "@/hooks/useProjectCoverImage";
 import { resolveApiMediaUrl } from "@/api/media";
+import { Button } from "@/components/ui/button";
 import {
-  CROSSFADE_DURATION_MS,
-  BLUR_DURATION_MS,
-  CROSSFADE_BLUR_PX,
-  CROSSFADE_EASING,
-  BLUR_EASING,
-} from "@/lib/constants";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
+import { useColorExtractor } from "@/hooks/useColorExtractor";
+import { useProjectCoverImage } from "@/hooks/useProjectCoverImage";
+import {
+	BLUR_DURATION_MS,
+	BLUR_EASING,
+	CROSSFADE_BLUR_PX,
+	CROSSFADE_DURATION_MS,
+	CROSSFADE_EASING,
+} from "@/lib/constants";
+import { cn } from "@/lib/utils";
 import type { Project } from "@/types/api";
 
 const EMPTY_FOLDER_ITEMS: any[] = [];
 
 function TrackPlayFilter({ id, pressed }: { id: string; pressed: boolean }) {
-  const blur = useSpring(0, { damping: 30, stiffness: 200 });
-  const scaleRatio = useSpring(0.44, { damping: 30, stiffness: 200 });
-  const specularOpacity = useMotionValue(0.6);
-  const specularSaturation = useMotionValue(12);
+	const blur = useSpring(0, { damping: 30, stiffness: 200 });
+	const scaleRatio = useSpring(0.44, { damping: 30, stiffness: 200 });
+	const specularOpacity = useMotionValue(0.6);
+	const specularSaturation = useMotionValue(12);
 
-  useEffect(() => {
-    blur.set(3);
-  }, [blur]);
+	useEffect(() => {
+		blur.set(3);
+	}, [blur]);
 
-  useEffect(() => {
-    scaleRatio.set(pressed ? 0.99 : 0.44);
-  }, [scaleRatio, pressed]);
+	useEffect(() => {
+		scaleRatio.set(pressed ? 0.99 : 0.44);
+	}, [scaleRatio, pressed]);
 
-  return (
-    <Filter
-      id={id}
-      blur={blur}
-      scaleRatio={scaleRatio}
-      specularOpacity={specularOpacity}
-      specularSaturation={specularSaturation}
-    />
-  );
+	return (
+		<Filter
+			id={id}
+			blur={blur}
+			scaleRatio={scaleRatio}
+			specularOpacity={specularOpacity}
+			specularSaturation={specularSaturation}
+		/>
+	);
 }
 
 export interface TrackCardData {
-  public_id: string;
-  title: string;
-  artist?: string | null;
-  projectCoverUrl?: string;
-  sharedBy?: string;
-  projectName?: string;
-  waveform?: string | null;
-  duration_seconds?: number | null;
-  project_id?: number;
+	public_id: string;
+	title: string;
+	artist?: string | null;
+	projectCoverUrl?: string;
+	sharedBy?: string;
+	projectName?: string;
+	waveform?: string | null;
+	duration_seconds?: number | null;
+	project_id?: number;
 }
 
 interface TrackCardProps {
-  track: TrackCardData;
-  onClick?: () => void;
-  onShare?: () => void;
-  isShared?: boolean;
-  className?: string;
-  isOwned?: boolean;
-  canDownload?: boolean;
-  onAddToQueue?: () => void;
-  onMove?: () => void;
-  onExport?: () => void;
-  onLeave?: () => void;
-  dragHandleProps?: {
-    onPointerDown: (event: React.PointerEvent) => void;
-    onPointerUp?: (event: React.PointerEvent) => void;
-    onPointerMove?: (event: React.PointerEvent) => void;
-  } & React.HTMLAttributes<HTMLDivElement>;
-  isDragging?: boolean;
-  dragScaleDown?: boolean;
-  hoverAsFolder?: boolean;
-  hoverFolderItems?: any[];
-  isDropping?: boolean;
+	track: TrackCardData;
+	onClick?: () => void;
+	onShare?: () => void;
+	isShared?: boolean;
+	className?: string;
+	isOwned?: boolean;
+	canDownload?: boolean;
+	onAddToQueue?: () => void;
+	onMove?: () => void;
+	onExport?: () => void;
+	onLeave?: () => void;
+	dragHandleProps?: {
+		onPointerDown: (event: React.PointerEvent) => void;
+		onPointerUp?: (event: React.PointerEvent) => void;
+		onPointerMove?: (event: React.PointerEvent) => void;
+	} & React.HTMLAttributes<HTMLDivElement>;
+	isDragging?: boolean;
+	dragScaleDown?: boolean;
+	hoverAsFolder?: boolean;
+	hoverFolderItems?: any[];
+	isDropping?: boolean;
 }
 
 export function TrackCard({
-  track,
-  onClick,
-  isShared,
-  className,
-  isOwned = true,
-  canDownload = true,
-  onAddToQueue,
-  onMove,
-  onExport,
-  onLeave,
-  dragHandleProps,
-  isDragging,
-  dragScaleDown,
-  hoverAsFolder,
-  hoverFolderItems = EMPTY_FOLDER_ITEMS,
-  isDropping = false,
+	track,
+	onClick,
+	isShared,
+	className,
+	isOwned = true,
+	canDownload = true,
+	onAddToQueue,
+	onMove,
+	onExport,
+	onLeave,
+	dragHandleProps,
+	isDragging,
+	dragScaleDown,
+	hoverAsFolder,
+	hoverFolderItems = EMPTY_FOLDER_ITEMS,
+	isDropping = false,
 }: TrackCardProps) {
-  const [gradientColors, setGradientColors] = useState<string[]>([
-    "#8FC7FF",
-    "#4CF3FF",
-    "#BFF9FF",
-    "#59AFFF",
-  ]);
-  const isDraggingRef = useRef(false);
-  const resolvedProjectCoverUrl = resolveApiMediaUrl(track.projectCoverUrl);
-  const extractedColors = useColorExtractor(resolvedProjectCoverUrl);
-  const [isTextCrossfading, setIsTextCrossfading] = useState(false);
-  const prevHoverRef = useRef<boolean | undefined>(undefined);
-  const { play, pause, isPlaying, currentTrack } = useAudioPlayer();
-  const haptic = useWebHaptics();
-  const isAndroid =
-    Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android";
-  const [playButtonHovered, setPlayButtonHovered] = useState(false);
-  const [playButtonFocused, setPlayButtonFocused] = useState(false);
-  const [playButtonPressed, setPlayButtonPressed] = useState(false);
-  const showPlayFilter =
-    !isAndroid && !isDragging && !hoverAsFolder &&
-    (playButtonHovered || playButtonFocused || playButtonPressed);
+	const [gradientColors, setGradientColors] = useState<string[]>([
+		"#8FC7FF",
+		"#4CF3FF",
+		"#BFF9FF",
+		"#59AFFF",
+	]);
+	const isDraggingRef = useRef(false);
+	const resolvedProjectCoverUrl = resolveApiMediaUrl(track.projectCoverUrl);
+	const extractedColors = useColorExtractor(resolvedProjectCoverUrl);
+	const [isTextCrossfading, setIsTextCrossfading] = useState(false);
+	const prevHoverRef = useRef<boolean | undefined>(undefined);
+	const { play, pause, isPlaying, currentTrack } = useAudioPlayer();
+	const haptic = useWebHaptics();
+	const isAndroid =
+		Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android";
+	const [playButtonHovered, setPlayButtonHovered] = useState(false);
+	const [playButtonFocused, setPlayButtonFocused] = useState(false);
+	const [playButtonPressed, setPlayButtonPressed] = useState(false);
+	const showPlayFilter =
+		!isAndroid &&
+		!isDragging &&
+		!hoverAsFolder &&
+		(playButtonHovered || playButtonFocused || playButtonPressed);
 
-  useEffect(() => {
-    if (extractedColors.length > 0) {
-      setGradientColors(extractedColors.slice(1, 5));
-    }
-  }, [extractedColors]);
+	useEffect(() => {
+		if (extractedColors.length > 0) {
+			setGradientColors(extractedColors.slice(1, 5));
+		}
+	}, [extractedColors]);
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    if (isDraggingRef.current) {
-      isDraggingRef.current = false;
-      return;
-    }
+	const handleCardClick = (e: React.MouseEvent) => {
+		if (isDraggingRef.current) {
+			isDraggingRef.current = false;
+			return;
+		}
 
-    const target = e.target as HTMLElement;
-    if (
-      target.closest("button") ||
-      target.closest('[role="menuitem"]') ||
-      target.closest('[role="menu"]')
-    ) {
-      return;
-    }
+		const target = e.target as HTMLElement;
+		if (
+			target.closest("button") ||
+			target.closest('[role="menuitem"]') ||
+			target.closest('[role="menu"]')
+		) {
+			return;
+		}
 
-    onClick?.();
-  };
+		onClick?.();
+	};
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      onClick?.();
-    }
-  };
+	const handleKeyDown = (e: React.KeyboardEvent) => {
+		if (e.key === "Enter" || e.key === " ") {
+			e.preventDefault();
+			onClick?.();
+		}
+	};
 
-  useEffect(() => {
-    if (isDragging) {
-      isDraggingRef.current = true;
-    }
-  }, [isDragging]);
+	useEffect(() => {
+		if (isDragging) {
+			isDraggingRef.current = true;
+		}
+	}, [isDragging]);
 
-  useEffect(() => {
-    if (prevHoverRef.current === undefined) {
-      prevHoverRef.current = hoverAsFolder;
-      return;
-    }
-    if (prevHoverRef.current !== hoverAsFolder) {
-      setIsTextCrossfading(true);
-      const t = setTimeout(
-        () => setIsTextCrossfading(false),
-        CROSSFADE_DURATION_MS
-      );
-      prevHoverRef.current = hoverAsFolder;
-      return () => clearTimeout(t);
-    }
-    prevHoverRef.current = hoverAsFolder;
-  }, [hoverAsFolder]);
+	useEffect(() => {
+		if (prevHoverRef.current === undefined) {
+			prevHoverRef.current = hoverAsFolder;
+			return;
+		}
+		if (prevHoverRef.current !== hoverAsFolder) {
+			setIsTextCrossfading(true);
+			const t = setTimeout(
+				() => setIsTextCrossfading(false),
+				CROSSFADE_DURATION_MS,
+			);
+			prevHoverRef.current = hoverAsFolder;
+			return () => clearTimeout(t);
+		}
+		prevHoverRef.current = hoverAsFolder;
+	}, [hoverAsFolder]);
 
-  const handlePlayPause = () => {
-    const isThisTrackPlaying =
-      isPlaying && currentTrack?.id === track.public_id;
+	const handlePlayPause = () => {
+		const isThisTrackPlaying =
+			isPlaying && currentTrack?.id === track.public_id;
 
-    if (isThisTrackPlaying) {
-      pause();
-      return;
-    }
+		if (isThisTrackPlaying) {
+			pause();
+			return;
+		}
 
-    const trackData = {
-      id: track.public_id,
-      title: track.title,
-      artist: track.artist ?? undefined,
-      projectName: track.projectName ?? "Unknown Project",
-      coverUrl: resolvedProjectCoverUrl,
-      projectId: track.project_id?.toString(),
-      projectCoverUrl: resolvedProjectCoverUrl,
-      waveform: track.waveform ?? undefined,
-      versionId: undefined, // Shared tracks don't have version info in the grid view
-      isSharedTrack: true,
-    };
+		const trackData = {
+			id: track.public_id,
+			title: track.title,
+			artist: track.artist ?? undefined,
+			projectName: track.projectName ?? "Unknown Project",
+			coverUrl: resolvedProjectCoverUrl,
+			projectId: track.project_id?.toString(),
+			projectCoverUrl: resolvedProjectCoverUrl,
+			waveform: track.waveform ?? undefined,
+			versionId: undefined, // Shared tracks don't have version info in the grid view
+			isSharedTrack: true,
+		};
 
-    play(trackData, [trackData], true, false, []);
-  };
+		play(trackData, [trackData], true, false, []);
+	};
 
-  const incomingCoverSource = (() => {
-    const item = hoverFolderItems[0];
-    if (!item) return null;
+	const incomingCoverSource = (() => {
+		const item = hoverFolderItems[0];
+		if (!item) return null;
 
-    const publicId =
-      typeof item?.project_public_id === "string" && item.project_public_id
-        ? item.project_public_id
-        : typeof item?.public_id === "string" && item.public_id
-          ? item.public_id
-          : null;
+		const publicId =
+			typeof item?.project_public_id === "string" && item.project_public_id
+				? item.project_public_id
+				: typeof item?.public_id === "string" && item.public_id
+					? item.public_id
+					: null;
 
-    if (!publicId) return null;
+		if (!publicId) return null;
 
-    const coverUrl =
-      typeof item?.cover_url === "string" ? item.cover_url : null;
+		const coverUrl =
+			typeof item?.cover_url === "string" ? item.cover_url : null;
 
-    return { public_id: publicId, cover_url: coverUrl } satisfies Pick<
-      Project,
-      "public_id" | "cover_url"
-    >;
-  })();
+		return { public_id: publicId, cover_url: coverUrl } satisfies Pick<
+			Project,
+			"public_id" | "cover_url"
+		>;
+	})();
 
-  const { imageUrl: incomingCoverUrl } = useProjectCoverImage(
-    incomingCoverSource ?? undefined,
-    "small"
-  );
+	const { imageUrl: incomingCoverUrl } = useProjectCoverImage(
+		incomingCoverSource ?? undefined,
+		"small",
+	);
 
-  return (
-    <div
-      onClick={handleCardClick}
-      onKeyDown={handleKeyDown}
-      role="button"
-      tabIndex={0}
-      data-dragging={
-        isDragging || hoverAsFolder || isDropping ? "true" : undefined
-      }
-      className={cn(
-        "relative group w-full text-left focus:outline-none cursor-pointer transition-transform duration-300",
-        dragScaleDown && isDragging ? "scale-[0.5]" : undefined,
-        className
-      )}
-    >
-      {/* Disc Container */}
-      <div
-        className="media-tile-visual relative aspect-square rounded-(--card-border-radius) border border-(--card-border) bg-neutral-800/40"
-        style={{ touchAction: "auto" }}
-        {...dragHandleProps}
-      >
-        {/* Original disc that transitions to top-left position */}
-        <motion.div
-          className={cn(
-            "absolute overflow-hidden z-0",
-            "transition-[top,left,right,bottom,border-radius] duration-200",
-            hoverAsFolder
-              ? "top-2 left-2 right-[calc(50%+2px)] bottom-[calc(50%+2px)] rounded-2xl border-(--card-border) border"
-              : "inset-2 rounded-full"
-          )}
-          animate={{ opacity: isDragging ? 0.8 : 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          {/* Vinyl Record Disc Mask */}
-          <svg
-            className="absolute inset-2 w-[calc(100%-1rem)] h-[calc(100%-1rem)] z-10 pointer-events-none"
-            viewBox="0 0 200 200"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <defs>
-              <mask id={`disc-mask-${track.public_id}`}>
-                {/* White circle (visible) */}
-                <circle cx="100" cy="100" r="100" fill="white" />
-                {/* Center hole cutout */}
-                <circle cx="100" cy="100" r="20" fill="black" />
-              </mask>
-            </defs>
+	return (
+		<div
+			onClick={handleCardClick}
+			onKeyDown={handleKeyDown}
+			role="button"
+			tabIndex={0}
+			data-dragging={
+				isDragging || hoverAsFolder || isDropping ? "true" : undefined
+			}
+			className={cn(
+				"relative group w-full text-left focus:outline-none cursor-pointer transition-transform duration-300",
+				dragScaleDown && isDragging ? "scale-[0.5]" : undefined,
+				className,
+			)}
+		>
+			{/* Disc Container */}
+			<div
+				className="media-tile-visual relative aspect-square rounded-(--card-border-radius) border border-(--card-border) bg-neutral-800/40"
+				style={{ touchAction: "auto" }}
+				{...dragHandleProps}
+			>
+				{/* Original disc that transitions to top-left position */}
+				<motion.div
+					className={cn(
+						"absolute overflow-hidden z-0",
+						"transition-[top,left,right,bottom,border-radius] duration-200",
+						hoverAsFolder
+							? "top-2 left-2 right-[calc(50%+2px)] bottom-[calc(50%+2px)] rounded-2xl border-(--card-border) border"
+							: "inset-2 rounded-full",
+					)}
+					animate={{ opacity: isDragging ? 0.8 : 1 }}
+					transition={{ duration: 0.3 }}
+				>
+					{/* Vinyl Record Disc Mask */}
+					<svg
+						className="absolute inset-2 w-[calc(100%-1rem)] h-[calc(100%-1rem)] z-10 pointer-events-none"
+						viewBox="0 0 200 200"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<defs>
+							<mask id={`disc-mask-${track.public_id}`}>
+								{/* White circle (visible) */}
+								<circle cx="100" cy="100" r="100" fill="white" />
+								{/* Center hole cutout */}
+								<circle cx="100" cy="100" r="20" fill="black" />
+							</mask>
+						</defs>
 
-            {/* Cover art with mask applied */}
-            <image
-              x="0"
-              y="0"
-              width="200"
-              height="200"
-              href={resolvedProjectCoverUrl || "/placeholder-cover.jpg"}
-              preserveAspectRatio="xMidYMid slice"
-              mask={`url(#disc-mask-${track.public_id})`}
-              className="object-cover"
-            />
+						{/* Cover art with mask applied */}
+						<image
+							x="0"
+							y="0"
+							width="200"
+							height="200"
+							href={resolvedProjectCoverUrl || "/placeholder-cover.jpg"}
+							preserveAspectRatio="xMidYMid slice"
+							mask={`url(#disc-mask-${track.public_id})`}
+							className="object-cover"
+						/>
 
-            {/* Disc border */}
-            <circle
-              cx="100"
-              cy="100"
-              r="100"
-              fill="none"
-              stroke="var(--card-border-color, rgba(124,124,124,0.3))"
-              strokeWidth="2"
-            />
-          </svg>
+						{/* Disc border */}
+						<circle
+							cx="100"
+							cy="100"
+							r="100"
+							fill="none"
+							stroke="var(--card-border-color, rgba(124,124,124,0.3))"
+							strokeWidth="2"
+						/>
+					</svg>
 
-          {/* Background for non-masked area */}
-          <div className="absolute inset-0 bg-gradient-to-br from-(--card-gradient-from) to-[#1a1a1a] rounded-full" />
+					{/* Background for non-masked area */}
+					<div className="absolute inset-0 bg-gradient-to-br from-(--card-gradient-from) to-[#1a1a1a] rounded-full" />
 
-          {/* First gradient overlay layer */}
-          <div
-            className="absolute inset-0 rounded-full pointer-events-none z-20"
-            style={{
-              background: `conic-gradient(from 90deg at 50% 50%, rgba(255, 255, 255, 0.00) 157.5deg, ${gradientColors[0]} 180deg, ${gradientColors[1] || gradientColors[0]} 205.96deg, ${gradientColors[2] || gradientColors[1] || gradientColors[0]} 231.92deg, ${gradientColors[3] || gradientColors[2] || gradientColors[1] || gradientColors[0]} 273.46deg, rgba(255, 255, 255, 0.00) 327.12deg)`,
-              opacity: 0.5,
-              WebkitMaskImage:
-                "radial-gradient(circle, transparent 0%, transparent 19%, black 20%, black 100%)",
-              maskImage:
-                "radial-gradient(circle, transparent 0%, transparent 19%, black 20%, black 100%)",
-            }}
-          />
+					{/* First gradient overlay layer */}
+					<div
+						className="absolute inset-0 rounded-full pointer-events-none z-20"
+						style={{
+							background: `conic-gradient(from 90deg at 50% 50%, rgba(255, 255, 255, 0.00) 157.5deg, ${gradientColors[0]} 180deg, ${gradientColors[1] || gradientColors[0]} 205.96deg, ${gradientColors[2] || gradientColors[1] || gradientColors[0]} 231.92deg, ${gradientColors[3] || gradientColors[2] || gradientColors[1] || gradientColors[0]} 273.46deg, rgba(255, 255, 255, 0.00) 327.12deg)`,
+							opacity: 0.5,
+							WebkitMaskImage:
+								"radial-gradient(circle, transparent 0%, transparent 19%, black 20%, black 100%)",
+							maskImage:
+								"radial-gradient(circle, transparent 0%, transparent 19%, black 20%, black 100%)",
+						}}
+					/>
 
-          {/* Second gradient overlay layer (rotated 180 degrees) */}
-          <div
-            className="absolute inset-0 rounded-full pointer-events-none z-20"
-            style={{
-              background: `conic-gradient(from 90deg at 50% 50%, rgba(255, 255, 255, 0.00) 157.5deg, ${gradientColors[0]} 180deg, ${gradientColors[1] || gradientColors[0]} 205.96deg, ${gradientColors[2] || gradientColors[1] || gradientColors[0]} 231.92deg, ${gradientColors[3] || gradientColors[2] || gradientColors[1] || gradientColors[0]} 273.46deg, rgba(255, 255, 255, 0.00) 327.12deg)`,
-              opacity: 0.5,
-              transform: "rotate(180deg)",
-              WebkitMaskImage:
-                "radial-gradient(circle, transparent 0%, transparent 19%, black 20%, black 100%)",
-              maskImage:
-                "radial-gradient(circle, transparent 0%, transparent 19%, black 20%, black 100%)",
-            }}
-          />
-        </motion.div>
+					{/* Second gradient overlay layer (rotated 180 degrees) */}
+					<div
+						className="absolute inset-0 rounded-full pointer-events-none z-20"
+						style={{
+							background: `conic-gradient(from 90deg at 50% 50%, rgba(255, 255, 255, 0.00) 157.5deg, ${gradientColors[0]} 180deg, ${gradientColors[1] || gradientColors[0]} 205.96deg, ${gradientColors[2] || gradientColors[1] || gradientColors[0]} 231.92deg, ${gradientColors[3] || gradientColors[2] || gradientColors[1] || gradientColors[0]} 273.46deg, rgba(255, 255, 255, 0.00) 327.12deg)`,
+							opacity: 0.5,
+							transform: "rotate(180deg)",
+							WebkitMaskImage:
+								"radial-gradient(circle, transparent 0%, transparent 19%, black 20%, black 100%)",
+							maskImage:
+								"radial-gradient(circle, transparent 0%, transparent 19%, black 20%, black 100%)",
+						}}
+					/>
+				</motion.div>
 
-        {/* Incoming dragged item animating into top-right position */}
-        {isDropping && hoverFolderItems.length > 0 && (
-          <motion.div
-            className="absolute top-2 right-2 w-[calc(50%-10px)] h-[calc(50%-10px)] rounded-2xl border-(--card-border) border overflow-hidden z-20"
-            initial={{ opacity: 0, scale: 0.3 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{
-              type: "spring",
-              stiffness: 500,
-              damping: 30,
-            }}
-          >
-            {incomingCoverUrl ? (
-              <img
-                src={incomingCoverUrl}
-                alt="Incoming item"
-                className="size-full object-cover"
-                draggable={false}
-                loading="lazy"
-                decoding="async"
-              />
-            ) : (
-              <div className="size-full bg-neutral-800 flex items-center justify-center text-(--text-0) text-lg font-bold">
-                {String(
-                  hoverFolderItems[0]?.name || hoverFolderItems[0]?.title || ""
-                )
-                  .charAt(0)
-                  .toUpperCase()}
-              </div>
-            )}
-          </motion.div>
-        )}
+				{/* Incoming dragged item animating into top-right position */}
+				{isDropping && hoverFolderItems.length > 0 && (
+					<motion.div
+						className="absolute top-2 right-2 w-[calc(50%-10px)] h-[calc(50%-10px)] rounded-2xl border-(--card-border) border overflow-hidden z-20"
+						initial={{ opacity: 0, scale: 0.3 }}
+						animate={{ opacity: 1, scale: 1 }}
+						transition={{
+							type: "spring",
+							stiffness: 500,
+							damping: 30,
+						}}
+					>
+						{incomingCoverUrl ? (
+							<img
+								src={incomingCoverUrl}
+								alt="Incoming item"
+								className="size-full object-cover"
+								draggable={false}
+								loading="lazy"
+								decoding="async"
+							/>
+						) : (
+							<div className="size-full bg-neutral-800 flex items-center justify-center text-(--text-0) text-lg font-bold">
+								{String(
+									hoverFolderItems[0]?.name || hoverFolderItems[0]?.title || "",
+								)
+									.charAt(0)
+									.toUpperCase()}
+							</div>
+						)}
+					</motion.div>
+				)}
 
-        {/* Glass filter for play/pause button */}
-        {showPlayFilter && (
-          <TrackPlayFilter
-            id={`play-button-filter-${track.public_id}`}
-            pressed={playButtonPressed}
-          />
-        )}
+				{/* Glass filter for play/pause button */}
+				{showPlayFilter && (
+					<TrackPlayFilter
+						id={`play-button-filter-${track.public_id}`}
+						pressed={playButtonPressed}
+					/>
+				)}
 
-        {/* Play/Pause Button */}
-        <button
-          type="button"
-          aria-label={
-            isPlaying && currentTrack?.id === track.public_id ? "Pause" : "Play"
-          }
-          className={cn(
-            "absolute -bottom-3 -right-3 z-30 border border-white/15 shadow-md transition-[opacity,transform] duration-150 active:scale-95 size-12 rounded-[16px] flex items-center justify-center",
-            isDragging || hoverAsFolder
-              ? "opacity-0 pointer-events-none"
-              : undefined
-          )}
-          style={{
-            backdropFilter: showPlayFilter
-              ? `url(#play-button-filter-${track.public_id})`
-              : undefined,
-            backgroundColor: isAndroid
-              ? "rgba(40, 39, 39, 0.9)"
-              : "rgba(40, 39, 39, 0.7)",
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            handlePlayPause();
-            haptic.trigger("medium");
-          }}
-          onPointerEnter={(event) => {
-            if (!isAndroid && event.pointerType === "mouse") {
-              setPlayButtonHovered(true);
-            }
-          }}
-          onPointerLeave={() => {
-            setPlayButtonHovered(false);
-            setPlayButtonPressed(false);
-          }}
-          onPointerDown={() => {
-            if (!isAndroid) setPlayButtonPressed(true);
-          }}
-          onPointerUp={() => setPlayButtonPressed(false)}
-          onPointerCancel={() => {
-            setPlayButtonPressed(false);
-            setPlayButtonHovered(false);
-          }}
-          onFocus={() => {
-            if (!isAndroid) setPlayButtonFocused(true);
-          }}
-          onBlur={() => {
-            setPlayButtonFocused(false);
-            setPlayButtonPressed(false);
-          }}
-        >
-          {isPlaying && currentTrack?.id === track.public_id ? (
-            <Pause className="size-5" fill="white" stroke="white" />
-          ) : (
-            <Play className="size-5" fill="white" stroke="white" />
-          )}
-        </button>
-      </div>
+				{/* Play/Pause Button */}
+				<button
+					type="button"
+					aria-label={
+						isPlaying && currentTrack?.id === track.public_id ? "Pause" : "Play"
+					}
+					className={cn(
+						"absolute -bottom-3 -right-3 z-30 border border-white/15 shadow-md transition-[opacity,transform] duration-150 active:scale-95 size-12 rounded-[16px] flex items-center justify-center",
+						isDragging || hoverAsFolder
+							? "opacity-0 pointer-events-none"
+							: undefined,
+					)}
+					style={{
+						backdropFilter: showPlayFilter
+							? `url(#play-button-filter-${track.public_id})`
+							: undefined,
+						backgroundColor: isAndroid
+							? "rgba(40, 39, 39, 0.9)"
+							: "rgba(40, 39, 39, 0.7)",
+					}}
+					onClick={(e) => {
+						e.stopPropagation();
+						handlePlayPause();
+						haptic.trigger("medium");
+					}}
+					onPointerEnter={(event) => {
+						if (!isAndroid && event.pointerType === "mouse") {
+							setPlayButtonHovered(true);
+						}
+					}}
+					onPointerLeave={() => {
+						setPlayButtonHovered(false);
+						setPlayButtonPressed(false);
+					}}
+					onPointerDown={() => {
+						if (!isAndroid) setPlayButtonPressed(true);
+					}}
+					onPointerUp={() => setPlayButtonPressed(false)}
+					onPointerCancel={() => {
+						setPlayButtonPressed(false);
+						setPlayButtonHovered(false);
+					}}
+					onFocus={() => {
+						if (!isAndroid) setPlayButtonFocused(true);
+					}}
+					onBlur={() => {
+						setPlayButtonFocused(false);
+						setPlayButtonPressed(false);
+					}}
+				>
+					{isPlaying && currentTrack?.id === track.public_id ? (
+						<Pause className="size-5" fill="white" stroke="white" />
+					) : (
+						<Play className="size-5" fill="white" stroke="white" />
+					)}
+				</button>
+			</div>
 
-      {/* Track Info */}
-      <motion.div
-        className="mt-3 h-11"
-        animate={{ opacity: isDragging ? 0.8 : 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        <div className="relative h-full">
-          <div
-            className={cn(
-              "absolute inset-0",
-              isDragging || hoverAsFolder ? "opacity-0" : "opacity-100"
-            )}
-            style={{
-              transition: `opacity ${CROSSFADE_DURATION_MS}ms ${CROSSFADE_EASING}, filter ${BLUR_DURATION_MS}ms ${BLUR_EASING}`,
-              filter: isTextCrossfading
-                ? `blur(${CROSSFADE_BLUR_PX}px)`
-                : undefined,
-            }}
-          >
-            <div className="flex min-w-0 items-center gap-2">
-              {/* Shared Icon */}
-              {isShared && (
-                <Users className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-              )}
+			{/* Track Info */}
+			<motion.div
+				className="mt-3 h-11"
+				animate={{ opacity: isDragging ? 0.8 : 1 }}
+				transition={{ duration: 0.3 }}
+			>
+				<div className="relative h-full">
+					<div
+						className={cn(
+							"absolute inset-0",
+							isDragging || hoverAsFolder ? "opacity-0" : "opacity-100",
+						)}
+						style={{
+							transition: `opacity ${CROSSFADE_DURATION_MS}ms ${CROSSFADE_EASING}, filter ${BLUR_DURATION_MS}ms ${BLUR_EASING}`,
+							filter: isTextCrossfading
+								? `blur(${CROSSFADE_BLUR_PX}px)`
+								: undefined,
+						}}
+					>
+						<div className="flex min-w-0 items-center gap-2">
+							{/* Shared Icon */}
+							{isShared && (
+								<Users className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+							)}
 
-              <div className="flex-1 min-w-0">
-                <div className="truncate text-sm font-semibold text-foreground">
-                  {track.title}
-                </div>
-                <div className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
-                  <span className="truncate">
-                    {(typeof track.artist === "string" && track.artist.trim()
-                      ? track.artist
-                      : null) ||
-                      (typeof track.sharedBy === "string" &&
-                      track.sharedBy.trim()
-                        ? track.sharedBy
-                        : null) ||
-                      (typeof track.projectName === "string"
-                        ? track.projectName
-                        : null) ||
-                      "Unknown Artist"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+							<div className="flex-1 min-w-0">
+								<div className="truncate text-sm font-semibold text-foreground">
+									{track.title}
+								</div>
+								<div className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
+									<span className="truncate">
+										{(typeof track.artist === "string" && track.artist.trim()
+											? track.artist
+											: null) ||
+											(typeof track.sharedBy === "string" &&
+											track.sharedBy.trim()
+												? track.sharedBy
+												: null) ||
+											(typeof track.projectName === "string"
+												? track.projectName
+												: null) ||
+											"Unknown Artist"}
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
 
-          {/* Folder preview text */}
-          <div
-            className={cn(
-              "absolute inset-0",
-              hoverAsFolder && !isDragging ? "opacity-100" : "opacity-0"
-            )}
-            style={{
-              transition: `opacity ${CROSSFADE_DURATION_MS}ms ${CROSSFADE_EASING}, filter ${BLUR_DURATION_MS}ms ${BLUR_EASING}`,
-              filter: isTextCrossfading
-                ? `blur(${CROSSFADE_BLUR_PX}px)`
-                : undefined,
-            }}
-            aria-hidden={!(hoverAsFolder && !isDragging)}
-          >
-            <div
-              className="truncate text-sm font-semibold text-foreground"
-              title="New Folder"
-            >
-              New Folder
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {(1 + hoverFolderItems.length).toString()} items
-            </div>
-          </div>
+					{/* Folder preview text */}
+					<div
+						className={cn(
+							"absolute inset-0",
+							hoverAsFolder && !isDragging ? "opacity-100" : "opacity-0",
+						)}
+						style={{
+							transition: `opacity ${CROSSFADE_DURATION_MS}ms ${CROSSFADE_EASING}, filter ${BLUR_DURATION_MS}ms ${BLUR_EASING}`,
+							filter: isTextCrossfading
+								? `blur(${CROSSFADE_BLUR_PX}px)`
+								: undefined,
+						}}
+						aria-hidden={!(hoverAsFolder && !isDragging)}
+					>
+						<div
+							className="truncate text-sm font-semibold text-foreground"
+							title="New Folder"
+						>
+							New Folder
+						</div>
+						<div className="text-xs text-muted-foreground">
+							{(1 + hoverFolderItems.length).toString()} items
+						</div>
+					</div>
 
-          {/* Dropdown Menu */}
-          <div className="absolute bottom-0 right-0">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label="Track options"
-                  className="-mr-3 select-none p-0 h-5 rounded-md hover:bg-muted/30 transition-none"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <MoreHorizontal />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="center"
-                side="top"
-                className="w-44 border-muted bg-background"
-              >
-                {isOwned ? (
-                  <>
-                    {onAddToQueue && (
-                      <DropdownMenuItem onSelect={onAddToQueue}>
-                        <ListPlus className="ml-1 mr-1.5 size-4.5" />
-                        Add to queue
-                      </DropdownMenuItem>
-                    )}
-                    {onMove && (
-                      <DropdownMenuItem onSelect={onMove}>
-                        <FolderInput className="ml-1 mr-1.5 size-4.5" />
-                        Move
-                      </DropdownMenuItem>
-                    )}
-                    {onExport && (
-                      <DropdownMenuItem onSelect={onExport}>
-                        <Download className="ml-1 mr-1.5 size-4.5" />
-                        Export
-                      </DropdownMenuItem>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    {onAddToQueue && (
-                      <DropdownMenuItem onSelect={onAddToQueue}>
-                        <ListPlus className="ml-1 mr-1.5 size-4.5" />
-                        Add to queue
-                      </DropdownMenuItem>
-                    )}
-                    {onMove && (
-                      <DropdownMenuItem onSelect={onMove}>
-                        <FolderInput className="ml-1 mr-1.5 size-4.5" />
-                        Move
-                      </DropdownMenuItem>
-                    )}
-                    {canDownload && onExport && (
-                      <DropdownMenuItem onSelect={onExport}>
-                        <Download className="ml-1 mr-1.5 size-4.5" />
-                        Export
-                      </DropdownMenuItem>
-                    )}
-                    {onLeave && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          variant="destructive"
-                          onSelect={onLeave}
-                        >
-                          <LogOut className="ml-1 mr-1.5 size-4.5" />
-                          Leave
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
+					{/* Dropdown Menu */}
+					<div className="absolute bottom-0 right-0">
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button
+									variant="ghost"
+									size="icon-sm"
+									aria-label="Track options"
+									className="-mr-3 select-none p-0 h-5 rounded-md hover:bg-muted/30 transition-none"
+									onMouseDown={(e) => e.preventDefault()}
+									onClick={(e) => e.stopPropagation()}
+								>
+									<MoreHorizontal />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								align="center"
+								side="top"
+								className="w-44 border-muted bg-background"
+							>
+								{isOwned ? (
+									<>
+										{onAddToQueue && (
+											<DropdownMenuItem onSelect={onAddToQueue}>
+												<ListPlus className="ml-1 mr-1.5 size-4.5" />
+												Add to queue
+											</DropdownMenuItem>
+										)}
+										{onMove && (
+											<DropdownMenuItem onSelect={onMove}>
+												<FolderInput className="ml-1 mr-1.5 size-4.5" />
+												Move
+											</DropdownMenuItem>
+										)}
+										{onExport && (
+											<DropdownMenuItem onSelect={onExport}>
+												<Download className="ml-1 mr-1.5 size-4.5" />
+												Export
+											</DropdownMenuItem>
+										)}
+									</>
+								) : (
+									<>
+										{onAddToQueue && (
+											<DropdownMenuItem onSelect={onAddToQueue}>
+												<ListPlus className="ml-1 mr-1.5 size-4.5" />
+												Add to queue
+											</DropdownMenuItem>
+										)}
+										{onMove && (
+											<DropdownMenuItem onSelect={onMove}>
+												<FolderInput className="ml-1 mr-1.5 size-4.5" />
+												Move
+											</DropdownMenuItem>
+										)}
+										{canDownload && onExport && (
+											<DropdownMenuItem onSelect={onExport}>
+												<Download className="ml-1 mr-1.5 size-4.5" />
+												Export
+											</DropdownMenuItem>
+										)}
+										{onLeave && (
+											<>
+												<DropdownMenuSeparator />
+												<DropdownMenuItem
+													variant="destructive"
+													onSelect={onLeave}
+												>
+													<LogOut className="ml-1 mr-1.5 size-4.5" />
+													Leave
+												</DropdownMenuItem>
+											</>
+										)}
+									</>
+								)}
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</div>
+				</div>
+			</motion.div>
+		</div>
+	);
 }

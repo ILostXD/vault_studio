@@ -1,12 +1,12 @@
-import { get, put } from './client'
-import type { UserPreferences, UpdatePreferencesRequest } from '../types/api'
+import type { UpdatePreferencesRequest, UserPreferences } from "../types/api";
+import { get, put } from "./client";
 
 export async function getPreferences(): Promise<UserPreferences> {
-  return get<UserPreferences>('/api/preferences')
+	return get<UserPreferences>("/api/preferences");
 }
 
 export async function updatePreferences(
-  data: UpdatePreferencesRequest
+	data: UpdatePreferencesRequest,
 ): Promise<UserPreferences> {
-  return put<UserPreferences>('/api/preferences', data)
+	return put<UserPreferences>("/api/preferences", data);
 }

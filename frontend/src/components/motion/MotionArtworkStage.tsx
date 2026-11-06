@@ -27,7 +27,12 @@ interface ArtworkSourceProps {
 	active?: boolean;
 }
 
-function ArtworkSource({ assetUrl, coverUrl, className, active = true }: ArtworkSourceProps) {
+function ArtworkSource({
+	assetUrl,
+	coverUrl,
+	className,
+	active = true,
+}: ArtworkSourceProps) {
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const reduceMotion = useReducedMotion();
 

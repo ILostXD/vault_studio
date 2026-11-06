@@ -1,12 +1,6 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import type { ReactNode } from "react";
 import { Capacitor } from "@capacitor/core";
-import type {
-  User,
-  LoginRequest,
-  RegisterRequest,
-  AuthResponse,
-} from "../types/api";
+import type { ReactNode } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import * as authApi from "../api/auth";
 import { ApiError } from "../api/client";
 import {
@@ -17,6 +11,12 @@ import {
 	storeAuthTokensFromResponse,
 	storeCachedUser,
 } from "../api/session";
+import type {
+	AuthResponse,
+	LoginRequest,
+	RegisterRequest,
+	User,
+} from "../types/api";
 
 interface AuthContextType {
 	user: User | null;
@@ -33,7 +33,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
-  children: ReactNode;
+	children: ReactNode;
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
@@ -80,8 +80,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			}
 		};
 
-    initAuth();
-  }, []);
+		initAuth();
+	}, []);
 
 	const login = async (credentials: LoginRequest) => {
 		const response: AuthResponse = await authApi.login(credentials);
@@ -107,13 +107,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	const logout = async () => {
 		try {
 			await authApi.logout();
-		} catch {
-		}
+		} catch {}
 		clearAuthTokens();
 		setUser(null);
 	};
 
-  const refreshUser = async () => {
+	const refreshUser = async () => {
 		try {
 			const userData = await authApi.getMe();
 			storeCachedUser(userData, isPersistentAuthSession());
@@ -125,15 +124,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 		}
 	};
 
-  const updateUsername = async (username: string) => {
-    try {
-      const updatedUser = await authApi.updateUsername(username);
-      storeCachedUser(updatedUser, isPersistentAuthSession());
-      setUser(updatedUser);
-    } catch (error) {
-      throw error;
-    }
-  };
+	const updateUsername = async (username: string) => {
+		try {
+			const updatedUser = await authApi.updateUsername(username);
+			storeCachedUser(updatedUser, isPersistentAuthSession());
+			setUser(updatedUser);
+		} catch (error) {
+			throw error;
+		}
+	};
 
 	const value: AuthContextType = {
 		user,
@@ -142,18 +141,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
 		login,
 		register,
 		setAuthFromResponse,
-    logout,
-    refreshUser,
-    updateUsername,
-  };
+		logout,
+		refreshUser,
+		updateUsername,
+	};
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
+	const context = useContext(AuthContext);
+	if (context === undefined) {
+		throw new Error("useAuth must be used within an AuthProvider");
+	}
+	return context;
 }

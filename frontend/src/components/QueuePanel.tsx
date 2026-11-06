@@ -209,7 +209,9 @@ export default function QueuePanel({
 								<div className="flex items-center gap-3">
 									<Button
 										aria-label="Close queue manager"
-										variant={embedded && layer === "expanded" ? "ghost" : "default"}
+										variant={
+											embedded && layer === "expanded" ? "ghost" : "default"
+										}
 										className={cn(
 											"flex h-8 w-8 items-center justify-center p-0 text-center transition-colors duration-200",
 											embedded && layer === "expanded"
@@ -230,8 +232,15 @@ export default function QueuePanel({
 								</div>
 								{queue.length > 0 && (
 									<Button
-										variant={embedded && layer === "expanded" ? "ghost" : "default"}
-										className={cn("rounded-2xl px-3 py-1 text-xs h-8 transition-colors duration-200", embedded && layer === "expanded" ? "bg-black/20 text-white/80 hover:bg-black/40 hover:text-white" : "bg-(--inner-card-bg) border border-(--card-border) text-(--text-0) hover:bg-(--muted-2)")}
+										variant={
+											embedded && layer === "expanded" ? "ghost" : "default"
+										}
+										className={cn(
+											"rounded-2xl px-3 py-1 text-xs h-8 transition-colors duration-200",
+											embedded && layer === "expanded"
+												? "bg-black/20 text-white/80 hover:bg-black/40 hover:text-white"
+												: "bg-(--inner-card-bg) border border-(--card-border) text-(--text-0) hover:bg-(--muted-2)",
+										)}
 										onClick={handleClearQueue}
 									>
 										Clear
@@ -368,8 +377,18 @@ export default function QueuePanel({
 																			<DropdownMenuContent
 																				align="end"
 																				data-queue-menu="true"
-																				className={cn("w-48 border-muted bg-background z-[10005]", layer === "expanded" && "black dark")}
-																				style={layer === "expanded" ? { colorScheme: "dark", "--accent-color": "inherit" } as CSSProperties : undefined}
+																				className={cn(
+																					"w-48 border-muted bg-background z-[10005]",
+																					layer === "expanded" && "black dark",
+																				)}
+																				style={
+																					layer === "expanded"
+																						? ({
+																								colorScheme: "dark",
+																								"--accent-color": "inherit",
+																							} as CSSProperties)
+																						: undefined
+																				}
 																			>
 																				<DropdownMenuItem
 																					onSelect={() =>

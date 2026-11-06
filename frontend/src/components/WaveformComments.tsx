@@ -1,12 +1,5 @@
-import {
-	Check,
-	MessageSquare,
-	Pencil,
-	Send,
-	Trash2,
-	X,
-} from "lucide-react";
-import { useEffect, useId, useState, memo } from "react";
+import { Check, MessageSquare, Pencil, Send, Trash2, X } from "lucide-react";
+import { memo, useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
 
 import {
@@ -511,30 +504,27 @@ function WaveformCommentsComponent({
 	);
 }
 
-const WaveformComments = memo(
-	WaveformCommentsComponent,
-	(prev, next) => {
-		if (prev.versionId !== next.versionId) return false;
-		if (prev.duration !== next.duration) return false;
-		if (prev.placement !== next.placement) return false;
-		if (prev.showButton !== next.showButton) return false;
-		if (prev.embedded !== next.embedded) return false;
-		if (prev.fillEmbedded !== next.fillEmbedded) return false;
-		if (prev.panelTarget !== next.panelTarget) return false;
-		if (prev.shareToken !== next.shareToken) return false;
-		if (prev.sharePassword !== next.sharePassword) return false;
-		if (prev.onSeek !== next.onSeek) return false;
-		if (prev.onOpenChange !== next.onOpenChange) return false;
-		if (prev.isOpen !== next.isOpen) return false;
+const WaveformComments = memo(WaveformCommentsComponent, (prev, next) => {
+	if (prev.versionId !== next.versionId) return false;
+	if (prev.duration !== next.duration) return false;
+	if (prev.placement !== next.placement) return false;
+	if (prev.showButton !== next.showButton) return false;
+	if (prev.embedded !== next.embedded) return false;
+	if (prev.fillEmbedded !== next.fillEmbedded) return false;
+	if (prev.panelTarget !== next.panelTarget) return false;
+	if (prev.shareToken !== next.shareToken) return false;
+	if (prev.sharePassword !== next.sharePassword) return false;
+	if (prev.onSeek !== next.onSeek) return false;
+	if (prev.onOpenChange !== next.onOpenChange) return false;
+	if (prev.isOpen !== next.isOpen) return false;
 
-		// If comments panel is explicitly closed, currentTime changes do not affect rendering
-		if (prev.isOpen === false && next.isOpen === false) {
-			return true;
-		}
+	// If comments panel is explicitly closed, currentTime changes do not affect rendering
+	if (prev.isOpen === false && next.isOpen === false) {
+		return true;
+	}
 
-		// When open, only update on integer second boundaries to avoid 30fps rerenders
-		return Math.floor(prev.currentTime) === Math.floor(next.currentTime);
-	},
-);
+	// When open, only update on integer second boundaries to avoid 30fps rerenders
+	return Math.floor(prev.currentTime) === Math.floor(next.currentTime);
+});
 
 export default WaveformComments;

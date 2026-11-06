@@ -1,54 +1,54 @@
+import { createRouter, RouterProvider } from "@tanstack/react-router";
+import { MotionConfig } from "motion/react";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
-import { RouterProvider, createRouter } from "@tanstack/react-router";
-import * as TanStackQueryProvider from "./integrations/tanstack-query/root-provider.tsx";
-import { AuthProvider } from "./contexts/AuthContext";
-import { PreferencesProvider } from "./contexts/PreferencesContext";
-import { ExportProvider } from "./contexts/ExportContext";
-import { AudioPlayerProvider } from "./contexts/AudioPlayerContext";
-import { routeTree } from "./routeTree.gen";
-import { MotionConfig } from "motion/react";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AudioPlayerProvider } from "./contexts/AudioPlayerContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ExportProvider } from "./contexts/ExportContext";
+import { PreferencesProvider } from "./contexts/PreferencesContext";
+import * as TanStackQueryProvider from "./integrations/tanstack-query/root-provider.tsx";
+import { routeTree } from "./routeTree.gen";
 import "./styles.css";
 
 const TanStackQueryProviderContext = TanStackQueryProvider.getContext();
 const router = createRouter({
-  routeTree,
-  context: {
-    ...TanStackQueryProviderContext,
-  },
-  defaultPreload: "intent",
-  scrollRestoration: true,
-  defaultStructuralSharing: true,
-  defaultPreloadStaleTime: 0,
+	routeTree,
+	context: {
+		...TanStackQueryProviderContext,
+	},
+	defaultPreload: "intent",
+	scrollRestoration: true,
+	defaultStructuralSharing: true,
+	defaultPreloadStaleTime: 0,
 });
 
 declare module "@tanstack/react-router" {
-  interface Register {
-    router: typeof router;
-  }
+	interface Register {
+		router: typeof router;
+	}
 }
 
 const rootElement = document.getElementById("app");
 if (rootElement && !rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement);
-  root.render(
-    <StrictMode>
-      <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
-        <AuthProvider>
-          <PreferencesProvider>
-            <AudioPlayerProvider>
-              <ExportProvider>
-                <MotionConfig reducedMotion="user">
-                  <TooltipProvider>
-                    <RouterProvider router={router} />
-                  </TooltipProvider>
-                </MotionConfig>
-              </ExportProvider>
-            </AudioPlayerProvider>
-          </PreferencesProvider>
-        </AuthProvider>
-      </TanStackQueryProvider.Provider>
-    </StrictMode>,
-  );
+	const root = ReactDOM.createRoot(rootElement);
+	root.render(
+		<StrictMode>
+			<TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
+				<AuthProvider>
+					<PreferencesProvider>
+						<AudioPlayerProvider>
+							<ExportProvider>
+								<MotionConfig reducedMotion="user">
+									<TooltipProvider>
+										<RouterProvider router={router} />
+									</TooltipProvider>
+								</MotionConfig>
+							</ExportProvider>
+						</AudioPlayerProvider>
+					</PreferencesProvider>
+				</AuthProvider>
+			</TanStackQueryProvider.Provider>
+		</StrictMode>,
+	);
 }

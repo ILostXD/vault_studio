@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+	cleanup,
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import QueuePanel from "./QueuePanel";
 
@@ -55,14 +61,13 @@ describe("QueuePanel touch scrolling & reorder", () => {
 		// Tracks rendered
 		expect(screen.getByText("First Track")).toBeTruthy();
 		expect(screen.getByText("Second Track")).toBeTruthy();
-		const coverFrame = screen.getByRole("img", { name: "First Track" }).parentElement!;
+		const coverFrame = screen.getByRole("img", { name: "First Track" })
+			.parentElement!;
 		expect(coverFrame.className).toContain("bg-(--bg-2)");
 		expect(coverFrame.className).not.toContain("border");
 
 		// Reorder handles are present with touch-none
-		const reorderHandles = document.querySelectorAll(
-			'[aria-label^="Reorder"]',
-		);
+		const reorderHandles = document.querySelectorAll('[aria-label^="Reorder"]');
 		expect(reorderHandles.length).toBe(2);
 		expect(reorderHandles[0]?.className).toContain("touch-none");
 	});
@@ -83,9 +88,14 @@ describe("QueuePanel touch scrolling & reorder", () => {
 
 		expect(panelTarget.textContent).toContain("First Track");
 		expect(panelTarget.firstElementChild?.className).toContain("min-h-0");
-		expect(panelTarget.querySelector(".overflow-y-auto")?.className).toContain("flex-1");
+		expect(panelTarget.querySelector(".overflow-y-auto")?.className).toContain(
+			"flex-1",
+		);
 		expect(document.querySelector(".overlay-backdrop")).toBeNull();
-		for (const button of [screen.getByRole("button", { name: "Close queue manager" }), screen.getByRole("button", { name: "Clear" })]) {
+		for (const button of [
+			screen.getByRole("button", { name: "Close queue manager" }),
+			screen.getByRole("button", { name: "Clear" }),
+		]) {
 			expect(button.className).toContain("bg-black/20");
 			expect(button.className).not.toContain("linear-gradient");
 		}
@@ -96,8 +106,15 @@ describe("QueuePanel touch scrolling & reorder", () => {
 		render(<QueuePanel isOpen onClose={vi.fn()} />);
 		const handle = screen.getByRole("button", { name: "Reorder First Track" });
 		handle.focus();
-		fireEvent.keyDown(handle, { key: " ", code: "Space", keyCode: 32, which: 32 });
-		await waitFor(() => expect(document.querySelector(".cursor-grabbing")).not.toBeNull());
+		fireEvent.keyDown(handle, {
+			key: " ",
+			code: "Space",
+			keyCode: 32,
+			which: 32,
+		});
+		await waitFor(() =>
+			expect(document.querySelector(".cursor-grabbing")).not.toBeNull(),
+		);
 		fireEvent.keyDown(window, { key: "Escape", code: "Escape", keyCode: 27 });
 	});
 });

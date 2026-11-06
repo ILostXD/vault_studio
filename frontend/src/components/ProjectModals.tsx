@@ -1,11 +1,19 @@
-import { lazy, Suspense, useState, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import BaseModal from "@/components/modals/BaseModal";
-import type { Track, Project, VisibilityStatus } from "@/types/api";
+import type { Project, Track, VisibilityStatus } from "@/types/api";
 
-const TrackDetailsModal = lazy(() => import("@/components/modals/TrackDetailsModal"));
-const TrackVersionsModal = lazy(() => import("@/components/modals/TrackVersionsModal"));
-const CoverArtOptionsModal = lazy(() => import("@/components/modals/CoverArtOptionsModal"));
-const MotionArtworkModal = lazy(() => import("@/components/modals/MotionArtworkModal"));
+const TrackDetailsModal = lazy(
+	() => import("@/components/modals/TrackDetailsModal"),
+);
+const TrackVersionsModal = lazy(
+	() => import("@/components/modals/TrackVersionsModal"),
+);
+const CoverArtOptionsModal = lazy(
+	() => import("@/components/modals/CoverArtOptionsModal"),
+);
+const MotionArtworkModal = lazy(
+	() => import("@/components/modals/MotionArtworkModal"),
+);
 const NotesPanel = lazy(() => import("@/components/NotesPanel"));
 const GlobalSearchModal = lazy(() => import("@/components/GlobalSearchModal"));
 

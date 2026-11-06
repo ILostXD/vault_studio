@@ -42,7 +42,8 @@ interface CachedAppearance {
 function loadCachedAppearance(): CachedAppearance {
 	try {
 		return (
-			JSON.parse(window.localStorage.getItem(appearanceStorageKey) || "{}") ?? {}
+			JSON.parse(window.localStorage.getItem(appearanceStorageKey) || "{}") ??
+			{}
 		);
 	} catch {
 		return {};
@@ -114,16 +115,19 @@ export function PreferencesProvider({
 		}
 	}, [isAuthenticated]);
 
-	const handleUpdatePreferences = useCallback(async (data: UpdatePreferencesRequest) => {
-		try {
-			const updated = await updatePrefs(data);
-			setPreferences(updated);
-			return updated;
-		} catch (err) {
-			console.error("Failed to update preferences:", err);
-			throw err;
-		}
-	}, []);
+	const handleUpdatePreferences = useCallback(
+		async (data: UpdatePreferencesRequest) => {
+			try {
+				const updated = await updatePrefs(data);
+				setPreferences(updated);
+				return updated;
+			} catch (err) {
+				console.error("Failed to update preferences:", err);
+				throw err;
+			}
+		},
+		[],
+	);
 
 	useEffect(() => {
 		refreshPreferences();

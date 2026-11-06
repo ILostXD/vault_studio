@@ -1,82 +1,84 @@
-import { get, post, getCSRFToken, getAuthHeaders } from './client'
-import { resolveApiUrl } from './server'
+import { get, getAuthHeaders, getCSRFToken, post } from "./client";
+import { resolveApiUrl } from "./server";
 
 export async function getExportSize(): Promise<number> {
-  const res = await get<{ size_bytes: number }>('/api/admin/instance/export/size')
-  return res.size_bytes
+	const res = await get<{ size_bytes: number }>(
+		"/api/admin/instance/export/size",
+	);
+	return res.size_bytes;
 }
 
 export interface ExportResult {
-  filename: string
-  sizeBytes: number
+	filename: string;
+	sizeBytes: number;
 }
 
 export async function exportInstance(): Promise<ExportResult> {
 	try {
-		const response = await fetch(resolveApiUrl('/api/admin/instance/export'), {
-			method: 'GET',
-			credentials: 'include',
+		const response = await fetch(resolveApiUrl("/api/admin/instance/export"), {
+			method: "GET",
+			credentials: "include",
 			headers: getAuthHeaders(),
-		})
+		});
 
-    if (!response.ok) {
-      throw new Error('Failed to export instance')
-    }
+		if (!response.ok) {
+			throw new Error("Failed to export instance");
+		}
 
-    const contentDisposition = response.headers.get('content-disposition')
-    let filename = 'vault-studio-backup.zip'
-    if (contentDisposition) {
-      const match = contentDisposition.match(/filename="(.+?)"/)
-      if (match) {
-        filename = match[1]
-      }
-    }
+		const contentDisposition = response.headers.get("content-disposition");
+		let filename = "vault-studio-backup.zip";
+		if (contentDisposition) {
+			const match = contentDisposition.match(/filename="(.+?)"/);
+			if (match) {
+				filename = match[1];
+			}
+		}
 
-    const blob = await response.blob()
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-    window.URL.revokeObjectURL(url)
+		const blob = await response.blob();
+		const url = window.URL.createObjectURL(blob);
+		const link = document.createElement("a");
+		link.href = url;
+		link.download = filename;
+		document.body.appendChild(link);
+		link.click();
+		link.remove();
+		window.URL.revokeObjectURL(url);
 
-    return { filename, sizeBytes: blob.size }
-  } catch (error) {
-    console.error('Failed to export instance:', error)
-    throw error
-  }
+		return { filename, sizeBytes: blob.size };
+	} catch (error) {
+		console.error("Failed to export instance:", error);
+		throw error;
+	}
 }
 
 export async function importInstance(file: File): Promise<void> {
-	const formData = new FormData()
-	formData.append('backup', file)
+	const formData = new FormData();
+	formData.append("backup", file);
 
-	const response = await fetch(resolveApiUrl('/api/admin/instance/import'), {
-		method: 'POST',
-		credentials: 'include',
+	const response = await fetch(resolveApiUrl("/api/admin/instance/import"), {
+		method: "POST",
+		credentials: "include",
 		headers: {
 			...getAuthHeaders(),
-			...(getCSRFToken() ? { 'X-CSRF-Token': getCSRFToken() as string } : {}),
+			...(getCSRFToken() ? { "X-CSRF-Token": getCSRFToken() as string } : {}),
 		},
 		body: formData,
-	})
+	});
 
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(error || 'Failed to import instance')
-  }
+	if (!response.ok) {
+		const error = await response.text();
+		throw new Error(error || "Failed to import instance");
+	}
 
-  return await response.json()
+	return await response.json();
 }
 
 export async function resetInstance(
-  confirmName: string,
-  newAdmin: { username: string; email: string; password: string }
+	confirmName: string,
+	newAdmin: { username: string; email: string; password: string },
 ): Promise<void> {
-  return post('/api/admin/instance/reset', {
-    confirm_name: confirmName,
-    new_admin: newAdmin,
-  })
+	return post("/api/admin/instance/reset", {
+		confirm_name: confirmName,
+		new_admin: newAdmin,
+	});
 }

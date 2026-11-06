@@ -80,4 +80,3 @@ describe("Project Page artwork fallback", () => {
 		).toBe("still_cover");
 	});
 });
-

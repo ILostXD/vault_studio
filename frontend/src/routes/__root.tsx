@@ -1,376 +1,382 @@
+import { App } from "@capacitor/app";
+import { Capacitor, SystemBars, SystemBarsStyle } from "@capacitor/core";
+import { Keyboard } from "@capacitor/keyboard";
+import { EdgeToEdge } from "@capawesome/capacitor-android-edge-to-edge-support";
+import type { QueryClient } from "@tanstack/react-query";
 import {
-  Outlet,
-  createRootRouteWithContext,
-  useRouterState,
-  useNavigate,
+	createRootRouteWithContext,
+	Outlet,
+	useNavigate,
+	useRouterState,
 } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { App } from "@capacitor/app";
-import { Keyboard } from "@capacitor/keyboard";
-import { Capacitor, SystemBars, SystemBarsStyle } from "@capacitor/core";
-import { EdgeToEdge } from "@capawesome/capacitor-android-edge-to-edge-support";
-
 import { toast as sonnerToast, Toaster } from "sonner";
-import MusicPlayer from "../components/MusicPlayer";
-import FullscreenPlayer from "../components/FullscreenPlayer";
+import { checkUsersExist } from "../api/auth";
 import { ExportProgressIndicator } from "../components/ExportProgressIndicator";
+import FullscreenPlayer from "../components/FullscreenPlayer";
+import MusicPlayer from "../components/MusicPlayer";
+import { Button } from "../components/ui/button";
+import { useAudioPlayer } from "../contexts/AudioPlayerContext";
 import { useAuth } from "../contexts/AuthContext";
 import { usePreferences } from "../contexts/PreferencesContext";
-import { useAudioPlayer } from "../contexts/AudioPlayerContext";
-import { Button } from "../components/ui/button";
-import { checkUsersExist } from "../api/auth";
 import { useWebSocket } from "../hooks/useWebSocket";
 
-import type { QueryClient } from "@tanstack/react-query";
-
 interface MyRouterContext {
-  queryClient: QueryClient;
+	queryClient: QueryClient;
 }
 
 interface ToastProps {
-  id: string | number;
-  title: string;
-  description?: string;
-  action?: {
-    label: string;
-    onClick: () => void;
-  };
+	id: string | number;
+	title: string;
+	description?: string;
+	action?: {
+		label: string;
+		onClick: () => void;
+	};
 }
 
 function toastCustom(options: Omit<ToastProps, "id"> | string) {
-  const toastOptions =
-    typeof options === "string" ? { title: options } : options;
+	const toastOptions =
+		typeof options === "string" ? { title: options } : options;
 
-  return sonnerToast.custom((id) => (
-    <CustomToast
-      id={id}
-      title={toastOptions.title}
-      description={toastOptions.description}
-      action={toastOptions.action}
-    />
-  ));
+	return sonnerToast.custom((id) => (
+		<CustomToast
+			id={id}
+			title={toastOptions.title}
+			description={toastOptions.description}
+			action={toastOptions.action}
+		/>
+	));
 }
 
 export const toast = Object.assign(toastCustom, {
-  success: (message: string) => toastCustom({ title: message }),
-  error: (message: string) => toastCustom({ title: message }),
-  loading: (message: string) =>
-    sonnerToast.custom((id) => <CustomLoadingToast id={id} title={message} />),
-  info: (message: string) => toastCustom({ title: message }),
-  dismiss: (id?: string | number) => sonnerToast.dismiss(id),
+	success: (message: string) => toastCustom({ title: message }),
+	error: (message: string) => toastCustom({ title: message }),
+	loading: (message: string) =>
+		sonnerToast.custom((id) => <CustomLoadingToast id={id} title={message} />),
+	info: (message: string) => toastCustom({ title: message }),
+	dismiss: (id?: string | number) => sonnerToast.dismiss(id),
 });
 
 function CustomLoadingToast(props: { id: string | number; title: string }) {
-  const { title } = props;
+	const { title } = props;
 
-  return (
-    <div
-      className="group flex rounded-(--button-radius) bg-background border border-(--button-border) shadow-lg items-center p-4 justify-center relative"
-      style={{ minWidth: "250px", maxWidth: "420px" }}
-    >
-      <div className="flex items-center justify-center gap-3">
-        <div className="w-4 h-4 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin" />
-        <div className="text-center">
-          <p className="text-sm font-medium text-foreground">{title}</p>
-        </div>
-      </div>
-    </div>
-  );
+	return (
+		<div
+			className="group flex rounded-(--button-radius) bg-background border border-(--button-border) shadow-lg items-center p-4 justify-center relative"
+			style={{ minWidth: "250px", maxWidth: "420px" }}
+		>
+			<div className="flex items-center justify-center gap-3">
+				<div className="w-4 h-4 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin" />
+				<div className="text-center">
+					<p className="text-sm font-medium text-foreground">{title}</p>
+				</div>
+			</div>
+		</div>
+	);
 }
 
 function CustomToast(props: ToastProps) {
-  const { title, description, action, id } = props;
+	const { title, description, action, id } = props;
 
-  return (
-    <div
-      className="group flex rounded-(--button-radius) bg-background border border-(--button-border) shadow-lg items-center p-4 justify-center relative"
-      style={{ minWidth: "250px", maxWidth: "420px" }}
-    >
-      <button
-        onClick={() => sonnerToast.dismiss(id)}
-        className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-background border border-(--button-border) flex items-center justify-center text-muted-foreground hover:text-foreground transition-all shadow-md opacity-0 group-hover:opacity-100"
-        aria-label="Close"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="12"
-          height="12"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
-      </button>
-      <div className="flex flex-1 items-center justify-center">
-        <div className="w-full text-center">
-          <p className="text-sm font-medium text-foreground">{title}</p>
-          {description && (
-            <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-          )}
-        </div>
-      </div>
-      {action && (
-        <div className="ml-4 shrink-0">
-          <Button
-            size="sm"
-            onClick={() => {
-              action.onClick();
-              sonnerToast.dismiss(id);
-            }}
-          >
-            {action.label}
-          </Button>
-        </div>
-      )}
-    </div>
-  );
+	return (
+		<div
+			className="group flex rounded-(--button-radius) bg-background border border-(--button-border) shadow-lg items-center p-4 justify-center relative"
+			style={{ minWidth: "250px", maxWidth: "420px" }}
+		>
+			<button
+				onClick={() => sonnerToast.dismiss(id)}
+				className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-background border border-(--button-border) flex items-center justify-center text-muted-foreground hover:text-foreground transition-all shadow-md opacity-0 group-hover:opacity-100"
+				aria-label="Close"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="12"
+					height="12"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					strokeWidth="2"
+					strokeLinecap="round"
+					strokeLinejoin="round"
+				>
+					<line x1="18" y1="6" x2="6" y2="18" />
+					<line x1="6" y1="6" x2="18" y2="18" />
+				</svg>
+			</button>
+			<div className="flex flex-1 items-center justify-center">
+				<div className="w-full text-center">
+					<p className="text-sm font-medium text-foreground">{title}</p>
+					{description && (
+						<p className="mt-1 text-sm text-muted-foreground">{description}</p>
+					)}
+				</div>
+			</div>
+			{action && (
+				<div className="ml-4 shrink-0">
+					<Button
+						size="sm"
+						onClick={() => {
+							action.onClick();
+							sonnerToast.dismiss(id);
+						}}
+					>
+						{action.label}
+					</Button>
+				</div>
+			)}
+		</div>
+	);
 }
 
 const ROOT_EXIT_PATHS = new Set([
-  "/",
-  "/login",
-  "/register",
-  "/initialize",
-  "/reset-setup",
+	"/",
+	"/login",
+	"/register",
+	"/initialize",
+	"/reset-setup",
 ]);
 
 function hasOpenOverlay() {
-  return Boolean(
-    document.querySelector(
-      [
-        "[data-modal-backdrop='true']",
-        "[data-modal-container='true']",
-        "[data-modal-content='true']",
-        "[data-slot='dropdown-menu-content']",
-        "[data-slot='popover-content']",
-        "[data-radix-popper-content-wrapper]",
-        "[role='dialog']",
-        ".overlay-backdrop",
-      ].join(","),
-    ),
-  );
+	return Boolean(
+		document.querySelector(
+			[
+				"[data-modal-backdrop='true']",
+				"[data-modal-container='true']",
+				"[data-modal-content='true']",
+				"[data-slot='dropdown-menu-content']",
+				"[data-slot='popover-content']",
+				"[data-radix-popper-content-wrapper]",
+				"[role='dialog']",
+				".overlay-backdrop",
+			].join(","),
+		),
+	);
 }
 
 function closeTopOverlay() {
-  if (!hasOpenOverlay()) return false;
+	if (!hasOpenOverlay()) return false;
 
-  document.dispatchEvent(
-    new KeyboardEvent("keydown", {
-      key: "Escape",
-      code: "Escape",
-      bubbles: true,
-      cancelable: true,
-    }),
-  );
+	document.dispatchEvent(
+		new KeyboardEvent("keydown", {
+			key: "Escape",
+			code: "Escape",
+			bubbles: true,
+			cancelable: true,
+		}),
+	);
 
-  const backdrop = document.querySelector<HTMLElement>(
-    "[data-modal-backdrop='true'], .overlay-backdrop",
-  );
-  backdrop?.click();
-  return true;
+	const backdrop = document.querySelector<HTMLElement>(
+		"[data-modal-backdrop='true'], .overlay-backdrop",
+	);
+	backdrop?.click();
+	return true;
 }
 
 function getAndroidSystemBarColor(theme?: string | null) {
-  const normalizedTheme = theme === "oled" ? "black" : theme;
+	const normalizedTheme = theme === "oled" ? "black" : theme;
 
-  if (normalizedTheme === "light") {
-    return {
-      color: "#f4f4f5",
-      style: SystemBarsStyle.Light,
-    };
-  }
+	if (normalizedTheme === "light") {
+		return {
+			color: "#f4f4f5",
+			style: SystemBarsStyle.Light,
+		};
+	}
 
-  if (normalizedTheme === "black") {
-    return {
-      color: "#000000",
-      style: SystemBarsStyle.Dark,
-    };
-  }
+	if (normalizedTheme === "black") {
+		return {
+			color: "#000000",
+			style: SystemBarsStyle.Dark,
+		};
+	}
 
-  return {
-    color: "#181818",
-    style: SystemBarsStyle.Dark,
-  };
+	return {
+		color: "#181818",
+		style: SystemBarsStyle.Dark,
+	};
 }
 
 function RootComponent() {
-  const routerState = useRouterState();
-  const isProfileRoute = routerState.location.pathname.startsWith("/profile");
-  const isSetupRoute = routerState.location.pathname.startsWith("/reset-setup");
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { effectiveTheme } = usePreferences();
-  const { isNowPlayingOpen, closeNowPlaying } = useAudioPlayer();
-  const navigate = useNavigate();
-  const [useDarkSystemBars, setUseDarkSystemBars] = useState(false);
-  const [systemBarsRevision, setSystemBarsRevision] = useState(0);
-  const [hasCheckedUsers, setHasCheckedUsers] = useState(false);
-  const [isCheckingUsers, setIsCheckingUsers] = useState(false);
-  const currentPathRef = useRef(routerState.location.pathname);
+	const routerState = useRouterState();
+	const isProfileRoute = routerState.location.pathname.startsWith("/profile");
+	const isSetupRoute = routerState.location.pathname.startsWith("/reset-setup");
+	const { isAuthenticated, isLoading: authLoading } = useAuth();
+	const { effectiveTheme } = usePreferences();
+	const { isNowPlayingOpen, closeNowPlaying } = useAudioPlayer();
+	const navigate = useNavigate();
+	const [useDarkSystemBars, setUseDarkSystemBars] = useState(false);
+	const [systemBarsRevision, setSystemBarsRevision] = useState(0);
+	const [hasCheckedUsers, setHasCheckedUsers] = useState(false);
+	const [isCheckingUsers, setIsCheckingUsers] = useState(false);
+	const currentPathRef = useRef(routerState.location.pathname);
 
-  useEffect(() => {
-    currentPathRef.current = routerState.location.pathname;
-  }, [routerState.location.pathname]);
+	useEffect(() => {
+		currentPathRef.current = routerState.location.pathname;
+	}, [routerState.location.pathname]);
 
-  useEffect(() => {
-    const handleDarkSystemBars = (event: Event) => {
-      setUseDarkSystemBars(Boolean((event as CustomEvent<boolean>).detail));
-      setSystemBarsRevision((revision) => revision + 1);
-    };
-    const refreshSystemBars = () =>
-      setSystemBarsRevision((revision) => revision + 1);
-    window.addEventListener("vault-system-bars-dark", handleDarkSystemBars);
-    window.addEventListener("vault-system-bars-refresh", refreshSystemBars);
-    return () => {
-      window.removeEventListener("vault-system-bars-dark", handleDarkSystemBars);
-      window.removeEventListener("vault-system-bars-refresh", refreshSystemBars);
-    };
-  }, []);
+	useEffect(() => {
+		const handleDarkSystemBars = (event: Event) => {
+			setUseDarkSystemBars(Boolean((event as CustomEvent<boolean>).detail));
+			setSystemBarsRevision((revision) => revision + 1);
+		};
+		const refreshSystemBars = () =>
+			setSystemBarsRevision((revision) => revision + 1);
+		window.addEventListener("vault-system-bars-dark", handleDarkSystemBars);
+		window.addEventListener("vault-system-bars-refresh", refreshSystemBars);
+		return () => {
+			window.removeEventListener(
+				"vault-system-bars-dark",
+				handleDarkSystemBars,
+			);
+			window.removeEventListener(
+				"vault-system-bars-refresh",
+				refreshSystemBars,
+			);
+		};
+	}, []);
 
-  useEffect(() => {
-    if (Capacitor.getPlatform() !== "android") return;
+	useEffect(() => {
+		if (Capacitor.getPlatform() !== "android") return;
 
-    const immersive = useDarkSystemBars || isNowPlayingOpen;
-    const { color, style } = immersive
-      ? { color: "#080808", style: SystemBarsStyle.Dark }
-      : getAndroidSystemBarColor(effectiveTheme);
-    const statusBarColor = immersive ? "#00000000" : color;
+		const immersive = useDarkSystemBars || isNowPlayingOpen;
+		const { color, style } = immersive
+			? { color: "#080808", style: SystemBarsStyle.Dark }
+			: getAndroidSystemBarColor(effectiveTheme);
+		const statusBarColor = immersive ? "#00000000" : color;
 
-    const updateInsets = immersive
-      ? EdgeToEdge.disable()
-      : EdgeToEdge.enable();
+		const updateInsets = immersive ? EdgeToEdge.disable() : EdgeToEdge.enable();
 
-    updateInsets
-      .then(() =>
-        Promise.all([
-          SystemBars.show(),
-          SystemBars.setStyle({ style }),
-          EdgeToEdge.setStatusBarColor({ color: statusBarColor }),
-          EdgeToEdge.setNavigationBarColor({ color: isNowPlayingOpen ? "#00000000" : color }),
-        ]),
-      )
-      .catch((error) => {
-        console.warn("Failed to apply Android system bar styling:", error);
-      });
-  }, [effectiveTheme, useDarkSystemBars, isNowPlayingOpen, systemBarsRevision]);
+		updateInsets
+			.then(() =>
+				Promise.all([
+					SystemBars.show(),
+					SystemBars.setStyle({ style }),
+					EdgeToEdge.setStatusBarColor({ color: statusBarColor }),
+					EdgeToEdge.setNavigationBarColor({
+						color: isNowPlayingOpen ? "#00000000" : color,
+					}),
+				]),
+			)
+			.catch((error) => {
+				console.warn("Failed to apply Android system bar styling:", error);
+			});
+	}, [effectiveTheme, useDarkSystemBars, isNowPlayingOpen, systemBarsRevision]);
 
-  useEffect(() => {
-    if (Capacitor.getPlatform() !== "android") return;
+	useEffect(() => {
+		if (Capacitor.getPlatform() !== "android") return;
 
-    let disposed = false;
-    let listener: { remove: () => Promise<void> } | undefined;
+		let disposed = false;
+		let listener: { remove: () => Promise<void> } | undefined;
 
-    App.addListener("backButton", ({ canGoBack }) => {
-      if (
-        document.activeElement instanceof HTMLInputElement ||
-        document.activeElement instanceof HTMLTextAreaElement
-      ) {
-        document.activeElement.blur();
-        Keyboard.hide().catch(() => {});
-        return;
-      }
+		App.addListener("backButton", ({ canGoBack }) => {
+			if (
+				document.activeElement instanceof HTMLInputElement ||
+				document.activeElement instanceof HTMLTextAreaElement
+			) {
+				document.activeElement.blur();
+				Keyboard.hide().catch(() => {});
+				return;
+			}
 
-      if (closeTopOverlay()) return;
-      if (isNowPlayingOpen) {
-        closeNowPlaying();
-        return;
-      }
+			if (closeTopOverlay()) return;
+			if (isNowPlayingOpen) {
+				closeNowPlaying();
+				return;
+			}
 
-      const pathname = currentPathRef.current;
-      const isExitPath = ROOT_EXIT_PATHS.has(pathname);
+			const pathname = currentPathRef.current;
+			const isExitPath = ROOT_EXIT_PATHS.has(pathname);
 
-      if (!isExitPath) {
-        if (canGoBack) {
-          window.history.back();
-        } else {
-          navigate({ to: "/" });
-        }
-        return;
-      }
+			if (!isExitPath) {
+				if (canGoBack) {
+					window.history.back();
+				} else {
+					navigate({ to: "/" });
+				}
+				return;
+			}
 
-      App.exitApp();
-    }).then((handle) => {
-      if (disposed) {
-        void handle.remove();
-      } else {
-        listener = handle;
-      }
-    });
+			App.exitApp();
+		}).then((handle) => {
+			if (disposed) {
+				void handle.remove();
+			} else {
+				listener = handle;
+			}
+		});
 
-    return () => {
-      disposed = true;
-      if (listener) {
-        void listener.remove();
-      }
-    };
-  }, [closeNowPlaying, isNowPlayingOpen, navigate]);
+		return () => {
+			disposed = true;
+			if (listener) {
+				void listener.remove();
+			}
+		};
+	}, [closeNowPlaying, isNowPlayingOpen, navigate]);
 
-  useWebSocket(isAuthenticated);
+	useWebSocket(isAuthenticated);
 
-  useEffect(() => {
-    const currentPath = routerState.location.pathname;
+	useEffect(() => {
+		const currentPath = routerState.location.pathname;
 
-    if (
-      currentPath.startsWith("/initialize") ||
-      currentPath.startsWith("/login") ||
-      currentPath.startsWith("/register")
-    ) {
-      return;
-    }
+		if (
+			currentPath.startsWith("/initialize") ||
+			currentPath.startsWith("/login") ||
+			currentPath.startsWith("/register")
+		) {
+			return;
+		}
 
-    if (hasCheckedUsers || isCheckingUsers || authLoading) {
-      return;
-    }
+		if (hasCheckedUsers || isCheckingUsers || authLoading) {
+			return;
+		}
 
-    const checkAndRedirect = async () => {
-      setIsCheckingUsers(true);
-      try {
-        const result = await checkUsersExist();
-        setHasCheckedUsers(true);
-        if (!result.users_exist) {
-          navigate({ to: "/initialize", replace: true });
-        }
-      } catch (error) {
-        console.error("Failed to check if users exist:", error);
-        setHasCheckedUsers(true);
-      } finally {
-        setIsCheckingUsers(false);
-      }
-    };
+		const checkAndRedirect = async () => {
+			setIsCheckingUsers(true);
+			try {
+				const result = await checkUsersExist();
+				setHasCheckedUsers(true);
+				if (!result.users_exist) {
+					navigate({ to: "/initialize", replace: true });
+				}
+			} catch (error) {
+				console.error("Failed to check if users exist:", error);
+				setHasCheckedUsers(true);
+			} finally {
+				setIsCheckingUsers(false);
+			}
+		};
 
-    checkAndRedirect();
-  }, [
-    routerState.location.pathname,
-    authLoading,
-    hasCheckedUsers,
-    isCheckingUsers,
-    navigate,
-  ]);
+		checkAndRedirect();
+	}, [
+		routerState.location.pathname,
+		authLoading,
+		hasCheckedUsers,
+		isCheckingUsers,
+		navigate,
+	]);
 
-  return (
-    <>
-      <Outlet />
-      {isAuthenticated && !isSetupRoute && <MusicPlayer hideControls={isProfileRoute} />}
-      {isAuthenticated && !isSetupRoute && <FullscreenPlayer />}
-      {isAuthenticated && <ExportProgressIndicator />}
-      <Toaster
-        position="top-center"
-        offset="16px"
-        style={{
-          width: "100%",
-          maxWidth: "100vw",
-          display: "flex",
-          justifyContent: "center",
-        }}
-      />
-    </>
-  );
+	return (
+		<>
+			<Outlet />
+			{isAuthenticated && !isSetupRoute && (
+				<MusicPlayer hideControls={isProfileRoute} />
+			)}
+			{isAuthenticated && !isSetupRoute && <FullscreenPlayer />}
+			{isAuthenticated && <ExportProgressIndicator />}
+			<Toaster
+				position="top-center"
+				offset="16px"
+				style={{
+					width: "100%",
+					maxWidth: "100vw",
+					display: "flex",
+					justifyContent: "center",
+				}}
+			/>
+		</>
+	);
 }
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
-  component: RootComponent,
+	component: RootComponent,
 });

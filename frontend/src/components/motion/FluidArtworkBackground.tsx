@@ -160,122 +160,131 @@ export default function FluidArtworkBackground({
 			data-cover-url={coverUrl ?? undefined}
 			data-is-playing={isPlaying}
 		>
-			{rasterized && coverUrl ? <MobileArtworkBackdrop coverUrl={coverUrl} isPlaying={isPlaying} /> : <AnimatePresence initial={false}>
-				<motion.div
-					key={coverUrl || "fallback-gradient"}
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					exit={{ opacity: 0 }}
-					transition={{ duration: 0.5, ease: "easeInOut" }}
-					className="absolute inset-0 overflow-hidden"
-				>
-					<div className={cn("absolute inset-0", hasArtwork && "fluid-artwork-raster")}>
-					{hasArtwork ? (
-						/* Oversized blurred container with 15% bleed on all sides to prevent edge fade */
+			{rasterized && coverUrl ? (
+				<MobileArtworkBackdrop coverUrl={coverUrl} isPlaying={isPlaying} />
+			) : (
+				<AnimatePresence initial={false}>
+					<motion.div
+						key={coverUrl || "fallback-gradient"}
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						transition={{ duration: 0.5, ease: "easeInOut" }}
+						className="absolute inset-0 overflow-hidden"
+					>
 						<div
-							className="absolute -inset-[15%] size-[130%] overflow-hidden filter blur-[var(--fluid-artwork-blur,50px)] saturate-[1.8] contrast-[1.12] brightness-[0.95]"
-							style={{ transform: "translateZ(0)" }}
+							className={cn(
+								"absolute inset-0",
+								hasArtwork && "fluid-artwork-raster",
+							)}
 						>
-							{/* Base Layer: static blurred cover art covering full space */}
-							<img
-								src={coverUrl!}
-								alt=""
-								className="absolute inset-0 size-full object-cover opacity-60"
-								draggable={false}
-							/>
-
-							{/* Primary Orbiting Frame: sized closely to viewport so orbiting blobs pass across the screen */}
-							<div
-								className="absolute inset-[-10%] size-[120%]"
-								style={orbitFrameStyle}
-							>
-								{/* Top-Left Quadrant blob */}
-								<div className="absolute left-0 top-0 size-[58%] overflow-hidden rounded-full opacity-85">
+							{hasArtwork ? (
+								/* Oversized blurred container with 15% bleed on all sides to prevent edge fade */
+								<div
+									className="absolute -inset-[15%] size-[130%] overflow-hidden filter blur-[var(--fluid-artwork-blur,50px)] saturate-[1.8] contrast-[1.12] brightness-[0.95]"
+									style={{ transform: "translateZ(0)" }}
+								>
+									{/* Base Layer: static blurred cover art covering full space */}
 									<img
 										src={coverUrl!}
 										alt=""
-										className="size-full scale-135 object-cover object-top"
-										style={topLeftStyle}
+										className="absolute inset-0 size-full object-cover opacity-60"
 										draggable={false}
 									/>
+
+									{/* Primary Orbiting Frame: sized closely to viewport so orbiting blobs pass across the screen */}
+									<div
+										className="absolute inset-[-10%] size-[120%]"
+										style={orbitFrameStyle}
+									>
+										{/* Top-Left Quadrant blob */}
+										<div className="absolute left-0 top-0 size-[58%] overflow-hidden rounded-full opacity-85">
+											<img
+												src={coverUrl!}
+												alt=""
+												className="size-full scale-135 object-cover object-top"
+												style={topLeftStyle}
+												draggable={false}
+											/>
+										</div>
+
+										{/* Bottom-Right Quadrant blob */}
+										<div className="absolute bottom-0 right-0 size-[58%] overflow-hidden rounded-full opacity-85">
+											<img
+												src={coverUrl!}
+												alt=""
+												className="size-full scale-135 object-cover object-bottom"
+												style={botRightStyle}
+												draggable={false}
+											/>
+										</div>
+									</div>
+
+									{/* Counter-Orbiting Frame: creates opposing movement across other diagonal */}
+									<div
+										className="absolute inset-[-8%] size-[116%]"
+										style={counterOrbitStyle}
+									>
+										{/* Top-Right Quadrant blob with blend mode for luminous color crossing */}
+										<div className="absolute right-0 top-0 size-[54%] overflow-hidden rounded-full opacity-70 mix-blend-screen">
+											<img
+												src={coverUrl!}
+												alt=""
+												className="size-full scale-135 object-cover object-top"
+												style={topRightStyle}
+												draggable={false}
+											/>
+										</div>
+
+										{/* Bottom-Left Quadrant blob */}
+										<div className="absolute bottom-0 left-0 size-[54%] overflow-hidden rounded-full opacity-75">
+											<img
+												src={coverUrl!}
+												alt=""
+												className="size-full scale-135 object-cover object-bottom"
+												style={botLeftStyle}
+												draggable={false}
+											/>
+										</div>
+									</div>
+
+									{/* Floating Organic Drift Blobs: expand and morph across the screen */}
+									<div
+										className="absolute left-[15%] top-[20%] size-[60%] rounded-full opacity-65 mix-blend-screen"
+										style={drift1Style}
+									>
+										<img
+											src={coverUrl!}
+											alt=""
+											className="size-full scale-140 object-cover object-center"
+											draggable={false}
+										/>
+									</div>
+
+									<div
+										className="absolute bottom-[15%] right-[15%] size-[60%] rounded-full opacity-60 mix-blend-screen"
+										style={drift2Style}
+									>
+										<img
+											src={coverUrl!}
+											alt=""
+											className="size-full scale-140 object-cover object-center"
+											draggable={false}
+										/>
+									</div>
 								</div>
-
-								{/* Bottom-Right Quadrant blob */}
-								<div className="absolute bottom-0 right-0 size-[58%] overflow-hidden rounded-full opacity-85">
-									<img
-										src={coverUrl!}
-										alt=""
-										className="size-full scale-135 object-cover object-bottom"
-										style={botRightStyle}
-										draggable={false}
-									/>
+							) : (
+								/* Fallback when no artwork exists: rich ambient dark radial gradients */
+								<div className="absolute inset-0 bg-[#0d0d11]">
+									<div className="absolute -left-[20%] -top-[20%] size-[80vw] rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.22)_0%,transparent_70%)] blur-[80px]" />
+									<div className="absolute -bottom-[20%] -right-[20%] size-[80vw] rounded-full bg-[radial-gradient(circle,rgba(168,85,247,0.2)_0%,transparent_70%)] blur-[80px]" />
+									<div className="absolute inset-[15%] rounded-full bg-[radial-gradient(circle,rgba(234,179,8,0.1)_0%,transparent_70%)] blur-[90px]" />
 								</div>
-							</div>
-
-							{/* Counter-Orbiting Frame: creates opposing movement across other diagonal */}
-							<div
-								className="absolute inset-[-8%] size-[116%]"
-								style={counterOrbitStyle}
-							>
-								{/* Top-Right Quadrant blob with blend mode for luminous color crossing */}
-								<div className="absolute right-0 top-0 size-[54%] overflow-hidden rounded-full opacity-70 mix-blend-screen">
-									<img
-										src={coverUrl!}
-										alt=""
-										className="size-full scale-135 object-cover object-top"
-										style={topRightStyle}
-										draggable={false}
-									/>
-								</div>
-
-								{/* Bottom-Left Quadrant blob */}
-								<div className="absolute bottom-0 left-0 size-[54%] overflow-hidden rounded-full opacity-75">
-									<img
-										src={coverUrl!}
-										alt=""
-										className="size-full scale-135 object-cover object-bottom"
-										style={botLeftStyle}
-										draggable={false}
-									/>
-								</div>
-							</div>
-
-							{/* Floating Organic Drift Blobs: expand and morph across the screen */}
-							<div
-								className="absolute left-[15%] top-[20%] size-[60%] rounded-full opacity-65 mix-blend-screen"
-								style={drift1Style}
-							>
-								<img
-									src={coverUrl!}
-									alt=""
-									className="size-full scale-140 object-cover object-center"
-									draggable={false}
-								/>
-							</div>
-
-							<div
-								className="absolute bottom-[15%] right-[15%] size-[60%] rounded-full opacity-60 mix-blend-screen"
-								style={drift2Style}
-							>
-								<img
-									src={coverUrl!}
-									alt=""
-									className="size-full scale-140 object-cover object-center"
-									draggable={false}
-								/>
-							</div>
+							)}
 						</div>
-					) : (
-						/* Fallback when no artwork exists: rich ambient dark radial gradients */
-						<div className="absolute inset-0 bg-[#0d0d11]">
-							<div className="absolute -left-[20%] -top-[20%] size-[80vw] rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.22)_0%,transparent_70%)] blur-[80px]" />
-							<div className="absolute -bottom-[20%] -right-[20%] size-[80vw] rounded-full bg-[radial-gradient(circle,rgba(168,85,247,0.2)_0%,transparent_70%)] blur-[80px]" />
-							<div className="absolute inset-[15%] rounded-full bg-[radial-gradient(circle,rgba(234,179,8,0.1)_0%,transparent_70%)] blur-[90px]" />
-						</div>
-					)}
-					</div>
-				</motion.div>
-			</AnimatePresence>}
+					</motion.div>
+				</AnimatePresence>
+			)}
 
 			{/* Uniform darkening wash: 28% black keeps colors punchy and fluid while keeping text legible */}
 			<div className="absolute inset-0 bg-black/28" />

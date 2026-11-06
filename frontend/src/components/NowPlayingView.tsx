@@ -32,11 +32,11 @@ import {
 	useIsPresent,
 } from "motion/react";
 import {
-	lazy,
-	Suspense,
 	type CSSProperties,
+	lazy,
 	type KeyboardEvent as ReactKeyboardEvent,
 	type PointerEvent as ReactPointerEvent,
+	Suspense,
 	useCallback,
 	useEffect,
 	useLayoutEffect,
@@ -44,11 +44,11 @@ import {
 	useState,
 } from "react";
 import { createPortal } from "react-dom";
+import FluidArtworkBackground from "@/components/motion/FluidArtworkBackground";
 import MotionArtworkStage, {
 	MotionArtworkFlowBackground,
 	type MotionArtworkPresentation,
 } from "@/components/motion/MotionArtworkStage";
-import FluidArtworkBackground from "@/components/motion/FluidArtworkBackground";
 import QueuePanel from "@/components/QueuePanel";
 import { Button } from "@/components/ui/button";
 import {
@@ -156,7 +156,12 @@ function PlaybackWaveform({
 			aria-valuemax={Math.floor(duration)}
 			aria-valuenow={Math.floor(progress)}
 		>
-			<WaveformGraphic bars={bars} progressPercent={progressPercent} playedColor="#ffffff" unplayedColor="rgba(255,255,255,0.25)" />
+			<WaveformGraphic
+				bars={bars}
+				progressPercent={progressPercent}
+				playedColor="#ffffff"
+				unplayedColor="rgba(255,255,255,0.25)"
+			/>
 			<div
 				className="pointer-events-none absolute inset-y-0 w-0.5 -translate-x-1/2 rounded-full bg-[var(--accent-color)]"
 				style={{ left: `${progressPercent}%` }}
@@ -187,7 +192,10 @@ function PlaybackTimeline({
 	const previewProgress = usePlaybackProgress();
 	const progress = duration > 0 ? Math.min(previewProgress, duration) : 0;
 	return (
-		<div className={cn("relative w-full", !mobile && "mt-6")} data-testid={mobile ? "mobile-playback-waveform" : undefined}>
+		<div
+			className={cn("relative w-full", !mobile && "mt-6")}
+			data-testid={mobile ? "mobile-playback-waveform" : undefined}
+		>
 			{versionId && (
 				<WaveformComments
 					versionId={versionId}
@@ -203,8 +211,18 @@ function PlaybackTimeline({
 					panelTarget={panelTarget}
 				/>
 			)}
-			<PlaybackWaveform bars={bars} duration={duration} progress={progress} onSeek={onSeek} />
-			<div className={cn("mt-1.5 flex justify-between font-mono text-white/55", mobile ? "text-[11px]" : "text-xs")}>
+			<PlaybackWaveform
+				bars={bars}
+				duration={duration}
+				progress={progress}
+				onSeek={onSeek}
+			/>
+			<div
+				className={cn(
+					"mt-1.5 flex justify-between font-mono text-white/55",
+					mobile ? "text-[11px]" : "text-xs",
+				)}
+			>
 				<span>{formatTrackDuration(progress) ?? "0:00"}</span>
 				<span>{formatTrackDuration(duration) ?? "0:00"}</span>
 			</div>
@@ -242,7 +260,10 @@ export default function NowPlayingView({
 	} = useAudioPlayer();
 	const navigate = useNavigate();
 	const { preferences, accentColor } = usePreferences();
-	const fullscreenTheme = { colorScheme: "dark", "--accent-color": accentColor } as CSSProperties;
+	const fullscreenTheme = {
+		colorScheme: "dark",
+		"--accent-color": accentColor,
+	} as CSSProperties;
 	const isPresent = useIsPresent();
 	const [hasEntered, setHasEntered] = useState(false);
 	const artworkActive = hasEntered && isPresent && isPlaying;
@@ -293,7 +314,8 @@ export default function NowPlayingView({
 		return () => {
 			if (metaThemeColor) {
 				if (prevMetaContent === null) metaThemeColor.removeAttribute("content");
-				else if (prevMetaContent !== undefined) metaThemeColor.setAttribute("content", prevMetaContent);
+				else if (prevMetaContent !== undefined)
+					metaThemeColor.setAttribute("content", prevMetaContent);
 			}
 		};
 	}, [isPresent]);
@@ -447,7 +469,11 @@ export default function NowPlayingView({
 							transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
 							className="flex w-[min(36rem,44vw)] flex-col items-center will-change-transform"
 						>
-							<div data-testid="playback-artwork" data-playing={isPlaying} className="playback-artwork relative size-[min(54dvh,32vw,36rem)] max-w-full shrink-0 overflow-hidden rounded-lg shadow-2xl">
+							<div
+								data-testid="playback-artwork"
+								data-playing={isPlaying}
+								className="playback-artwork relative size-[min(54dvh,32vw,36rem)] max-w-full shrink-0 overflow-hidden rounded-lg shadow-2xl"
+							>
 								<MotionArtworkStage
 									active={artworkActive}
 									presentation="fill"
@@ -527,7 +553,9 @@ export default function NowPlayingView({
 								onSeek={seekTo}
 								versionId={isCommentsEnabled ? activeVersionId : null}
 								commentsOpen={isCommentsOpen}
-								onCommentsOpenChange={(open) => setActivePanel(open ? "comments" : null)}
+								onCommentsOpenChange={(open) =>
+									setActivePanel(open ? "comments" : null)
+								}
 								panelTarget={commentsPanelTarget}
 							/>
 
@@ -839,7 +867,13 @@ export default function NowPlayingView({
 										className="pointer-events-auto flex max-h-[72dvh] w-full flex-col overflow-hidden"
 										data-testid="fullscreen-side-panel"
 									>
-										<Suspense fallback={<p role="status" className="p-2 text-sm text-white/55">Loading notes...</p>}>
+										<Suspense
+											fallback={
+												<p role="status" className="p-2 text-sm text-white/55">
+													Loading notes...
+												</p>
+											}
+										>
 											<NotesPanel
 												mode="track"
 												selectedTrack={activeTrack}
@@ -1021,7 +1055,11 @@ export default function NowPlayingView({
 									layout: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
 								}}
 							>
-								<div data-testid="playback-artwork" data-playing={isPlaying} className="playback-artwork size-full overflow-hidden rounded-[7%] bg-black/20 shadow-2xl ring-1 ring-white/10">
+								<div
+									data-testid="playback-artwork"
+									data-playing={isPlaying}
+									className="playback-artwork size-full overflow-hidden rounded-[7%] bg-black/20 shadow-2xl ring-1 ring-white/10"
+								>
 									<MotionArtworkStage
 										active={artworkActive}
 										presentation="fill"
@@ -1031,33 +1069,39 @@ export default function NowPlayingView({
 								</div>
 							</motion.div>
 						)}
-							{activePanel && (
-								<motion.div
-									key={activePanel}
-									initial={{ y: 8 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-									className="mt-3 min-h-0 w-full flex-1 overflow-hidden"
-									data-testid="mobile-active-panel"
-								>
-									{isQueueOpen && (
-										<div ref={setMobileQueueTarget} className="h-full" />
-									)}
-									{isNotesOpen && (
-										<Suspense fallback={<p role="status" className="p-2 text-sm text-white/55">Loading notes...</p>}>
-											<NotesPanel
-												mode="track"
-												selectedTrack={activeTrack}
-												onClose={closeActivePanel}
-												embedded
-											/>
-										</Suspense>
-									)}
-									{isCommentsOpen && (
-										<div ref={setCommentsPanelTarget} className="h-full" />
-									)}
-								</motion.div>
-							)}
+						{activePanel && (
+							<motion.div
+								key={activePanel}
+								initial={{ y: 8 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+								className="mt-3 min-h-0 w-full flex-1 overflow-hidden"
+								data-testid="mobile-active-panel"
+							>
+								{isQueueOpen && (
+									<div ref={setMobileQueueTarget} className="h-full" />
+								)}
+								{isNotesOpen && (
+									<Suspense
+										fallback={
+											<p role="status" className="p-2 text-sm text-white/55">
+												Loading notes...
+											</p>
+										}
+									>
+										<NotesPanel
+											mode="track"
+											selectedTrack={activeTrack}
+											onClose={closeActivePanel}
+											embedded
+										/>
+									</Suspense>
+								)}
+								{isCommentsOpen && (
+									<div ref={setCommentsPanelTarget} className="h-full" />
+								)}
+							</motion.div>
+						)}
 					</div>
 
 					<div className="flex flex-col" data-testid="mobile-player-footer">
@@ -1084,7 +1128,9 @@ export default function NowPlayingView({
 								onSeek={seekTo}
 								versionId={isCommentsEnabled ? activeVersionId : null}
 								commentsOpen={isCommentsOpen}
-								onCommentsOpenChange={(open) => setActivePanel(open ? "comments" : null)}
+								onCommentsOpenChange={(open) =>
+									setActivePanel(open ? "comments" : null)
+								}
 								panelTarget={commentsPanelTarget}
 								mobile
 							/>
@@ -1192,10 +1238,10 @@ export default function NowPlayingView({
 									"bg-black/25 hover:bg-black/45",
 									isNotesOpen && "bg-white/15 text-white",
 								)}
-									onClick={() => togglePanel("notes")}
-									onPointerEnter={preloadNotesPanel}
-									onPointerDown={preloadNotesPanel}
-									onFocus={preloadNotesPanel}
+								onClick={() => togglePanel("notes")}
+								onPointerEnter={preloadNotesPanel}
+								onPointerDown={preloadNotesPanel}
+								onFocus={preloadNotesPanel}
 								aria-label="Notes"
 								title="Notes"
 							>

@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiError } from "./client";
 import { checkUsersExist } from "./auth";
+import { ApiError } from "./client";
 
 describe("checkUsersExist with timeout", () => {
 	const originalFetch = global.fetch;

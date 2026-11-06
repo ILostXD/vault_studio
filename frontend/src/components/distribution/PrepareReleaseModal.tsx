@@ -41,8 +41,8 @@ import {
 } from "@/api/distribution";
 import BaseModal from "@/components/modals/BaseModal";
 import { Button } from "@/components/ui/button";
-import { DisclosureSummary } from "@/components/ui/disclosure-summary";
 import { DatePicker } from "@/components/ui/date-picker";
+import { DisclosureSummary } from "@/components/ui/disclosure-summary";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -273,8 +273,8 @@ export function PrepareReleaseModal({
 							Prepare Release
 						</h2>
 						<p className="mt-1 text-sm text-(--text-1)">
-							Review what {"{ vault.studio }"} knows, then export it or create a distributor
-							draft.
+							Review what {"{ vault.studio }"} knows, then export it or create a
+							distributor draft.
 						</p>
 					</div>
 					<Button
@@ -374,8 +374,8 @@ export function PrepareReleaseModal({
 									<h3 className="text-lg font-semibold">Release Package</h3>
 									<p className="mt-1 text-sm text-(--text-1)">
 										Original active masters, artwork, metadata, credits,
-										checksums, and a README in one ZIP. {"{ vault.studio }"} never modifies
-										your masters.
+										checksums, and a README in one ZIP. {"{ vault.studio }"}{" "}
+										never modifies your masters.
 									</p>
 									<ArtworkSummary release={response.release} />
 									<Button
@@ -418,9 +418,10 @@ export function PrepareReleaseModal({
 										<div>
 											<h3 className="text-lg font-semibold">Too Lost</h3>
 											<p className="mt-1 text-sm text-(--text-1)">
-												{"{ vault.studio }"} creates or updates a draft and sends the square
-												cover when available. Stores, territories, licensing,
-												review, and final submission stay in Too Lost.
+												{"{ vault.studio }"} creates or updates a draft and
+												sends the square cover when available. Stores,
+												territories, licensing, review, and final submission
+												stay in Too Lost.
 											</p>
 										</div>
 										<span className="rounded-full border border-(--card-border) px-2.5 py-1 text-xs text-(--text-1)">
@@ -848,7 +849,10 @@ function TracksTab({
 				const hasCreditOverride = override.credits !== undefined;
 				const language = String(value("language") ?? "");
 				return (
-					<details key={track.track_id} className="group py-3 first:pt-0 last:pb-0">
+					<details
+						key={track.track_id}
+						className="group py-3 first:pt-0 last:pb-0"
+					>
 						<DisclosureSummary>
 							<div className="flex items-center gap-3 min-w-0">
 								<span className="font-mono text-xs text-(--text-2) w-5 text-right shrink-0">

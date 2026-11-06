@@ -33,7 +33,9 @@ describe("fullscreenQueue preference persistence", () => {
 	});
 
 	it("1. defaults to OPEN (true) when there is no saved preference", () => {
-		expect(window.localStorage.getItem(FULLSCREEN_DESKTOP_QUEUE_KEY)).toBeNull();
+		expect(
+			window.localStorage.getItem(FULLSCREEN_DESKTOP_QUEUE_KEY),
+		).toBeNull();
 		expect(getFullscreenDesktopQueueOpen()).toBe(true);
 	});
 
@@ -54,7 +56,9 @@ describe("fullscreenQueue preference persistence", () => {
 		// User closes queue
 		setFullscreenDesktopQueueOpen(false);
 
-		expect(window.localStorage.getItem(FULLSCREEN_DESKTOP_QUEUE_KEY)).toBe("false");
+		expect(window.localStorage.getItem(FULLSCREEN_DESKTOP_QUEUE_KEY)).toBe(
+			"false",
+		);
 		expect(getFullscreenDesktopQueueOpen()).toBe(false);
 	});
 
@@ -66,7 +70,9 @@ describe("fullscreenQueue preference persistence", () => {
 		// User opens queue
 		setFullscreenDesktopQueueOpen(true);
 
-		expect(window.localStorage.getItem(FULLSCREEN_DESKTOP_QUEUE_KEY)).toBe("true");
+		expect(window.localStorage.getItem(FULLSCREEN_DESKTOP_QUEUE_KEY)).toBe(
+			"true",
+		);
 		expect(getFullscreenDesktopQueueOpen()).toBe(true);
 	});
 
@@ -76,7 +82,9 @@ describe("fullscreenQueue preference persistence", () => {
 		setFullscreenDesktopQueueOpen(false);
 
 		// Simulate session end / reload (localStorage retains values)
-		const savedValue = window.localStorage.getItem(FULLSCREEN_DESKTOP_QUEUE_KEY);
+		const savedValue = window.localStorage.getItem(
+			FULLSCREEN_DESKTOP_QUEUE_KEY,
+		);
 		expect(savedValue).toBe("false");
 
 		// Session 2: User opens app later and enters fullscreen again
@@ -86,7 +94,9 @@ describe("fullscreenQueue preference persistence", () => {
 		setFullscreenDesktopQueueOpen(true);
 
 		// Simulate another reload
-		expect(window.localStorage.getItem(FULLSCREEN_DESKTOP_QUEUE_KEY)).toBe("true");
+		expect(window.localStorage.getItem(FULLSCREEN_DESKTOP_QUEUE_KEY)).toBe(
+			"true",
+		);
 		expect(getFullscreenDesktopQueueOpen()).toBe(true);
 	});
 

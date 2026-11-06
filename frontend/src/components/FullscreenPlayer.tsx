@@ -7,36 +7,40 @@ import { useTracks } from "@/hooks/useTracks";
 import NowPlayingView from "./NowPlayingView";
 
 function CurrentNowPlaying() {
-  const { currentTrack } = useAudioPlayer();
-  const { data: project } = useProject(currentTrack?.projectId);
-  const { data: tracks } = useTracks(project?.id ?? null);
-  const { imageUrl } = useProjectCoverImage(project, "large");
-  const [mobile, setMobile] = useState(() => window.matchMedia("(max-width: 768px)").matches);
+	const { currentTrack } = useAudioPlayer();
+	const { data: project } = useProject(currentTrack?.projectId);
+	const { data: tracks } = useTracks(project?.id ?? null);
+	const { imageUrl } = useProjectCoverImage(project, "large");
+	const [mobile, setMobile] = useState(
+		() => window.matchMedia("(max-width: 768px)").matches,
+	);
 
-  useEffect(() => {
-    const query = window.matchMedia("(max-width: 768px)");
-    const update = () => setMobile(query.matches);
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, []);
+	useEffect(() => {
+		const query = window.matchMedia("(max-width: 768px)");
+		const update = () => setMobile(query.matches);
+		query.addEventListener("change", update);
+		return () => query.removeEventListener("change", update);
+	}, []);
 
-  if (!currentTrack) return null;
-  return (
-    <NowPlayingView
-      projectId={currentTrack.projectId ?? ""}
-      projectName={project?.name ?? currentTrack.projectName ?? ""}
-      coverUrl={imageUrl ?? currentTrack.coverUrl}
-      tracks={tracks}
-      variant={mobile ? "mobile" : "desktop"}
-    />
-  );
+	if (!currentTrack) return null;
+	return (
+		<NowPlayingView
+			projectId={currentTrack.projectId ?? ""}
+			projectName={project?.name ?? currentTrack.projectName ?? ""}
+			coverUrl={imageUrl ?? currentTrack.coverUrl}
+			tracks={tracks}
+			variant={mobile ? "mobile" : "desktop"}
+		/>
+	);
 }
 
 export default function FullscreenPlayer() {
-  const { currentTrack, isNowPlayingOpen } = useAudioPlayer();
-  return (
-    <AnimatePresence initial={false}>
-      {isNowPlayingOpen && currentTrack && <CurrentNowPlaying key="now-playing" />}
-    </AnimatePresence>
-  );
+	const { currentTrack, isNowPlayingOpen } = useAudioPlayer();
+	return (
+		<AnimatePresence initial={false}>
+			{isNowPlayingOpen && currentTrack && (
+				<CurrentNowPlaying key="now-playing" />
+			)}
+		</AnimatePresence>
+	);
 }

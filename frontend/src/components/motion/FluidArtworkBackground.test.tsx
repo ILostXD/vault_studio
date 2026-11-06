@@ -28,7 +28,9 @@ describe("FluidArtworkBackground", () => {
 
 		const bg = screen.getByTestId("fluid-artwork-bg");
 		expect(bg).toBeDefined();
-		expect(bg.getAttribute("data-cover-url")).toBe("https://example.com/cover.jpg");
+		expect(bg.getAttribute("data-cover-url")).toBe(
+			"https://example.com/cover.jpg",
+		);
 		expect(bg.getAttribute("data-is-playing")).toBe("true");
 
 		const images = container.querySelectorAll("img");

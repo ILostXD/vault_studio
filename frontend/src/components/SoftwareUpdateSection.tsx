@@ -36,8 +36,9 @@ export function SoftwareUpdateSection() {
 					</p>
 					{status.data?.update_available && !status.data.updater_configured && (
 						<p className="mt-1 text-xs text-(--text-2)">
-							Enable the isolated Docker updater once. It installs tagged release
-							images from GitHub Container Registry, not commits from main.
+							Enable the isolated Docker updater once. It installs tagged
+							release images from GitHub Container Registry, not commits from
+							main.
 						</p>
 					)}
 				</div>

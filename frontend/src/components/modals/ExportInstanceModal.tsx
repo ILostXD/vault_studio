@@ -1,246 +1,253 @@
-import { Download, Check } from "lucide-react";
+import { Check, Download } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import {
+	type ExportResult,
+	exportInstance,
+	getExportSize,
+} from "@/api/instance";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { offWSMessage, onWSMessage } from "@/hooks/useWebSocket";
 import BaseModal from "./BaseModal";
 import ModalIcon from "./ModalIcon";
-import {
-  exportInstance,
-  getExportSize,
-  type ExportResult,
-} from "@/api/instance";
-import { useState, useEffect, useRef } from "react";
-import { AnimatePresence, motion } from "motion/react";
-import { onWSMessage, offWSMessage } from "@/hooks/useWebSocket";
-import { Progress } from "@/components/ui/progress";
 
 interface ExportProgress {
-  current: number;
-  total: number;
-  filename: string;
+	current: number;
+	total: number;
+	filename: string;
 }
 
 interface ExportInstanceModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+	isOpen: boolean;
+	onClose: () => void;
 }
 
 function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024)
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+	if (bytes < 1024) return `${bytes} B`;
+	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+	if (bytes < 1024 * 1024 * 1024)
+		return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+	return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
 const spring = { type: "spring" as const, bounce: 0, duration: 0.4 };
 
 export default function ExportInstanceModal({
-  isOpen,
-  onClose,
+	isOpen,
+	onClose,
 }: ExportInstanceModalProps) {
-  const [isExporting, setIsExporting] = useState(false);
-  const totalFiles = useRef(0);
-  const [exportError, setExportError] = useState("");
-  const [progress, setProgress] = useState<ExportProgress | null>(null);
-  const [result, setResult] = useState<
-    (ExportResult & { totalFiles: number }) | null
-  >(null);
-  const [estimatedBytes, setEstimatedBytes] = useState<number | null>(null);
+	const [isExporting, setIsExporting] = useState(false);
+	const totalFiles = useRef(0);
+	const [exportError, setExportError] = useState("");
+	const [progress, setProgress] = useState<ExportProgress | null>(null);
+	const [result, setResult] = useState<
+		(ExportResult & { totalFiles: number }) | null
+	>(null);
+	const [estimatedBytes, setEstimatedBytes] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      getExportSize()
-        .then(setEstimatedBytes)
-        .catch(() => setEstimatedBytes(null));
-    }
-  }, [isOpen]);
+	useEffect(() => {
+		if (isOpen) {
+			getExportSize()
+				.then(setEstimatedBytes)
+				.catch(() => setEstimatedBytes(null));
+		}
+	}, [isOpen]);
 
-  useEffect(() => {
-    if (!isExporting) return;
+	useEffect(() => {
+		if (!isExporting) return;
 
-    const listener = (message: { type: string; payload: unknown }) => {
-      if (message.type === "export_progress") {
-        const p = message.payload as ExportProgress;
-        setProgress({ ...p });
-        totalFiles.current = p.total;
-      }
-    };
+		const listener = (message: { type: string; payload: unknown }) => {
+			if (message.type === "export_progress") {
+				const p = message.payload as ExportProgress;
+				setProgress({ ...p });
+				totalFiles.current = p.total;
+			}
+		};
 
-    onWSMessage(listener);
-    return () => offWSMessage(listener);
-  }, [isExporting]);
+		onWSMessage(listener);
+		return () => offWSMessage(listener);
+	}, [isExporting]);
 
-  const handleExport = async () => {
-    totalFiles.current = 0;
-    setExportError("");
-    try {
-      setIsExporting(true);
-      setProgress(null);
-      setResult(null);
-      const exportResult = await exportInstance();
-      setResult({
-        ...exportResult,
-        totalFiles: totalFiles.current,
-      });
-    } catch (error) {
-      console.error("Export failed:", error);
-      setExportError(error instanceof Error ? error.message : "Failed to export instance");
-    } finally {
-      setIsExporting(false);
-    }
-  };
+	const handleExport = async () => {
+		totalFiles.current = 0;
+		setExportError("");
+		try {
+			setIsExporting(true);
+			setProgress(null);
+			setResult(null);
+			const exportResult = await exportInstance();
+			setResult({
+				...exportResult,
+				totalFiles: totalFiles.current,
+			});
+		} catch (error) {
+			console.error("Export failed:", error);
+			setExportError(
+				error instanceof Error ? error.message : "Failed to export instance",
+			);
+		} finally {
+			setIsExporting(false);
+		}
+	};
 
-  const handleClose = () => {
-    setResult(null);
-    setProgress(null);
-    setExportError("");
-    onClose();
-  };
+	const handleClose = () => {
+		setResult(null);
+		setProgress(null);
+		setExportError("");
+		onClose();
+	};
 
-  const isDone = !!result;
-  const pct = progress && progress.total > 0
-    ? Math.min(100, Math.round((progress.current / progress.total) * 100))
-    : 0;
+	const isDone = !!result;
+	const pct =
+		progress && progress.total > 0
+			? Math.min(100, Math.round((progress.current / progress.total) * 100))
+			: 0;
 
-  return (
-    <BaseModal isOpen={isOpen} onClose={handleClose} disableClose={isExporting}>
-      <div className="p-6 md:p-8">
-        {/* Icon */}
-        <ModalIcon icon={isDone ? Check : Download} variant="default" />
+	return (
+		<BaseModal isOpen={isOpen} onClose={handleClose} disableClose={isExporting}>
+			<div className="p-6 md:p-8">
+				{/* Icon */}
+				<ModalIcon icon={isDone ? Check : Download} variant="default" />
 
-        {/* Title */}
-        <h2 className="text-2xl font-semibold text-(--text-0) text-center mb-3">
-          {isDone ? "Export Complete" : "Export Instance"}
-        </h2>
+				{/* Title */}
+				<h2 className="text-2xl font-semibold text-(--text-0) text-center mb-3">
+					{isDone ? "Export Complete" : "Export Instance"}
+				</h2>
 
-        {/* Description — hides when done */}
-        <AnimatePresence initial={false}>
-          {!isDone && (
-            <motion.div
-              key="description"
-              initial={{ opacity: 0, height: 0, filter: "blur(4px)" }}
-              animate={{ opacity: 1, height: "auto", filter: "blur(0px)" }}
-              exit={{ opacity: 0, height: 0, filter: "blur(4px)" }}
-              transition={spring}
-              className="overflow-hidden"
-            >
-              <p className="text-sm text-muted-foreground text-center mb-6">
-                Download a complete backup of your instance including all
-                projects, tracks, and settings.
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+				{/* Description — hides when done */}
+				<AnimatePresence initial={false}>
+					{!isDone && (
+						<motion.div
+							key="description"
+							initial={{ opacity: 0, height: 0, filter: "blur(4px)" }}
+							animate={{ opacity: 1, height: "auto", filter: "blur(0px)" }}
+							exit={{ opacity: 0, height: 0, filter: "blur(4px)" }}
+							transition={spring}
+							className="overflow-hidden"
+						>
+							<p className="text-sm text-muted-foreground text-center mb-6">
+								Download a complete backup of your instance including all
+								projects, tracks, and settings.
+							</p>
+						</motion.div>
+					)}
+				</AnimatePresence>
 
-        {/* Middle section: estimate / progress / result */}
-        <AnimatePresence initial={false} mode="wait">
-          {isDone ? (
-            <motion.div
-              key="result"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.4 }}
-            >
-              <div className="text-sm text-muted-foreground text-center mb-6 space-y-1">
-                <p>
-                  <span className="text-(--text-0) font-medium">
-                    {result.filename}
-                  </span>
-                </p>
-                <p>
-                  {result.totalFiles > 0 && (
-                    <>{result.totalFiles} files &middot; </>
-                  )}
-                  {formatSize(result.sizeBytes)}
-                </p>
-              </div>
-            </motion.div>
-          ) : isExporting ? (
-            <motion.div
-              key="progress"
-              initial={{ opacity: 0, height: 0, filter: "blur(4px)" }}
-              animate={{ opacity: 1, height: "auto", filter: "blur(0px)" }}
-              exit={{ opacity: 0, height: 0, filter: "blur(4px)" }}
-              transition={spring}
-              className="overflow-hidden"
-            >
-              <div className="mb-6 space-y-2">
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>
-                    {progress
-                      ? `${progress.current} / ${progress.total} files`
-                      : "Preparing..."}
-                  </span>
-                  <span>{pct}%</span>
-                </div>
-                <Progress value={progress ? pct : undefined} />
-                <p className="text-xs text-muted-foreground truncate h-4">
-                  {progress?.filename ?? "\u00A0"}
-                </p>
-              </div>
-            </motion.div>
-          ) : (
-            estimatedBytes !== null && (
-              <motion.div
-                key="estimate"
-                initial={{ opacity: 0, height: 0, filter: "blur(4px)" }}
-                animate={{ opacity: 1, height: "auto", filter: "blur(0px)" }}
-                exit={{ opacity: 0, height: 0, filter: "blur(4px)" }}
-                transition={spring}
-                className="overflow-hidden"
-              >
-                <p className="text-xs text-muted-foreground text-center mb-6">
-                  Estimated size:{" "}
-                  <span className="text-(--text-0) font-medium">
-                    {formatSize(estimatedBytes)}
-                  </span>
-                </p>
-              </motion.div>
-            )
-          )}
-        </AnimatePresence>
+				{/* Middle section: estimate / progress / result */}
+				<AnimatePresence initial={false} mode="wait">
+					{isDone ? (
+						<motion.div
+							key="result"
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							transition={{ duration: 0.3, delay: 0.4 }}
+						>
+							<div className="text-sm text-muted-foreground text-center mb-6 space-y-1">
+								<p>
+									<span className="text-(--text-0) font-medium">
+										{result.filename}
+									</span>
+								</p>
+								<p>
+									{result.totalFiles > 0 && (
+										<>{result.totalFiles} files &middot; </>
+									)}
+									{formatSize(result.sizeBytes)}
+								</p>
+							</div>
+						</motion.div>
+					) : isExporting ? (
+						<motion.div
+							key="progress"
+							initial={{ opacity: 0, height: 0, filter: "blur(4px)" }}
+							animate={{ opacity: 1, height: "auto", filter: "blur(0px)" }}
+							exit={{ opacity: 0, height: 0, filter: "blur(4px)" }}
+							transition={spring}
+							className="overflow-hidden"
+						>
+							<div className="mb-6 space-y-2">
+								<div className="flex justify-between text-xs text-muted-foreground">
+									<span>
+										{progress
+											? `${progress.current} / ${progress.total} files`
+											: "Preparing..."}
+									</span>
+									<span>{pct}%</span>
+								</div>
+								<Progress value={progress ? pct : undefined} />
+								<p className="text-xs text-muted-foreground truncate h-4">
+									{progress?.filename ?? "\u00A0"}
+								</p>
+							</div>
+						</motion.div>
+					) : (
+						estimatedBytes !== null && (
+							<motion.div
+								key="estimate"
+								initial={{ opacity: 0, height: 0, filter: "blur(4px)" }}
+								animate={{ opacity: 1, height: "auto", filter: "blur(0px)" }}
+								exit={{ opacity: 0, height: 0, filter: "blur(4px)" }}
+								transition={spring}
+								className="overflow-hidden"
+							>
+								<p className="text-xs text-muted-foreground text-center mb-6">
+									Estimated size:{" "}
+									<span className="text-(--text-0) font-medium">
+										{formatSize(estimatedBytes)}
+									</span>
+								</p>
+							</motion.div>
+						)
+					)}
+				</AnimatePresence>
 
-        {exportError && <p role="alert" className="mb-4 text-sm text-(--danger-0)">{exportError}</p>}
-        {/* Buttons */}
-        <AnimatePresence initial={false} mode="wait">
-          {isDone ? (
-            <motion.div
-              key="done-btn"
-              initial={{ opacity: 0, filter: "blur(4px)" }}
-              animate={{ opacity: 1, filter: "blur(0px)" }}
-              transition={{ ...spring, delay: 0.4 }}
-            >
-              <Button
-                onClick={handleClose}
-                className="w-full bg-accent-blue hover:bg-accent-blue/80 text-(--text-0) font-medium"
-              >
-                Done
-              </Button>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="action-btns"
-              exit={{ opacity: 0, filter: "blur(4px)" }}
-              transition={spring}
-              className="flex flex-col gap-3"
-            >
-              <Button
-                onClick={handleExport}
-                disabled={isExporting}
-                className="w-full bg-accent-blue hover:bg-accent-blue/80 text-(--text-0) font-medium"
-              >
-                {isExporting ? "Exporting..." : "Export"}
-              </Button>
-              <Button
-                onClick={handleClose}
-                disabled={isExporting}
-                className="w-full"
-              >
-                Cancel
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </BaseModal>
-  );
+				{exportError && (
+					<p role="alert" className="mb-4 text-sm text-(--danger-0)">
+						{exportError}
+					</p>
+				)}
+				{/* Buttons */}
+				<AnimatePresence initial={false} mode="wait">
+					{isDone ? (
+						<motion.div
+							key="done-btn"
+							initial={{ opacity: 0, filter: "blur(4px)" }}
+							animate={{ opacity: 1, filter: "blur(0px)" }}
+							transition={{ ...spring, delay: 0.4 }}
+						>
+							<Button
+								onClick={handleClose}
+								className="w-full bg-accent-blue hover:bg-accent-blue/80 text-(--text-0) font-medium"
+							>
+								Done
+							</Button>
+						</motion.div>
+					) : (
+						<motion.div
+							key="action-btns"
+							exit={{ opacity: 0, filter: "blur(4px)" }}
+							transition={spring}
+							className="flex flex-col gap-3"
+						>
+							<Button
+								onClick={handleExport}
+								disabled={isExporting}
+								className="w-full bg-accent-blue hover:bg-accent-blue/80 text-(--text-0) font-medium"
+							>
+								{isExporting ? "Exporting..." : "Export"}
+							</Button>
+							<Button
+								onClick={handleClose}
+								disabled={isExporting}
+								className="w-full"
+							>
+								Cancel
+							</Button>
+						</motion.div>
+					)}
+				</AnimatePresence>
+			</div>
+		</BaseModal>
+	);
 }

@@ -1,6 +1,6 @@
-import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import { useColorExtractor } from "@/hooks/useColorExtractor";
+import { cn } from "@/lib/utils";
 
 interface AlbumCoverProps {
 	imageUrl?: string;
@@ -38,7 +38,8 @@ export default function AlbumCover({
 		const video = motionRef.current;
 		if (!video) return;
 		video.muted = true;
-		if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) void video.play().catch(() => undefined);
+		if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+			void video.play().catch(() => undefined);
 		else video.pause();
 		return () => video.pause();
 	}, [motionUrl]);

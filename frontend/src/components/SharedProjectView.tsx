@@ -1,530 +1,543 @@
-import { useState, useEffect, useLayoutEffect, useMemo, useCallback } from "react";
-import { DotIcon, Play, Pause, MoreHorizontal, Download } from "lucide-react";
-import AlbumCover from "@/components/AlbumCover";
-import TrackListItem from "@/components/TrackListItem";
-import TrackDetailsModal from "@/components/modals/TrackDetailsModal";
-import MusicPlayer from "@/components/MusicPlayer";
-import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
 import { Filter } from "virtual:refractionFilter?width=48&height=48&radius=16&bezelWidth=12&glassThickness=40&refractiveIndex=1.45&bezelType=convex_squircle";
-import { formatTrackDuration, formatDurationLong } from "@/lib/duration";
-import type { Track } from "@/types/api";
+import { DotIcon, Download, MoreHorizontal, Pause, Play } from "lucide-react";
+import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
+import {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useState,
+} from "react";
+import { getAuthHeaders } from "@/api/client";
+import { resolveApiUrl } from "@/api/server";
+import AlbumCover from "@/components/AlbumCover";
+import MusicPlayer from "@/components/MusicPlayer";
+import TrackDetailsModal from "@/components/modals/TrackDetailsModal";
+import TrackListItem from "@/components/TrackListItem";
+import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { resolveApiUrl } from "@/api/server";
-import { Button } from "@/components/ui/button";
-import { getAuthHeaders } from "@/api/client";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { formatDurationLong, formatTrackDuration } from "@/lib/duration";
 import { toast } from "@/routes/__root";
+import type { Track } from "@/types/api";
 
 function formatDate(dateString: string | undefined | null) {
-  if (!dateString) return "Unknown";
+	if (!dateString) return "Unknown";
 
-  const date = new Date(dateString);
+	const date = new Date(dateString);
 
-  if (Number.isNaN(date.getTime())) return "Unknown";
+	if (Number.isNaN(date.getTime())) return "Unknown";
 
-  const currentYear = new Date().getFullYear();
-  const dateYear = date.getFullYear();
+	const currentYear = new Date().getFullYear();
+	const dateYear = date.getFullYear();
 
-  const monthShort = date.toLocaleDateString("en-US", { month: "short" });
-  const day = date.getDate();
+	const monthShort = date.toLocaleDateString("en-US", { month: "short" });
+	const day = date.getDate();
 
-  if (dateYear === currentYear) {
-    return `${monthShort} ${day}`;
-  } else {
-    return `${monthShort} ${day}, ${dateYear}`;
-  }
+	if (dateYear === currentYear) {
+		return `${monthShort} ${day}`;
+	} else {
+		return `${monthShort} ${day}, ${dateYear}`;
+	}
 }
 
 interface SharedProjectViewProps {
-  project: any;
-  tracks: Track[];
-  shareToken: string;
-  allowDownloads?: boolean;
-  sharePassword?: string;
-  feedbackQuestion?: string | null;
+	project: any;
+	tracks: Track[];
+	shareToken: string;
+	allowDownloads?: boolean;
+	sharePassword?: string;
+	feedbackQuestion?: string | null;
 }
 
 export default function SharedProjectView({
-  project,
-  tracks,
-  shareToken,
-  allowDownloads = false,
-  sharePassword = "",
-  feedbackQuestion,
+	project,
+	tracks,
+	shareToken,
+	allowDownloads = false,
+	sharePassword = "",
+	feedbackQuestion,
 }: SharedProjectViewProps) {
-  const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showTracksPanel, setShowTracksPanel] = useState(false);
-  const [showCoverPanel, setShowCoverPanel] = useState(false);
-  const [coverColorsReady, setCoverColorsReady] = useState(false);
+	const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
+	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [showTracksPanel, setShowTracksPanel] = useState(false);
+	const [showCoverPanel, setShowCoverPanel] = useState(false);
+	const [coverColorsReady, setCoverColorsReady] = useState(false);
 
-  const { isAuthenticated } = useAuth();
+	const { isAuthenticated } = useAuth();
 
-  const audioPlayerContext = useAudioPlayer();
+	const audioPlayerContext = useAudioPlayer();
 
-  const projectCoverImage = project.cover_url
-    ? resolveApiUrl(`/api/share/${shareToken}/cover?size=medium`)
-    : null;
+	const projectCoverImage = project.cover_url
+		? resolveApiUrl(`/api/share/${shareToken}/cover?size=medium`)
+		: null;
 
-  const isPlaying = audioPlayerContext.isPlaying;
-  const currentTrack = audioPlayerContext.currentTrack;
+	const isPlaying = audioPlayerContext.isPlaying;
+	const currentTrack = audioPlayerContext.currentTrack;
 
-  const playButtonPointerDown = useMotionValue(0);
-  const playButtonIsUp = useTransform(
-    () => (playButtonPointerDown.get() > 0.5 ? 1 : 0) as number,
-  );
+	const playButtonPointerDown = useMotionValue(0);
+	const playButtonIsUp = useTransform(
+		() => (playButtonPointerDown.get() > 0.5 ? 1 : 0) as number,
+	);
 
-  const playButtonBlurBase = useMotionValue(0);
-  const playButtonBlur = useSpring(playButtonBlurBase, {
-    damping: 30,
-    stiffness: 200,
-  });
-  const playButtonSpecularOpacity = useMotionValue(0.6);
-  const playButtonSpecularSaturation = useMotionValue(12);
-  const playButtonRefractionBase = useMotionValue(1.1);
+	const playButtonBlurBase = useMotionValue(0);
+	const playButtonBlur = useSpring(playButtonBlurBase, {
+		damping: 30,
+		stiffness: 200,
+	});
+	const playButtonSpecularOpacity = useMotionValue(0.6);
+	const playButtonSpecularSaturation = useMotionValue(12);
+	const playButtonRefractionBase = useMotionValue(1.1);
 
-  const playButtonPressMultiplier = useTransform(
-    playButtonIsUp as any,
-    [0, 1],
-    [0.4, 0.9],
-  );
+	const playButtonPressMultiplier = useTransform(
+		playButtonIsUp as any,
+		[0, 1],
+		[0.4, 0.9],
+	);
 
-  const playButtonScaleRatio = useSpring(
-    useTransform(
-      [playButtonPressMultiplier, playButtonRefractionBase],
-      ([m, base]) => (Number(m) || 0) * (Number(base) || 0),
-    ),
-  );
+	const playButtonScaleRatio = useSpring(
+		useTransform(
+			[playButtonPressMultiplier, playButtonRefractionBase],
+			([m, base]) => (Number(m) || 0) * (Number(base) || 0),
+		),
+	);
 
-  const playButtonScaleSpring = useSpring(
-    useTransform(playButtonIsUp as any, [0, 1], [1, 0.95]),
-    { damping: 80, stiffness: 2000 },
-  );
+	const playButtonScaleSpring = useSpring(
+		useTransform(playButtonIsUp as any, [0, 1], [1, 0.95]),
+		{ damping: 80, stiffness: 2000 },
+	);
 
-  const playButtonBackgroundOpacity = useMotionValue(0.7);
+	const playButtonBackgroundOpacity = useMotionValue(0.7);
 
-  const playButtonBackgroundColor = useTransform(
-    playButtonBackgroundOpacity,
-    (op) => `rgba(40, 39, 39, ${op})`,
-  );
+	const playButtonBackgroundColor = useTransform(
+		playButtonBackgroundOpacity,
+		(op) => `rgba(40, 39, 39, ${op})`,
+	);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      playButtonBlurBase.set(3);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			playButtonBlurBase.set(3);
+		}, 500);
+		return () => clearTimeout(timer);
+	}, []);
 
-  useLayoutEffect(() => {
-    if (!isAuthenticated) {
-      audioPlayerContext.setShareToken(shareToken, sharePassword);
-    }
-    return () => {
-      if (!isAuthenticated) {
-        audioPlayerContext.setShareToken(null);
-      }
-    };
-  }, [isAuthenticated, shareToken, sharePassword, audioPlayerContext.setShareToken]);
+	useLayoutEffect(() => {
+		if (!isAuthenticated) {
+			audioPlayerContext.setShareToken(shareToken, sharePassword);
+		}
+		return () => {
+			if (!isAuthenticated) {
+				audioPlayerContext.setShareToken(null);
+			}
+		};
+	}, [
+		isAuthenticated,
+		shareToken,
+		sharePassword,
+		audioPlayerContext.setShareToken,
+	]);
 
-  useEffect(() => {
-    if (project) {
-      const timer = setTimeout(() => setShowTracksPanel(true), 50);
-      return () => clearTimeout(timer);
-    }
-  }, [project]);
+	useEffect(() => {
+		if (project) {
+			const timer = setTimeout(() => setShowTracksPanel(true), 50);
+			return () => clearTimeout(timer);
+		}
+	}, [project]);
 
-  useEffect(() => {
-    if (project && coverColorsReady) {
-      const timer = setTimeout(() => {
-        setShowCoverPanel(true);
-      }, 50);
-      return () => clearTimeout(timer);
-    }
-  }, [project, coverColorsReady]);
+	useEffect(() => {
+		if (project && coverColorsReady) {
+			const timer = setTimeout(() => {
+				setShowCoverPanel(true);
+			}, 50);
+			return () => clearTimeout(timer);
+		}
+	}, [project, coverColorsReady]);
 
-  const totalDuration = useMemo(() => {
-    const total = tracks.reduce((sum, track) => {
-      return sum + (track.active_version_duration_seconds || 0);
-    }, 0);
-    return formatDurationLong(total);
-  }, [tracks]);
+	const totalDuration = useMemo(() => {
+		const total = tracks.reduce((sum, track) => {
+			return sum + (track.active_version_duration_seconds || 0);
+		}, 0);
+		return formatDurationLong(total);
+	}, [tracks]);
 
-  const handlePlayPause = () => {
-    if (tracks.length === 0) return;
+	const handlePlayPause = () => {
+		if (tracks.length === 0) return;
 
-    const isCurrentProjectTrack =
-      currentTrack && tracks.some((t) => t.public_id === currentTrack.id);
+		const isCurrentProjectTrack =
+			currentTrack && tracks.some((t) => t.public_id === currentTrack.id);
 
-    if (isPlaying && isCurrentProjectTrack) {
-      audioPlayerContext.pause();
-    } else if (!isPlaying && isCurrentProjectTrack) {
-      audioPlayerContext.resume();
-    } else {
-      audioPlayerContext.clearQueue();
+		if (isPlaying && isCurrentProjectTrack) {
+			audioPlayerContext.pause();
+		} else if (!isPlaying && isCurrentProjectTrack) {
+			audioPlayerContext.resume();
+		} else {
+			audioPlayerContext.clearQueue();
 
-      const projectTracks = tracks.map((t) => ({
-        id: t.public_id,
-        title: String(t.title),
-        artist: t.artist,
-        projectName: String(project.name),
-        coverUrl: projectCoverImage,
-        projectId: project.public_id,
-        projectCoverUrl: undefined,
-        waveform: t.waveform ?? undefined,
-        lossy_transcoding_status: t.lossy_transcoding_status ?? undefined,
-        versionId: t.active_version_id ?? undefined,
-      }));
+			const projectTracks = tracks.map((t) => ({
+				id: t.public_id,
+				title: String(t.title),
+				artist: t.artist,
+				projectName: String(project.name),
+				coverUrl: projectCoverImage,
+				projectId: project.public_id,
+				projectCoverUrl: undefined,
+				waveform: t.waveform ?? undefined,
+				lossy_transcoding_status: t.lossy_transcoding_status ?? undefined,
+				versionId: t.active_version_id ?? undefined,
+			}));
 
-      if (projectTracks.length > 0) {
-        const remainingTracks = projectTracks.slice(1);
-        audioPlayerContext.play(
-          projectTracks[0],
-          projectTracks,
-          true,
-          false,
-          remainingTracks,
-        );
-      }
-    }
-  };
+			if (projectTracks.length > 0) {
+				const remainingTracks = projectTracks.slice(1);
+				audioPlayerContext.play(
+					projectTracks[0],
+					projectTracks,
+					true,
+					false,
+					remainingTracks,
+				);
+			}
+		}
+	};
 
-  const handleTrackClick = (track: Track) => {
-    setSelectedTrack(track);
-    setIsModalOpen(true);
-  };
+	const handleTrackClick = (track: Track) => {
+		setSelectedTrack(track);
+		setIsModalOpen(true);
+	};
 
-  const handleTrackPlay = (track: Track) => {
-    audioPlayerContext.clearQueue();
+	const handleTrackPlay = (track: Track) => {
+		audioPlayerContext.clearQueue();
 
-    const clickedIndex = tracks.findIndex(
-      (t) => t.public_id === track.public_id,
-    );
+		const clickedIndex = tracks.findIndex(
+			(t) => t.public_id === track.public_id,
+		);
 
-    const tracksAfterClicked =
-      clickedIndex >= 0 ? tracks.slice(clickedIndex + 1) : [];
+		const tracksAfterClicked =
+			clickedIndex >= 0 ? tracks.slice(clickedIndex + 1) : [];
 
-    const reorderedTracks =
-      clickedIndex >= 0
-        ? [...tracks.slice(clickedIndex), ...tracks.slice(0, clickedIndex)]
-        : tracks;
+		const reorderedTracks =
+			clickedIndex >= 0
+				? [...tracks.slice(clickedIndex), ...tracks.slice(0, clickedIndex)]
+				: tracks;
 
-    const projectTracks = reorderedTracks.map((t) => ({
-      id: t.public_id,
-      title: String(t.title),
-      artist: t.artist,
-      projectName: String(project.name),
-      coverUrl: projectCoverImage,
-      projectId: project.public_id,
-      projectCoverUrl: undefined,
-      waveform: t.waveform ?? undefined,
-      lossy_transcoding_status: t.lossy_transcoding_status ?? undefined,
-      versionId: t.active_version_id ?? undefined,
-    }));
+		const projectTracks = reorderedTracks.map((t) => ({
+			id: t.public_id,
+			title: String(t.title),
+			artist: t.artist,
+			projectName: String(project.name),
+			coverUrl: projectCoverImage,
+			projectId: project.public_id,
+			projectCoverUrl: undefined,
+			waveform: t.waveform ?? undefined,
+			lossy_transcoding_status: t.lossy_transcoding_status ?? undefined,
+			versionId: t.active_version_id ?? undefined,
+		}));
 
-    const queueTracks = tracksAfterClicked.map((t) => ({
-      id: t.public_id,
-      title: String(t.title),
-      artist: t.artist,
-      projectName: String(project.name),
-      coverUrl: projectCoverImage,
-      projectId: project.public_id,
-      projectCoverUrl: undefined,
-      waveform: t.waveform ?? undefined,
-      lossy_transcoding_status: t.lossy_transcoding_status ?? undefined,
-      versionId: t.active_version_id ?? undefined,
-    }));
+		const queueTracks = tracksAfterClicked.map((t) => ({
+			id: t.public_id,
+			title: String(t.title),
+			artist: t.artist,
+			projectName: String(project.name),
+			coverUrl: projectCoverImage,
+			projectId: project.public_id,
+			projectCoverUrl: undefined,
+			waveform: t.waveform ?? undefined,
+			lossy_transcoding_status: t.lossy_transcoding_status ?? undefined,
+			versionId: t.active_version_id ?? undefined,
+		}));
 
-    if (projectTracks.length > 0) {
-      audioPlayerContext.play(
-        projectTracks[0],
-        projectTracks,
-        true,
-        false,
-        queueTracks,
-      );
-    }
-  };
+		if (projectTracks.length > 0) {
+			audioPlayerContext.play(
+				projectTracks[0],
+				projectTracks,
+				true,
+				false,
+				queueTracks,
+			);
+		}
+	};
 
-  const trackMap = useMemo(() => {
-    const map = new Map<string, Track>();
-    for (const t of tracks) {
-      if (t) map.set(t.public_id, t);
-    }
-    return map;
-  }, [tracks]);
+	const trackMap = useMemo(() => {
+		const map = new Map<string, Track>();
+		for (const t of tracks) {
+			if (t) map.set(t.public_id, t);
+		}
+		return map;
+	}, [tracks]);
 
-  const handleItemClick = useCallback(
-    (id?: string) => {
-      if (!id) return;
-      const track = trackMap.get(id);
-      if (track) handleTrackClick(track);
-    },
-    [trackMap],
-  );
+	const handleItemClick = useCallback(
+		(id?: string) => {
+			if (!id) return;
+			const track = trackMap.get(id);
+			if (track) handleTrackClick(track);
+		},
+		[trackMap],
+	);
 
-  const handleItemPlay = useCallback(
-    (id?: string) => {
-      if (!id) return;
-      const track = trackMap.get(id);
-      if (track) handleTrackPlay(track);
-    },
-    [trackMap, handleTrackPlay],
-  );
+	const handleItemPlay = useCallback(
+		(id?: string) => {
+			if (!id) return;
+			const track = trackMap.get(id);
+			if (track) handleTrackPlay(track);
+		},
+		[trackMap, handleTrackPlay],
+	);
 
-  const handleDownloadProject = async () => {
-    if (!allowDownloads) {
-      toast.error("Downloads are not allowed for this project");
-      return;
-    }
+	const handleDownloadProject = async () => {
+		if (!allowDownloads) {
+			toast.error("Downloads are not allowed for this project");
+			return;
+		}
 
-    try {
-      const toastId = toast.loading("Preparing download...");
-      const downloadUrl = resolveApiUrl(`/api/share/${shareToken}/download`);
+		try {
+			const toastId = toast.loading("Preparing download...");
+			const downloadUrl = resolveApiUrl(`/api/share/${shareToken}/download`);
 
-      const response = await fetch(downloadUrl, {
-        headers: getAuthHeaders(),
-      });
+			const response = await fetch(downloadUrl, {
+				headers: getAuthHeaders(),
+			});
 
-      if (!response.ok) {
-        throw new Error(`Download failed: ${response.statusText}`);
-      }
+			if (!response.ok) {
+				throw new Error(`Download failed: ${response.statusText}`);
+			}
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${project.name}.zip`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+			const blob = await response.blob();
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = `${project.name}.zip`;
+			document.body.appendChild(a);
+			a.click();
+			window.URL.revokeObjectURL(url);
+			document.body.removeChild(a);
 
-      toast.dismiss(toastId);
-      toast.success("Download started");
-    } catch (error) {
-      toast.dismiss();
-      toast.error("Failed to download project");
-      console.error("Failed to download project:", error);
-    }
-  };
+			toast.dismiss(toastId);
+			toast.success("Download started");
+		} catch (error) {
+			toast.dismiss();
+			toast.error("Failed to download project");
+			console.error("Failed to download project:", error);
+		}
+	};
 
-  if (!project) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-(--text-0) text-lg">Loading...</div>
-      </div>
-    );
-  }
+	if (!project) {
+		return (
+			<div className="min-h-screen bg-background flex items-center justify-center">
+				<div className="text-(--text-0) text-lg">Loading...</div>
+			</div>
+		);
+	}
 
-  return (
-    <div className="min-h-screen bg-background">
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-linear-to-b from-background from-30% to-transparent text-(--text-0) md:p-10 p-6">
-        <div className="flex items-center">
-          <div className="text-2xl font-medium">{"{ vault.studio }"}</div>
-        </div>
-        <div className="flex items-center gap-2.5">
-          {allowDownloads && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="default" size="icon-lg">
-                  <MoreHorizontal strokeWidth={3} className="size-4.5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                sideOffset={8}
-                className="w-44 border-muted bg-background"
-              >
-                <DropdownMenuItem onSelect={handleDownloadProject}>
-                  <Download className="ml-1 mr-1.5 size-4.5" />
-                  Download project
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
-      </header>
+	return (
+		<div className="min-h-screen bg-background">
+			<header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-linear-to-b from-background from-30% to-transparent text-(--text-0) md:p-10 p-6">
+				<div className="flex items-center">
+					<div className="text-2xl font-medium">{"{ vault.studio }"}</div>
+				</div>
+				<div className="flex items-center gap-2.5">
+					{allowDownloads && (
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="default" size="icon-lg">
+									<MoreHorizontal strokeWidth={3} className="size-4.5" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								align="end"
+								sideOffset={8}
+								className="w-44 border-muted bg-background"
+							>
+								<DropdownMenuItem onSelect={handleDownloadProject}>
+									<Download className="ml-1 mr-1.5 size-4.5" />
+									Download project
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					)}
+				</div>
+			</header>
 
-      <div className="mx-auto max-w-7xl px-6 pt-24 md:pt-30 pb-40 relative">
-        {feedbackQuestion && (
-          <div className="mx-auto mb-6 max-w-2xl rounded-xl border border-(--card-border) bg-(--bg-1) px-5 py-4 text-center text-lg text-(--text-0)">
-            {feedbackQuestion}
-          </div>
-        )}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 relative">
-          <motion.div
-            initial={false}
-            animate={{
-              opacity: showCoverPanel ? 1 : 0,
-              y: showCoverPanel ? 0 : 8,
-            }}
-            transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
-            className="flex items-start justify-center overflow-visible px-2 md:pl-5 md:pr-22 md:sticky md:self-start pt-2 top-30"
-          >
-            <div className="relative w-full md:max-w-[24rem]">
-              <AlbumCover
-                imageUrl={projectCoverImage || undefined}
-                title={String(project.name)}
-                className="w-full"
-                showUploadOverlay={false}
-                onColorsReady={() => {
-                  setCoverColorsReady(true);
-                }}
-                isPlaying={
-                  isPlaying && currentTrack
-                    ? tracks.some((t) => t.public_id === currentTrack.id)
-                    : false
-                }
-              />
-            </div>
-          </motion.div>
+			<div className="mx-auto max-w-7xl px-6 pt-24 md:pt-30 pb-40 relative">
+				{feedbackQuestion && (
+					<div className="mx-auto mb-6 max-w-2xl rounded-xl border border-(--card-border) bg-(--bg-1) px-5 py-4 text-center text-lg text-(--text-0)">
+						{feedbackQuestion}
+					</div>
+				)}
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-5 relative">
+					<motion.div
+						initial={false}
+						animate={{
+							opacity: showCoverPanel ? 1 : 0,
+							y: showCoverPanel ? 0 : 8,
+						}}
+						transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+						className="flex items-start justify-center overflow-visible px-2 md:pl-5 md:pr-22 md:sticky md:self-start pt-2 top-30"
+					>
+						<div className="relative w-full md:max-w-[24rem]">
+							<AlbumCover
+								imageUrl={projectCoverImage || undefined}
+								title={String(project.name)}
+								className="w-full"
+								showUploadOverlay={false}
+								onColorsReady={() => {
+									setCoverColorsReady(true);
+								}}
+								isPlaying={
+									isPlaying && currentTrack
+										? tracks.some((t) => t.public_id === currentTrack.id)
+										: false
+								}
+							/>
+						</div>
+					</motion.div>
 
-          <motion.div
-            initial={false}
-            animate={{
-              opacity: showTracksPanel ? 1 : 0,
-              y: showTracksPanel ? 0 : 8,
-            }}
-            transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-col text-(--text-0) pt-6 md:pt-0 md:pr-5 md:max-w-lg md:-ml-10"
-          >
-            <div className="mb-4 -space-y-1">
-              <div className="flex items-center justify-between relative z-20">
-                <h1 className="text-3xl font-semibold text-(--text-0)">
-                  {project.name}
-                </h1>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Filter
-                    id="project-play-button-filter"
-                    blur={playButtonBlur}
-                    scaleRatio={playButtonScaleRatio}
-                    specularOpacity={playButtonSpecularOpacity}
-                    specularSaturation={playButtonSpecularSaturation}
-                  />
+					<motion.div
+						initial={false}
+						animate={{
+							opacity: showTracksPanel ? 1 : 0,
+							y: showTracksPanel ? 0 : 8,
+						}}
+						transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+						className="flex flex-col text-(--text-0) pt-6 md:pt-0 md:pr-5 md:max-w-lg md:-ml-10"
+					>
+						<div className="mb-4 -space-y-1">
+							<div className="flex items-center justify-between relative z-20">
+								<h1 className="text-3xl font-semibold text-(--text-0)">
+									{project.name}
+								</h1>
+								<div className="flex items-center gap-2 shrink-0">
+									<Filter
+										id="project-play-button-filter"
+										blur={playButtonBlur}
+										scaleRatio={playButtonScaleRatio}
+										specularOpacity={playButtonSpecularOpacity}
+										specularSaturation={playButtonSpecularSaturation}
+									/>
 
-                  <motion.button
-                    type="button"
-                    aria-label={
-                      isPlaying &&
-                      currentTrack &&
-                      tracks.some((t) => t.public_id === currentTrack.id)
-                        ? "Pause"
-                        : "Play"
-                    }
-                    className="shadow-md size-12 rounded-2xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{
-                      backdropFilter: "url(#project-play-button-filter)",
-                      backgroundColor: playButtonBackgroundColor as any,
-                      scale: playButtonScaleSpring,
-                    }}
-                    onClick={handlePlayPause}
-                    disabled={tracks.length === 0}
-                    onMouseDown={() => playButtonPointerDown.set(1)}
-                    onMouseUp={() => playButtonPointerDown.set(0)}
-                    onMouseLeave={() => playButtonPointerDown.set(0)}
-                  >
-                    {isPlaying &&
-                    currentTrack &&
-                    tracks.some((t) => t.public_id === currentTrack.id) ? (
-                      <Pause className="size-5" fill="white" />
-                    ) : (
-                      <Play className="size-5" fill="white" />
-                    )}
-                  </motion.button>
-                </div>
-              </div>
-              <div className="flex items-center text-muted-foreground text-md gap-0 relative z-10">
-                <span>{project.author_override || "Unknown artist"}</span>
-                <DotIcon className="w-4 shrink-0" />
-                <span>{tracks.length} tracks</span>
-                <DotIcon className="w-4 shrink-0" />
-                <span>{totalDuration}</span>
-              </div>
-            </div>
+									<motion.button
+										type="button"
+										aria-label={
+											isPlaying &&
+											currentTrack &&
+											tracks.some((t) => t.public_id === currentTrack.id)
+												? "Pause"
+												: "Play"
+										}
+										className="shadow-md size-12 rounded-2xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+										style={{
+											backdropFilter: "url(#project-play-button-filter)",
+											backgroundColor: playButtonBackgroundColor as any,
+											scale: playButtonScaleSpring,
+										}}
+										onClick={handlePlayPause}
+										disabled={tracks.length === 0}
+										onMouseDown={() => playButtonPointerDown.set(1)}
+										onMouseUp={() => playButtonPointerDown.set(0)}
+										onMouseLeave={() => playButtonPointerDown.set(0)}
+									>
+										{isPlaying &&
+										currentTrack &&
+										tracks.some((t) => t.public_id === currentTrack.id) ? (
+											<Pause className="size-5" fill="white" />
+										) : (
+											<Play className="size-5" fill="white" />
+										)}
+									</motion.button>
+								</div>
+							</div>
+							<div className="flex items-center text-muted-foreground text-md gap-0 relative z-10">
+								<span>{project.author_override || "Unknown artist"}</span>
+								<DotIcon className="w-4 shrink-0" />
+								<span>{tracks.length} tracks</span>
+								<DotIcon className="w-4 shrink-0" />
+								<span>{totalDuration}</span>
+							</div>
+						</div>
 
-            {tracks.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <p className="text-lg">No tracks yet</p>
-                <p className="text-sm mt-2">This project is empty</p>
-              </div>
-            ) : (
-              <div>
-                {tracks
-                  .filter((track) => track)
-                  .map((track, index) => (
-                    <div
-                      key={track.public_id}
-                      style={{ animationDelay: `${Math.min(index * 20, 120)}ms` }}
-                      className="track-reveal relative rounded-2xl"
-                    >
-                      <TrackListItem
-                        id={track.public_id}
-                        index={index}
-                        trackNumber={index + 1}
-                        title={String(track.title)}
-                        dateAdded={String(formatDate(track.created_at))}
-                        duration={formatTrackDuration(
-                          track.active_version_duration_seconds,
-                        )}
-                        isPlaying={Boolean(
-                          isPlaying && currentTrack?.id === track.public_id,
-                        )}
-                        isTranscoding={Boolean(
-                          track.lossy_transcoding_status &&
-                            track.lossy_transcoding_status !== "completed",
-                        )}
-                        onClick={handleItemPlay}
-                        onMoreClick={handleItemClick}
-                        isShared={track.visibility_status === "public"}
-                        isSharedWithUsers={(track as any).is_shared}
-                        isDraggable={false}
-                      />
-                    </div>
-                  ))}
-              </div>
-            )}
-          </motion.div>
-        </div>
-      </div>
+						{tracks.length === 0 ? (
+							<div className="text-center py-12 text-muted-foreground">
+								<p className="text-lg">No tracks yet</p>
+								<p className="text-sm mt-2">This project is empty</p>
+							</div>
+						) : (
+							<div>
+								{tracks
+									.filter((track) => track)
+									.map((track, index) => (
+										<div
+											key={track.public_id}
+											style={{
+												animationDelay: `${Math.min(index * 20, 120)}ms`,
+											}}
+											className="track-reveal relative rounded-2xl"
+										>
+											<TrackListItem
+												id={track.public_id}
+												index={index}
+												trackNumber={index + 1}
+												title={String(track.title)}
+												dateAdded={String(formatDate(track.created_at))}
+												duration={formatTrackDuration(
+													track.active_version_duration_seconds,
+												)}
+												isPlaying={Boolean(
+													isPlaying && currentTrack?.id === track.public_id,
+												)}
+												isTranscoding={Boolean(
+													track.lossy_transcoding_status &&
+														track.lossy_transcoding_status !== "completed",
+												)}
+												onClick={handleItemPlay}
+												onMoreClick={handleItemClick}
+												isShared={track.visibility_status === "public"}
+												isSharedWithUsers={(track as any).is_shared}
+												isDraggable={false}
+											/>
+										</div>
+									))}
+							</div>
+						)}
+					</motion.div>
+				</div>
+			</div>
 
-      {selectedTrack && (
-        <TrackDetailsModal
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedTrack(null);
-          }}
-          trackId={selectedTrack.public_id}
-          track={{
-            title: selectedTrack.title,
-            duration: formatTrackDuration(
-              selectedTrack.active_version_duration_seconds,
-            ),
-            key: selectedTrack.key,
-            bpm: selectedTrack.bpm,
-            fileName: undefined,
-            active_version_id: selectedTrack.active_version_id,
-            waveform: selectedTrack.waveform,
-            visibility_status: selectedTrack.visibility_status,
-          }}
-          projectName={project.name}
-          artist={selectedTrack.artist || undefined}
-          coverUrl={projectCoverImage}
-          projectId={project.public_id}
-          projectCoverUrl={project.cover_url}
-          isSharedView={true}
-          shareToken={shareToken}
-          allowDownloads={allowDownloads}
-        />
-      )}
+			{selectedTrack && (
+				<TrackDetailsModal
+					isOpen={isModalOpen}
+					onClose={() => {
+						setIsModalOpen(false);
+						setSelectedTrack(null);
+					}}
+					trackId={selectedTrack.public_id}
+					track={{
+						title: selectedTrack.title,
+						duration: formatTrackDuration(
+							selectedTrack.active_version_duration_seconds,
+						),
+						key: selectedTrack.key,
+						bpm: selectedTrack.bpm,
+						fileName: undefined,
+						active_version_id: selectedTrack.active_version_id,
+						waveform: selectedTrack.waveform,
+						visibility_status: selectedTrack.visibility_status,
+					}}
+					projectName={project.name}
+					artist={selectedTrack.artist || undefined}
+					coverUrl={projectCoverImage}
+					projectId={project.public_id}
+					projectCoverUrl={project.cover_url}
+					isSharedView={true}
+					shareToken={shareToken}
+					allowDownloads={allowDownloads}
+				/>
+			)}
 
-      <MusicPlayer />
-    </div>
-  );
+			<MusicPlayer />
+		</div>
+	);
 }

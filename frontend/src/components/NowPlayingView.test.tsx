@@ -1,13 +1,22 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+	cleanup,
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	FULLSCREEN_DESKTOP_QUEUE_KEY,
 	getFullscreenDesktopQueueOpen,
 } from "@/lib/fullscreenQueue";
+import {
+	NOW_PLAYING_ARTWORK_MODE_KEY,
+	type ProjectMotionAsset,
+} from "@/lib/motionArtwork";
 import NowPlayingView, { shouldDismissNowPlaying } from "./NowPlayingView";
-import { NOW_PLAYING_ARTWORK_MODE_KEY, type ProjectMotionAsset } from "@/lib/motionArtwork";
 
 function createStorage(): Storage {
 	const values = new Map<string, string>();
@@ -49,8 +58,9 @@ const sampleQueue = [
 	},
 ];
 
-
-vi.mock("@/contexts/PlaybackProgressContext", () => ({ usePlaybackProgress: () => 30 }));
+vi.mock("@/contexts/PlaybackProgressContext", () => ({
+	usePlaybackProgress: () => 30,
+}));
 
 vi.mock("@/contexts/AudioPlayerContext", () => ({
 	useAudioPlayer: () => ({
@@ -94,14 +104,22 @@ vi.mock("motion/react", async (importOriginal) => {
 	const actual = await importOriginal<typeof import("motion/react")>();
 	return {
 		...actual,
-		AnimatePresence: ({ children, ...props }: any) => realPresence
-			? <actual.AnimatePresence {...props}>{children}</actual.AnimatePresence>
-			: <>{children}</>,
+		AnimatePresence: ({ children, ...props }: any) =>
+			realPresence ? (
+				<actual.AnimatePresence {...props}>{children}</actual.AnimatePresence>
+			) : (
+				<>{children}</>
+			),
 	};
 });
 
 vi.mock("@/components/motion/MotionArtworkStage", () => ({
-	default: ({ active }: any) => <div data-testid="motion-artwork-stage" data-active={String(Boolean(active))} />,
+	default: ({ active }: any) => (
+		<div
+			data-testid="motion-artwork-stage"
+			data-active={String(Boolean(active))}
+		/>
+	),
 	MotionArtworkFlowBackground: ({ coverUrl, maxLayers }: any) => (
 		<div
 			data-testid="motion-artwork-bg"
@@ -112,7 +130,11 @@ vi.mock("@/components/motion/MotionArtworkStage", () => ({
 }));
 
 vi.mock("@/components/motion/FluidArtworkBackground", () => ({
-	default: ({ coverUrl, isPlaying, "data-testid": testId = "fluid-artwork-bg" }: any) => (
+	default: ({
+		coverUrl,
+		isPlaying,
+		"data-testid": testId = "fluid-artwork-bg",
+	}: any) => (
 		<div
 			data-testid={testId}
 			data-cover-url={coverUrl}
@@ -179,21 +201,30 @@ vi.mock("@/components/WaveformComments", () => ({
 }));
 
 describe("NowPlayingView Fullscreen QoL", () => {
-	it.each(["desktop", "mobile"] as const)("scopes black surfaces and the preferred accent to %s fullscreen", (variant) => {
-		const root = document.documentElement;
-		const previous = root.className;
-		root.className = "dark";
-		const view = render(<NowPlayingView projectId="proj_abc" projectName="Album" variant={variant} />);
-		expect(root.className).toBe("dark");
-		const dialog = screen.getByRole("dialog");
-		expect(dialog.classList.contains("black")).toBe(true);
-		expect(dialog.style.getPropertyValue("--accent-color")).toBe("#a020f0");
-		expect(dialog.style.colorScheme).toBe("dark");
-		expect(dialog.querySelector('[class*="shadow-[0_0_8px"]')).toBeNull();
-		view.unmount();
-		expect(root.className).toBe("dark");
-		root.className = previous;
-	});
+	it.each(["desktop", "mobile"] as const)(
+		"scopes black surfaces and the preferred accent to %s fullscreen",
+		(variant) => {
+			const root = document.documentElement;
+			const previous = root.className;
+			root.className = "dark";
+			const view = render(
+				<NowPlayingView
+					projectId="proj_abc"
+					projectName="Album"
+					variant={variant}
+				/>,
+			);
+			expect(root.className).toBe("dark");
+			const dialog = screen.getByRole("dialog");
+			expect(dialog.classList.contains("black")).toBe(true);
+			expect(dialog.style.getPropertyValue("--accent-color")).toBe("#a020f0");
+			expect(dialog.style.colorScheme).toBe("dark");
+			expect(dialog.querySelector('[class*="shadow-[0_0_8px"]')).toBeNull();
+			view.unmount();
+			expect(root.className).toBe("dark");
+			root.className = previous;
+		},
+	);
 	let storage: Storage;
 
 	beforeEach(() => {
@@ -212,62 +243,133 @@ describe("NowPlayingView Fullscreen QoL", () => {
 		cleanup();
 	});
 
-	it.each(["mobile", "desktop"] as const)("shrinks only the %s artwork on pause and restores it on resume", (variant) => {
-		const view = () => <NowPlayingView projectId="proj_abc" projectName="Album" variant={variant} />;
-		const { rerender } = render(view());
-		const artwork = screen.getByTestId("playback-artwork");
-		const transport = screen.getByRole("button", { name: "Next track" }).parentElement;
-		expect(artwork.classList.contains("playback-artwork")).toBe(true);
-		expect(artwork.getAttribute("data-playing")).toBe("true");
-		playing = false;
-		rerender(view());
-		expect(screen.getByTestId("playback-artwork")).toBe(artwork);
-		expect(artwork.getAttribute("data-playing")).toBe("false");
-		expect(screen.getByTestId("motion-artwork-stage").getAttribute("data-active")).toBe("false");
-		expect(screen.getByRole("button", { name: "Next track" }).parentElement).toBe(transport);
-		expect(screen.getByRole("slider", { name: "Playback position" })).toBeTruthy();
-		playing = true;
-		rerender(view());
-		expect(artwork.getAttribute("data-playing")).toBe("true");
-	});
+	it.each(["mobile", "desktop"] as const)(
+		"shrinks only the %s artwork on pause and restores it on resume",
+		(variant) => {
+			const view = () => (
+				<NowPlayingView
+					projectId="proj_abc"
+					projectName="Album"
+					variant={variant}
+				/>
+			);
+			const { rerender } = render(view());
+			const artwork = screen.getByTestId("playback-artwork");
+			const transport = screen.getByRole("button", {
+				name: "Next track",
+			}).parentElement;
+			expect(artwork.classList.contains("playback-artwork")).toBe(true);
+			expect(artwork.getAttribute("data-playing")).toBe("true");
+			playing = false;
+			rerender(view());
+			expect(screen.getByTestId("playback-artwork")).toBe(artwork);
+			expect(artwork.getAttribute("data-playing")).toBe("false");
+			expect(
+				screen.getByTestId("motion-artwork-stage").getAttribute("data-active"),
+			).toBe("false");
+			expect(
+				screen.getByRole("button", { name: "Next track" }).parentElement,
+			).toBe(transport);
+			expect(
+				screen.getByRole("slider", { name: "Playback position" }),
+			).toBeTruthy();
+			playing = true;
+			rerender(view());
+			expect(artwork.getAttribute("data-playing")).toBe("true");
+		},
+	);
 
-	it.each(["mobile", "desktop"] as const)("mounts the next %s panel without waiting for the previous panel to exit", async (variant) => {
-		realPresence = true;
-		window.localStorage.setItem(FULLSCREEN_DESKTOP_QUEUE_KEY, "false");
-		render(<NowPlayingView projectId="proj_abc" projectName="Astro Album" variant={variant} />);
-		fireEvent.click(screen.getByRole("button", { name: variant === "mobile" ? "Notes" : "Show notes" }));
-		const transport = screen.getByRole("button", { name: "Pause" });
-		expect(transport).toBeTruthy();
-		await screen.findByTestId("notes-panel");
-		fireEvent.click(screen.getByRole("button", { name: variant === "mobile" ? "Open queue" : "Show queue" }));
-		const panelId = variant === "mobile" ? "mobile-active-panel" : "fullscreen-side-panel";
-		expect(screen.getAllByTestId(panelId)).toHaveLength(variant === "mobile" ? 1 : 2);
-		expect(screen.getByRole("button", { name: "Pause" })).toBe(transport);
-		await waitFor(() => expect(screen.getAllByTestId(panelId)).toHaveLength(1));
-	});
+	it.each(["mobile", "desktop"] as const)(
+		"mounts the next %s panel without waiting for the previous panel to exit",
+		async (variant) => {
+			realPresence = true;
+			window.localStorage.setItem(FULLSCREEN_DESKTOP_QUEUE_KEY, "false");
+			render(
+				<NowPlayingView
+					projectId="proj_abc"
+					projectName="Astro Album"
+					variant={variant}
+				/>,
+			);
+			fireEvent.click(
+				screen.getByRole("button", {
+					name: variant === "mobile" ? "Notes" : "Show notes",
+				}),
+			);
+			const transport = screen.getByRole("button", { name: "Pause" });
+			expect(transport).toBeTruthy();
+			await screen.findByTestId("notes-panel");
+			fireEvent.click(
+				screen.getByRole("button", {
+					name: variant === "mobile" ? "Open queue" : "Show queue",
+				}),
+			);
+			const panelId =
+				variant === "mobile" ? "mobile-active-panel" : "fullscreen-side-panel";
+			expect(screen.getAllByTestId(panelId)).toHaveLength(
+				variant === "mobile" ? 1 : 2,
+			);
+			expect(screen.getByRole("button", { name: "Pause" })).toBe(transport);
+			await waitFor(() =>
+				expect(screen.getAllByTestId(panelId)).toHaveLength(1),
+			);
+		},
+	);
 
 	it("keeps the mobile comments target connected during rapid panel changes", async () => {
 		realPresence = true;
-		render(<NowPlayingView projectId="proj_abc" projectName="Album" variant="mobile" />);
+		render(
+			<NowPlayingView
+				projectId="proj_abc"
+				projectName="Album"
+				variant="mobile"
+			/>,
+		);
 		const comments = screen.getByRole("button", { name: "Comments" });
 		fireEvent.click(comments);
 		fireEvent.click(screen.getByRole("button", { name: "Open queue" }));
 		fireEvent.click(comments);
 		expect(screen.getAllByTestId("mobile-active-panel")).toHaveLength(1);
-		expect(screen.getByTestId("waveform-comments").getAttribute("data-target-connected")).toBe("true");
+		expect(
+			screen
+				.getByTestId("waveform-comments")
+				.getAttribute("data-target-connected"),
+		).toBe("true");
 		await new Promise((resolve) => setTimeout(resolve, 300));
-		expect(screen.getByTestId("waveform-comments").getAttribute("data-target-connected")).toBe("true");
-		expect(screen.getByTestId("mobile-active-panel").style.opacity).not.toBe("0");
+		expect(
+			screen
+				.getByTestId("waveform-comments")
+				.getAttribute("data-target-connected"),
+		).toBe("true");
+		expect(screen.getByTestId("mobile-active-panel").style.opacity).not.toBe(
+			"0",
+		);
 		expect(screen.getByRole("dialog").style.contain).toBe("");
-		expect(document.querySelector(".mobile-fullscreen-layout")?.className).toContain("pb-[calc(env(safe-area-inset-bottom)+2rem)]");
+		expect(
+			document.querySelector(".mobile-fullscreen-layout")?.className,
+		).toContain("pb-[calc(env(safe-area-inset-bottom)+2rem)]");
 	});
 
 	it.each(["Open queue", "Notes", "Comments"])(
 		"uses the flowing background for %s over portrait artwork and restores the video on close",
 		async (button) => {
-			motionAssets = [{ kind: "apple_portrait", preview_url: "/portrait.mp4" } as ProjectMotionAsset];
-			window.localStorage.setItem(NOW_PLAYING_ARTWORK_MODE_KEY, "apple_portrait");
-			render(<NowPlayingView projectId="proj_abc" projectName="Astro Album" variant="mobile" />);
+			motionAssets = [
+				{
+					kind: "apple_portrait",
+					preview_url: "/portrait.mp4",
+				} as ProjectMotionAsset,
+			];
+			window.localStorage.setItem(
+				NOW_PLAYING_ARTWORK_MODE_KEY,
+				"apple_portrait",
+			);
+			render(
+				<NowPlayingView
+					projectId="proj_abc"
+					projectName="Astro Album"
+					variant="mobile"
+				/>,
+			);
 			expect(screen.queryByTestId("fluid-artwork-bg")).toBeNull();
 			const transports = screen.getByTestId("mobile-transport-controls");
 			const waveform = screen.getByTestId("mobile-playback-waveform");
@@ -547,7 +649,9 @@ describe("NowPlayingView Fullscreen QoL", () => {
 			fireEvent.click(screen.getByRole("button", { name: "Show notes" }));
 			expect(screen.queryByText("Playing next")).toBeNull();
 			expect(
-				(await screen.findByTestId("notes-panel")).getAttribute("data-embedded"),
+				(await screen.findByTestId("notes-panel")).getAttribute(
+					"data-embedded",
+				),
 			).toBe("true");
 			expect(screen.getAllByTestId("fullscreen-side-panel")).toHaveLength(1);
 

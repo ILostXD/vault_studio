@@ -21,8 +21,8 @@ import { Button } from "@/components/ui/button";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePreferences } from "@/contexts/PreferencesContext";
-import { useFileDragUpload } from "@/hooks/useFileDragUpload";
 import { useColorExtractor } from "@/hooks/useColorExtractor";
+import { useFileDragUpload } from "@/hooks/useFileDragUpload";
 import { usePlayButtonAnimation } from "@/hooks/usePlayButtonAnimation";
 import { useProjectCoverImage } from "@/hooks/useProjectCoverImage";
 import { useProjectEditing } from "@/hooks/useProjectEditing";
@@ -36,14 +36,14 @@ import {
 import { useScrollToTrack } from "@/hooks/useScrollToTrack";
 import { trackKeys, useTracks } from "@/hooks/useTracks";
 import { formatDurationLong, formatTrackDuration } from "@/lib/duration";
-import { createShuffledPlaylist } from "@/lib/optimalShuffle";
-import { cn } from "@/lib/utils";
 import {
-	type ProjectPageArtworkMode,
-	PROJECT_PAGE_ARTWORK_MODE_KEY,
 	isProjectPageArtworkMode,
+	PROJECT_PAGE_ARTWORK_MODE_KEY,
+	type ProjectPageArtworkMode,
 	resolveProjectPageArtworkMode,
 } from "@/lib/motionArtwork";
+import { createShuffledPlaylist } from "@/lib/optimalShuffle";
+import { cn } from "@/lib/utils";
 import { toast } from "@/routes/__root";
 import type { Track, VisibilityStatus } from "@/types/api";
 
@@ -238,7 +238,10 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 		);
 		observer.observe(video);
 
-		return () => { observer.disconnect(); video.pause(); };
+		return () => {
+			observer.disconnect();
+			video.pause();
+		};
 	}, [
 		isCoverModalOpen,
 		isMobilePortrait,
