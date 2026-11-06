@@ -177,10 +177,7 @@ function AcceptInvitePage() {
 
             <button
               onClick={() => navigate({ to: "/login" })}
-              className="w-full border border-(--card-border) hover:brightness-110 text-(--text-0) font-semibold text-lg h-12 rounded-2xl transition-all relative overflow-hidden"
-              style={{
-                background: "linear-gradient(0deg, #1D1D1D 0%, #282828 100%)",
-              }}
+              className="w-full btn-surface hover:brightness-110 text-(--text-0) font-semibold text-lg h-12 rounded-2xl transition-all relative overflow-hidden"
             >
               Back to Login
             </button>
@@ -418,10 +415,7 @@ function AcceptInvitePage() {
                 handleSubmit(e);
               }}
               disabled={isLoading}
-              className="w-full border border-(--card-border) hover:brightness-110 text-(--text-0) font-semibold text-lg h-12 rounded-2xl transition-all mt-6 relative overflow-hidden disabled:opacity-50"
-              style={{
-                background: "linear-gradient(0deg, #1D1D1D 0%, #282828 100%)",
-              }}
+              className="w-full btn-surface hover:brightness-110 text-(--text-0) font-semibold text-lg h-12 rounded-2xl transition-all mt-6 relative overflow-hidden disabled:opacity-50"
             >
               <AnimatePresence mode="popLayout" initial={false}>
                 <motion.div

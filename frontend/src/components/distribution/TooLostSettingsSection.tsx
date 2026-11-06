@@ -79,7 +79,7 @@ export function TooLostSettingsSection() {
 				<div className="min-w-0">
 					<p className="text-base text-(--text-0)">Too Lost distribution</p>
 					<p className="mt-1 text-sm text-(--text-2)">
-						Register this Vault instance in the Too Lost Developer Portal, then
+						Register this {"{ vault.studio }"} instance in the Too Lost Developer Portal, then
 						enter its OAuth details here. Release Package exports need no
 						registration.
 					</p>
@@ -144,7 +144,7 @@ export function TooLostSettingsSection() {
 							htmlFor={`${fieldID}-public-url`}
 							className="space-y-1.5 text-sm text-(--text-1)"
 						>
-							<span>Public Vault URL</span>
+							<span>Public {"{ vault.studio }"} URL</span>
 							<Input
 								id={`${fieldID}-public-url`}
 								type="url"
@@ -186,7 +186,7 @@ export function TooLostSettingsSection() {
 						</code>
 					</div>
 					<p className="text-xs text-(--text-2)">
-						The public URL must reach this Vault instance over HTTPS. Vault
+						The public URL must reach this {"{ vault.studio }"} instance over HTTPS. {"{ vault.studio }"}{" "}
 						encrypts the client secret and connected-account tokens using the
 						instance secret; no separate encryption-key setup is required.
 					</p>

@@ -7,7 +7,7 @@ import {
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { FolderOpen, GripVertical, MoreHorizontal, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useRef, useState } from "react";
+import { type CSSProperties, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -60,7 +60,7 @@ function QueueTrackCover({ track }: { track: QueueTrack }) {
 		<img
 			src={coverUrl}
 			alt={track.title}
-			className="w-full h-full object-cover"
+			className="block w-full h-full object-cover"
 			loading="lazy"
 			decoding="async"
 		/>
@@ -163,9 +163,9 @@ export default function QueuePanel({
 					)}
 
 					<motion.div
-						initial={embedded ? { opacity: 0, y: 8 } : { opacity: 0, y: 5 }}
+						initial={embedded ? false : { opacity: 0, y: 5 }}
 						animate={{ opacity: 1, x: 0, y: 0 }}
-						exit={embedded ? { opacity: 0, y: 6 } : { opacity: 0, y: 5 }}
+						exit={embedded ? undefined : { opacity: 0, y: 5 }}
 						transition={
 							embedded
 								? { duration: 0.18, ease: [0.22, 1, 0.36, 1] }
@@ -173,7 +173,7 @@ export default function QueuePanel({
 						}
 						className={cn(
 							embedded
-								? "h-full"
+								? "h-full min-h-0 flex flex-col"
 								: "fixed inset-x-2 sm:inset-x-6 mx-auto max-w-[800px]",
 							!embedded &&
 								(layer === "expanded"
@@ -186,11 +186,11 @@ export default function QueuePanel({
 							className={cn(
 								"relative flex w-full flex-col overflow-hidden text-(--text-0)",
 								embedded
-									? "h-full"
+									? "h-full min-h-0 flex-1"
 									: "max-h-[500px] rounded-3xl border border-(--card-border) overlay-surface shadow-2xl",
 							)}
 							style={
-								embedded
+								embedded && layer === "expanded"
 									? ({
 											"--text-0": "#ffffff",
 											"--action-bg": "rgba(0, 0, 0, 0.16)",
@@ -202,18 +202,19 @@ export default function QueuePanel({
 						>
 							<div
 								className={cn(
-									"flex w-full items-center justify-between gap-5",
-									embedded ? "pb-4" : "p-5",
+									"flex shrink-0 w-full items-center justify-between gap-5",
+									embedded ? "pb-3" : "p-5",
 								)}
 							>
 								<div className="flex items-center gap-3">
 									<Button
 										aria-label="Close queue manager"
+										variant={embedded && layer === "expanded" ? "ghost" : "default"}
 										className={cn(
 											"flex h-8 w-8 items-center justify-center p-0 text-center transition-colors duration-200",
-											embedded
+											embedded && layer === "expanded"
 												? "rounded-full bg-black/20 text-white/65 hover:bg-black/40 hover:text-white"
-												: "rounded-lg border border-(--card-border) bg-(--inner-card-bg) hover:bg-[#252525]",
+												: "rounded-lg border border-(--card-border) bg-(--inner-card-bg) hover:bg-(--muted-2) text-(--text-0)",
 										)}
 										type="button"
 										onClick={onClose}
@@ -229,7 +230,8 @@ export default function QueuePanel({
 								</div>
 								{queue.length > 0 && (
 									<Button
-										className="bg-(--inner-card-bg) border border-(--card-border) rounded-2xl px-3 py-1 text-(--text-0) text-xs h-auto hover:bg-[#252525] transition-colors duration-200"
+										variant={embedded && layer === "expanded" ? "ghost" : "default"}
+										className={cn("rounded-2xl px-3 py-1 text-xs h-8 transition-colors duration-200", embedded && layer === "expanded" ? "bg-black/20 text-white/80 hover:bg-black/40 hover:text-white" : "bg-(--inner-card-bg) border border-(--card-border) text-(--text-0) hover:bg-(--muted-2)")}
 										onClick={handleClearQueue}
 									>
 										Clear
@@ -271,7 +273,7 @@ export default function QueuePanel({
 														}}
 													>
 														<div className="flex min-w-0 flex-1 items-center justify-start gap-4">
-															<div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-[#333333] border border-[rgba(53,51,51,0.2)]">
+															<div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-(--bg-2)">
 																<QueueTrackCover track={track} />
 															</div>
 															<div className="flex max-w-full flex-col text-left min-w-0">
@@ -307,6 +309,7 @@ export default function QueuePanel({
 															key={`${track.id}-${index}`}
 															draggableId={`${track.id}-${index}`}
 															index={index}
+															disableInteractiveElementBlocking
 														>
 															{(provided, snapshot) => (
 																<div
@@ -319,7 +322,7 @@ export default function QueuePanel({
 																	style={provided.draggableProps.style}
 																>
 																	<div className="flex min-w-0 flex-1 items-center justify-start gap-4">
-																		<div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-[#333333] border border-[rgba(53,51,51,0.2)]">
+																		<div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-(--bg-2)">
 																			<QueueTrackCover track={track} />
 																		</div>
 
@@ -364,7 +367,9 @@ export default function QueuePanel({
 																			</DropdownMenuTrigger>
 																			<DropdownMenuContent
 																				align="end"
-																				className="w-48 border-muted bg-background z-[10005]"
+																				data-queue-menu="true"
+																				className={cn("w-48 border-muted bg-background z-[10005]", layer === "expanded" && "black dark")}
+																				style={layer === "expanded" ? { colorScheme: "dark", "--accent-color": "inherit" } as CSSProperties : undefined}
 																			>
 																				<DropdownMenuItem
 																					onSelect={() =>
@@ -395,7 +400,7 @@ export default function QueuePanel({
 																			type="button"
 																			{...provided.dragHandleProps}
 																			aria-label={`Reorder ${track.title}`}
-																			className="flex h-7 w-7 items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/10 active:text-white cursor-grab active:cursor-grabbing touch-none select-none transition-colors"
+																			className="flex h-9 w-9 items-center justify-center rounded-lg text-(--text-0)/60 hover:text-(--text-0) hover:bg-(--action-bg-hover) active:text-(--text-0) cursor-grab active:cursor-grabbing touch-none select-none transition-colors"
 																		>
 																			<GripVertical className="size-4" />
 																		</button>

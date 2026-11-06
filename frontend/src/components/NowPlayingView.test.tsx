@@ -29,6 +29,7 @@ const mockClearQueue = vi.fn();
 const mockRemoveFromQueue = vi.fn();
 let motionAssets: ProjectMotionAsset[] = [];
 let realPresence = false;
+let playing = true;
 
 const sampleTrack = {
 	id: "trk_123",
@@ -48,12 +49,13 @@ const sampleQueue = [
 	},
 ];
 
+
 vi.mock("@/contexts/PlaybackProgressContext", () => ({ usePlaybackProgress: () => 30 }));
 
 vi.mock("@/contexts/AudioPlayerContext", () => ({
 	useAudioPlayer: () => ({
 		currentTrack: sampleTrack,
-		isPlaying: true,
+		isPlaying: playing,
 		duration: 180,
 		pause: vi.fn(),
 		resume: vi.fn(),
@@ -76,6 +78,7 @@ vi.mock("@/contexts/AudioPlayerContext", () => ({
 vi.mock("@/contexts/PreferencesContext", () => ({
 	usePreferences: () => ({
 		preferences: { comments_enabled: true },
+		accentColor: "#a020f0",
 	}),
 }));
 
@@ -98,12 +101,22 @@ vi.mock("motion/react", async (importOriginal) => {
 });
 
 vi.mock("@/components/motion/MotionArtworkStage", () => ({
-	default: () => <div data-testid="motion-artwork-stage" />,
+	default: ({ active }: any) => <div data-testid="motion-artwork-stage" data-active={String(Boolean(active))} />,
 	MotionArtworkFlowBackground: ({ coverUrl, maxLayers }: any) => (
 		<div
 			data-testid="motion-artwork-bg"
 			data-cover-url={coverUrl}
 			data-max-layers={maxLayers}
+		/>
+	),
+}));
+
+vi.mock("@/components/motion/FluidArtworkBackground", () => ({
+	default: ({ coverUrl, isPlaying, "data-testid": testId = "fluid-artwork-bg" }: any) => (
+		<div
+			data-testid={testId}
+			data-cover-url={coverUrl}
+			data-is-playing={isPlaying}
 		/>
 	),
 }));
@@ -141,12 +154,14 @@ vi.mock("@/components/WaveformComments", () => ({
 		isOpen,
 		onOpenChange,
 		fillEmbedded,
+		panelTarget,
 	}: any) => (
 		<div
 			data-testid="waveform-comments"
 			data-placement={placement}
 			data-version={versionId}
 			data-fill-embedded={String(fillEmbedded)}
+			data-target-connected={String(Boolean(panelTarget?.isConnected))}
 		>
 			<button
 				type="button"
@@ -164,11 +179,27 @@ vi.mock("@/components/WaveformComments", () => ({
 }));
 
 describe("NowPlayingView Fullscreen QoL", () => {
+	it.each(["desktop", "mobile"] as const)("scopes black surfaces and the preferred accent to %s fullscreen", (variant) => {
+		const root = document.documentElement;
+		const previous = root.className;
+		root.className = "dark";
+		const view = render(<NowPlayingView projectId="proj_abc" projectName="Album" variant={variant} />);
+		expect(root.className).toBe("dark");
+		const dialog = screen.getByRole("dialog");
+		expect(dialog.classList.contains("black")).toBe(true);
+		expect(dialog.style.getPropertyValue("--accent-color")).toBe("#a020f0");
+		expect(dialog.style.colorScheme).toBe("dark");
+		expect(dialog.querySelector('[class*="shadow-[0_0_8px"]')).toBeNull();
+		view.unmount();
+		expect(root.className).toBe("dark");
+		root.className = previous;
+	});
 	let storage: Storage;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
 		motionAssets = [];
+		playing = true;
 		realPresence = false;
 		storage = createStorage();
 		Object.defineProperty(window, "localStorage", {
@@ -181,6 +212,25 @@ describe("NowPlayingView Fullscreen QoL", () => {
 		cleanup();
 	});
 
+	it.each(["mobile", "desktop"] as const)("shrinks only the %s artwork on pause and restores it on resume", (variant) => {
+		const view = () => <NowPlayingView projectId="proj_abc" projectName="Album" variant={variant} />;
+		const { rerender } = render(view());
+		const artwork = screen.getByTestId("playback-artwork");
+		const transport = screen.getByRole("button", { name: "Next track" }).parentElement;
+		expect(artwork.classList.contains("playback-artwork")).toBe(true);
+		expect(artwork.getAttribute("data-playing")).toBe("true");
+		playing = false;
+		rerender(view());
+		expect(screen.getByTestId("playback-artwork")).toBe(artwork);
+		expect(artwork.getAttribute("data-playing")).toBe("false");
+		expect(screen.getByTestId("motion-artwork-stage").getAttribute("data-active")).toBe("false");
+		expect(screen.getByRole("button", { name: "Next track" }).parentElement).toBe(transport);
+		expect(screen.getByRole("slider", { name: "Playback position" })).toBeTruthy();
+		playing = true;
+		rerender(view());
+		expect(artwork.getAttribute("data-playing")).toBe("true");
+	});
+
 	it.each(["mobile", "desktop"] as const)("mounts the next %s panel without waiting for the previous panel to exit", async (variant) => {
 		realPresence = true;
 		window.localStorage.setItem(FULLSCREEN_DESKTOP_QUEUE_KEY, "false");
@@ -191,9 +241,25 @@ describe("NowPlayingView Fullscreen QoL", () => {
 		await screen.findByTestId("notes-panel");
 		fireEvent.click(screen.getByRole("button", { name: variant === "mobile" ? "Open queue" : "Show queue" }));
 		const panelId = variant === "mobile" ? "mobile-active-panel" : "fullscreen-side-panel";
-		expect(screen.getAllByTestId(panelId)).toHaveLength(2);
+		expect(screen.getAllByTestId(panelId)).toHaveLength(variant === "mobile" ? 1 : 2);
 		expect(screen.getByRole("button", { name: "Pause" })).toBe(transport);
 		await waitFor(() => expect(screen.getAllByTestId(panelId)).toHaveLength(1));
+	});
+
+	it("keeps the mobile comments target connected during rapid panel changes", async () => {
+		realPresence = true;
+		render(<NowPlayingView projectId="proj_abc" projectName="Album" variant="mobile" />);
+		const comments = screen.getByRole("button", { name: "Comments" });
+		fireEvent.click(comments);
+		fireEvent.click(screen.getByRole("button", { name: "Open queue" }));
+		fireEvent.click(comments);
+		expect(screen.getAllByTestId("mobile-active-panel")).toHaveLength(1);
+		expect(screen.getByTestId("waveform-comments").getAttribute("data-target-connected")).toBe("true");
+		await new Promise((resolve) => setTimeout(resolve, 300));
+		expect(screen.getByTestId("waveform-comments").getAttribute("data-target-connected")).toBe("true");
+		expect(screen.getByTestId("mobile-active-panel").style.opacity).not.toBe("0");
+		expect(screen.getByRole("dialog").style.contain).toBe("");
+		expect(document.querySelector(".mobile-fullscreen-layout")?.className).toContain("pb-[calc(env(safe-area-inset-bottom)+2rem)]");
 	});
 
 	it.each(["Open queue", "Notes", "Comments"])(
@@ -202,17 +268,17 @@ describe("NowPlayingView Fullscreen QoL", () => {
 			motionAssets = [{ kind: "apple_portrait", preview_url: "/portrait.mp4" } as ProjectMotionAsset];
 			window.localStorage.setItem(NOW_PLAYING_ARTWORK_MODE_KEY, "apple_portrait");
 			render(<NowPlayingView projectId="proj_abc" projectName="Astro Album" variant="mobile" />);
-			expect(screen.queryByTestId("motion-artwork-bg")).toBeNull();
+			expect(screen.queryByTestId("fluid-artwork-bg")).toBeNull();
 			const transports = screen.getByTestId("mobile-transport-controls");
 			const waveform = screen.getByTestId("mobile-playback-waveform");
 			const toggle = screen.getByRole("button", { name: button });
 			fireEvent.click(toggle);
 			if (button === "Notes") await screen.findByTestId("notes-panel");
-			expect(screen.getByTestId("motion-artwork-bg").getAttribute("data-max-layers")).toBe("1");
+			expect(screen.getByTestId("fluid-artwork-bg")).toBeDefined();
 			expect(screen.getByTestId("mobile-transport-controls")).toBe(transports);
 			expect(screen.getByTestId("mobile-playback-waveform")).toBe(waveform);
 			fireEvent.click(toggle);
-			expect(screen.queryByTestId("motion-artwork-bg")).toBeNull();
+			expect(screen.queryByTestId("fluid-artwork-bg")).toBeNull();
 		},
 	);
 
@@ -452,10 +518,7 @@ describe("NowPlayingView Fullscreen QoL", () => {
 			expect(screen.getByTestId("mobile-playback-waveform")).toBe(waveform);
 			expect(screen.getByTestId("mobile-transport-controls")).toBe(transports);
 			expect(screen.getByTestId("mobile-panel-controls")).toBe(panelControls);
-			expect(screen.getByTestId("motion-artwork-bg")).toBeDefined();
-			expect(
-				screen.getByTestId("motion-artwork-bg").getAttribute("data-max-layers"),
-			).toBe("1");
+			expect(screen.getByTestId("fluid-artwork-bg")).toBeDefined();
 
 			fireEvent.click(commentsBtn);
 			expect(screen.queryByTestId("notes-panel")).toBeNull();
@@ -533,6 +596,30 @@ describe("NowPlayingView Fullscreen QoL", () => {
 			expect(shouldDismissNowPlaying(49, 651)).toBe(true);
 			expect(shouldDismissNowPlaying(47, 900)).toBe(false);
 			expect(shouldDismissNowPlaying(80, 200)).toBe(false);
+		});
+
+		it("15. keeps the underlying light theme unchanged throughout fullscreen", () => {
+			document.documentElement.classList.add("light");
+			document.documentElement.style.colorScheme = "light";
+
+			const { unmount } = render(
+				<NowPlayingView
+					projectId="proj_abc"
+					projectName="Astro Album"
+					variant="desktop"
+				/>,
+			);
+
+			expect(document.documentElement.classList.contains("light")).toBe(true);
+			expect(document.documentElement.classList.contains("black")).toBe(false);
+			expect(document.documentElement.style.colorScheme).toBe("light");
+			expect(screen.getByRole("dialog").classList.contains("black")).toBe(true);
+
+			unmount();
+
+			expect(document.documentElement.classList.contains("light")).toBe(true);
+			expect(document.documentElement.classList.contains("black")).toBe(false);
+			expect(document.documentElement.style.colorScheme).toBe("light");
 		});
 	});
 });

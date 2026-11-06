@@ -77,4 +77,17 @@ describe("WaveformComments mobile scrolling", () => {
     expect(panelTarget.querySelector(".fixed.inset-0")).toBeNull();
     panelTarget.remove();
   });
+
+  it("constrains embedded miniplayer comments to the popover", () => {
+    const panelTarget = document.createElement("div");
+    document.body.append(panelTarget);
+    const view = render(<WaveformComments versionId={42} duration={120} currentTime={10} onSeek={vi.fn()} placement="miniPlayer" isOpen embedded fillEmbedded panelTarget={panelTarget} />);
+    expect(panelTarget.firstElementChild?.className).toContain("min-h-0");
+    const scroll = screen.getByTestId("comments-scroll-container");
+    expect(scroll.className).toContain("flex-1");
+    expect(scroll.className).toContain("min-h-0");
+    expect(scroll.className).toContain("overflow-y-auto");
+    view.unmount();
+    panelTarget.remove();
+  });
 });

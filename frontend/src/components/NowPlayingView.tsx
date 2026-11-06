@@ -34,10 +34,12 @@ import {
 import {
 	lazy,
 	Suspense,
+	type CSSProperties,
 	type KeyboardEvent as ReactKeyboardEvent,
 	type PointerEvent as ReactPointerEvent,
 	useCallback,
 	useEffect,
+	useLayoutEffect,
 	useMemo,
 	useState,
 } from "react";
@@ -46,6 +48,7 @@ import MotionArtworkStage, {
 	MotionArtworkFlowBackground,
 	type MotionArtworkPresentation,
 } from "@/components/motion/MotionArtworkStage";
+import FluidArtworkBackground from "@/components/motion/FluidArtworkBackground";
 import QueuePanel from "@/components/QueuePanel";
 import { Button } from "@/components/ui/button";
 import {
@@ -155,7 +158,7 @@ function PlaybackWaveform({
 		>
 			<WaveformGraphic bars={bars} progressPercent={progressPercent} playedColor="#ffffff" unplayedColor="rgba(255,255,255,0.25)" />
 			<div
-				className="pointer-events-none absolute inset-y-0 w-0.5 -translate-x-1/2 rounded-full bg-[var(--accent-color)] shadow-[0_0_8px_var(--accent-color)]"
+				className="pointer-events-none absolute inset-y-0 w-0.5 -translate-x-1/2 rounded-full bg-[var(--accent-color)]"
 				style={{ left: `${progressPercent}%` }}
 			/>
 		</div>
@@ -238,10 +241,11 @@ export default function NowPlayingView({
 		clearQueue,
 	} = useAudioPlayer();
 	const navigate = useNavigate();
-	const { preferences } = usePreferences();
+	const { preferences, accentColor } = usePreferences();
+	const fullscreenTheme = { colorScheme: "dark", "--accent-color": accentColor } as CSSProperties;
 	const isPresent = useIsPresent();
 	const [hasEntered, setHasEntered] = useState(false);
-	const artworkActive = hasEntered && isPresent;
+	const artworkActive = hasEntered && isPresent && isPlaying;
 	const { data: motionAssets = [] } = useProjectMotionAssets(projectId);
 	const [preferredArtworkMode, setPreferredArtworkMode] =
 		useState<NowPlayingArtworkMode>(() => {
@@ -275,6 +279,24 @@ export default function NowPlayingView({
 			variant === "desktop" && getFullscreenDesktopQueueOpen() ? "queue" : null,
 		);
 	}, [variant]);
+
+	// Keep the app underneath untouched while fullscreen slides away.
+	useLayoutEffect(() => {
+		if (!isPresent) return;
+		const metaThemeColor = document.querySelector<HTMLMetaElement>(
+			'meta[name="theme-color"]',
+		);
+		const prevMetaContent = metaThemeColor?.getAttribute("content");
+
+		metaThemeColor?.setAttribute("content", "#000000");
+
+		return () => {
+			if (metaThemeColor) {
+				if (prevMetaContent === null) metaThemeColor.removeAttribute("content");
+				else if (prevMetaContent !== undefined) metaThemeColor.setAttribute("content", prevMetaContent);
+			}
+		};
+	}, [isPresent]);
 
 	const toggleQueue = () => {
 		const nextOpen = activePanel !== "queue";
@@ -387,14 +409,15 @@ export default function NowPlayingView({
 					transition: { duration: 0.24, ease: [0.32, 0.72, 0, 1] },
 				}}
 				transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
-				className="fixed inset-0 z-[9999] isolate transform-gpu overflow-hidden bg-black text-white will-change-transform"
+				className="black dark fixed inset-0 z-[9999] isolate transform-gpu overflow-hidden bg-black text-white will-change-transform"
+				style={fullscreenTheme}
 				role="dialog"
 				aria-modal="true"
 				aria-label={`Now playing ${currentTrack.title}`}
 			>
 				<div className="pointer-events-none absolute inset-0 overflow-hidden bg-black">
 					<MotionArtworkFlowBackground
-						paused={!artworkActive}
+						paused={!artworkActive || !isPlaying}
 						coverUrl={coverUrl ?? currentTrack.coverUrl}
 						maxLayers={2}
 					/>
@@ -424,7 +447,7 @@ export default function NowPlayingView({
 							transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
 							className="flex w-[min(36rem,44vw)] flex-col items-center will-change-transform"
 						>
-							<div className="relative size-[min(54dvh,32vw,36rem)] max-w-full shrink-0 overflow-hidden rounded-lg shadow-2xl">
+							<div data-testid="playback-artwork" data-playing={isPlaying} className="playback-artwork relative size-[min(54dvh,32vw,36rem)] max-w-full shrink-0 overflow-hidden rounded-lg shadow-2xl">
 								<MotionArtworkStage
 									active={artworkActive}
 									presentation="fill"
@@ -508,7 +531,7 @@ export default function NowPlayingView({
 								panelTarget={commentsPanelTarget}
 							/>
 
-							<div className="mt-5 flex w-full items-center justify-between">
+							<div className="fullscreen-transport mt-5 flex w-full items-center justify-between">
 								<Button
 									type="button"
 									variant="ghost"
@@ -759,7 +782,8 @@ export default function NowPlayingView({
 																					</DropdownMenuTrigger>
 																					<DropdownMenuContent
 																						align="end"
-																						className="w-48 z-[10005] bg-neutral-900 border-white/10 text-white"
+																						className="black dark w-48 z-[10005] bg-neutral-900 border-white/10 text-white"
+																						style={fullscreenTheme}
 																					>
 																						{track.projectId && (
 																							<DropdownMenuItem
@@ -862,44 +886,47 @@ export default function NowPlayingView({
 				}}
 				transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
 				drag="y"
-				dragListener={!activePanel}
+				dragListener={false}
 				dragControls={mobileDragControls}
 				dragConstraints={{ top: 0, bottom: 0 }}
 				dragElastic={{ top: 0, bottom: 0.35 }}
 				dragMomentum={false}
 				onDragEnd={handleMobileDragEnd}
 				style={{
+					...fullscreenTheme,
 					touchAction: activePanel ? "auto" : "pan-x",
-					contain: "layout paint style",
 				}}
-				className="fixed inset-0 z-[9999] isolate h-[100dvh] w-screen transform-gpu overflow-hidden bg-black text-white will-change-transform"
+				className="black dark fixed inset-0 z-[9999] isolate h-[100dvh] w-screen overflow-hidden bg-black text-white"
 				role="dialog"
 				aria-modal="true"
 				aria-label={`Now playing ${currentTrack.title}`}
 			>
 				{isTallArtwork && !activePanel ? (
-					<MotionArtworkStage
-						active={artworkActive}
-						presentation={mobilePresentation}
-						assetUrl={activeMobileAsset?.preview_url}
-						coverUrl={coverUrl ?? currentTrack.coverUrl}
-					/>
+					<>
+						<MotionArtworkStage
+							active={artworkActive}
+							presentation={mobilePresentation}
+							assetUrl={activeMobileAsset?.preview_url}
+							coverUrl={coverUrl ?? currentTrack.coverUrl}
+						/>
+						<div className="pointer-events-none absolute inset-0 bg-black/30" />
+						<div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.28)_0%,transparent_22%,transparent_76%,rgba(0,0,0,0.35)_100%)]" />
+					</>
 				) : (
-					<MotionArtworkFlowBackground
-						paused={!artworkActive}
+					<FluidArtworkBackground
+						rasterized
 						coverUrl={coverUrl ?? currentTrack.coverUrl}
-						maxLayers={1}
+						isPlaying={isPlaying && artworkActive}
 					/>
 				)}
-				<div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.24)_0%,transparent_28%,rgba(0,0,0,0.08)_50%,rgba(0,0,0,0.76)_70%,rgba(0,0,0,0.97)_100%)]" />
 
-				<div className="absolute inset-0 z-10 grid grid-rows-[auto_minmax(0,1fr)_auto] px-6 pb-[max(calc(env(safe-area-inset-bottom)+0.75rem),2rem)] pt-[max(calc(env(safe-area-inset-top)+1rem),3.75rem)]">
+				<div className="mobile-fullscreen-layout absolute inset-0 z-10 grid grid-rows-[auto_minmax(0,1fr)_auto] px-6 pb-[calc(env(safe-area-inset-bottom)+2rem)] pt-[max(calc(env(safe-area-inset-top)+0.75rem),2.75rem)]">
 					<div className="flex items-center justify-between gap-3">
 						<Button
 							type="button"
 							variant="ghost"
 							size="icon-lg"
-							className="size-12 rounded-full bg-black/30 text-white backdrop-blur-md hover:bg-black/50"
+							className="size-12 rounded-full bg-black/30 text-white hover:bg-black/50"
 							onClick={closeNowPlaying}
 							aria-label="Collapse Now Playing"
 						>
@@ -926,19 +953,15 @@ export default function NowPlayingView({
 								</motion.div>
 							)}
 							{activePanel && (
-								<motion.div
-									layoutId="mobile-now-playing-details"
+								<div
 									className="min-w-0 flex-1"
 									data-testid="mobile-header-track-details"
-									transition={{
-										layout: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
-									}}
 								>
 									<h2 className="truncate text-base font-semibold">
 										{currentTrack.title}
 									</h2>
 									<p className="truncate text-sm text-white/55">{artist}</p>
-								</motion.div>
+								</div>
 							)}
 						</div>
 						<DropdownMenu>
@@ -947,7 +970,7 @@ export default function NowPlayingView({
 									type="button"
 									variant="ghost"
 									size="icon-lg"
-									className="size-12 rounded-full bg-black/30 text-white backdrop-blur-md hover:bg-black/50"
+									className="size-12 rounded-full bg-black/30 text-white hover:bg-black/50"
 									aria-label="Choose artwork"
 								>
 									<Menu className="size-6" />
@@ -956,7 +979,8 @@ export default function NowPlayingView({
 							<DropdownMenuContent
 								align="end"
 								sideOffset={8}
-								className="z-[10002] w-64 border-white/15 bg-black/90 text-white backdrop-blur-xl"
+								className="black dark z-[10002] w-64 border-white/15 bg-black/90 text-white backdrop-blur-xl"
+								style={fullscreenTheme}
 							>
 								<DropdownMenuRadioGroup
 									value={preferredArtworkMode}
@@ -981,7 +1005,7 @@ export default function NowPlayingView({
 
 					<div
 						className={cn(
-							"relative flex min-h-0 w-full py-4",
+							"relative flex min-h-0 w-full py-2",
 							activePanel
 								? "flex-col items-start overflow-hidden"
 								: "items-center justify-center",
@@ -992,26 +1016,26 @@ export default function NowPlayingView({
 							<motion.div
 								layoutId="mobile-now-playing-artwork"
 								data-testid="mobile-artwork-card"
-								className="relative aspect-square w-[min(86vw,48dvh)] max-w-full shrink-0 overflow-hidden rounded-[6%] bg-black/20 shadow-2xl ring-1 ring-white/10"
+								className="mobile-cover-slot relative aspect-square max-w-full shrink-0"
 								transition={{
 									layout: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
 								}}
 							>
-								<MotionArtworkStage
-									active={artworkActive}
-									presentation="fill"
-									assetUrl={activeMobileAsset?.preview_url}
-									coverUrl={coverUrl ?? currentTrack.coverUrl}
-								/>
+								<div data-testid="playback-artwork" data-playing={isPlaying} className="playback-artwork size-full overflow-hidden rounded-[7%] bg-black/20 shadow-2xl ring-1 ring-white/10">
+									<MotionArtworkStage
+										active={artworkActive}
+										presentation="fill"
+										assetUrl={activeMobileAsset?.preview_url}
+										coverUrl={coverUrl ?? currentTrack.coverUrl}
+									/>
+								</div>
 							</motion.div>
 						)}
-						<AnimatePresence initial={false} mode="popLayout">
 							{activePanel && (
 								<motion.div
 									key={activePanel}
-									initial={{ opacity: 0, y: 14 }}
+									initial={{ y: 8 }}
 									animate={{ opacity: 1, y: 0 }}
-									exit={{ opacity: 0, y: 8 }}
 									transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
 									className="mt-3 min-h-0 w-full flex-1 overflow-hidden"
 									data-testid="mobile-active-panel"
@@ -1034,18 +1058,13 @@ export default function NowPlayingView({
 									)}
 								</motion.div>
 							)}
-						</AnimatePresence>
 					</div>
 
-					<div className="space-y-5" data-testid="mobile-player-footer">
+					<div className="flex flex-col" data-testid="mobile-player-footer">
 						{!activePanel && (
-							<motion.div
-								layoutId="mobile-now-playing-details"
-								className="flex items-end justify-between gap-4"
+							<div
+								className="mb-4 flex items-end justify-between gap-4"
 								data-testid="mobile-track-details"
-								transition={{
-									layout: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
-								}}
 							>
 								<div className="min-w-0">
 									<h2 className="truncate text-2xl font-semibold">
@@ -1055,22 +1074,24 @@ export default function NowPlayingView({
 										{artist}
 									</p>
 								</div>
-							</motion.div>
+							</div>
 						)}
 
-						<PlaybackTimeline
-							bars={waveformBars}
-							duration={duration}
-							onSeek={seekTo}
-							versionId={isCommentsEnabled ? activeVersionId : null}
-							commentsOpen={isCommentsOpen}
-							onCommentsOpenChange={(open) => setActivePanel(open ? "comments" : null)}
-							panelTarget={commentsPanelTarget}
-							mobile
-						/>
+						<div className="mb-[clamp(1rem,3dvh,1.75rem)]">
+							<PlaybackTimeline
+								bars={waveformBars}
+								duration={duration}
+								onSeek={seekTo}
+								versionId={isCommentsEnabled ? activeVersionId : null}
+								commentsOpen={isCommentsOpen}
+								onCommentsOpenChange={(open) => setActivePanel(open ? "comments" : null)}
+								panelTarget={commentsPanelTarget}
+								mobile
+							/>
+						</div>
 
 						<div
-							className="flex items-center justify-between gap-2"
+							className="fullscreen-transport mb-[clamp(1.25rem,5dvh,3rem)] flex items-center justify-between gap-2"
 							data-testid="mobile-transport-controls"
 						>
 							<Button
@@ -1142,7 +1163,7 @@ export default function NowPlayingView({
 						</div>
 
 						<div
-							className="flex items-center justify-end gap-2.5 pt-1"
+							className="flex items-center justify-end gap-3 pt-1"
 							data-testid="mobile-panel-controls"
 						>
 							{isCommentsEnabled && activeVersionId && (
@@ -1152,7 +1173,7 @@ export default function NowPlayingView({
 									size="icon-lg"
 									className={cn(
 										"size-12 rounded-full text-white transition-colors",
-										"bg-black/25 backdrop-blur-sm hover:bg-black/45",
+										"bg-black/25 hover:bg-black/45",
 										isCommentsOpen && "bg-white/15 text-white",
 									)}
 									onClick={() => togglePanel("comments")}
@@ -1168,7 +1189,7 @@ export default function NowPlayingView({
 								size="icon-lg"
 								className={cn(
 									"size-12 rounded-full text-white transition-colors",
-									"bg-black/25 backdrop-blur-sm hover:bg-black/45",
+									"bg-black/25 hover:bg-black/45",
 									isNotesOpen && "bg-white/15 text-white",
 								)}
 									onClick={() => togglePanel("notes")}
@@ -1186,7 +1207,7 @@ export default function NowPlayingView({
 								size="icon-lg"
 								className={cn(
 									"size-12 rounded-full text-white transition-colors",
-									"bg-black/25 backdrop-blur-sm hover:bg-black/45",
+									"bg-black/25 hover:bg-black/45",
 									isQueueOpen && "bg-white/15 text-white",
 								)}
 								onClick={toggleQueue}

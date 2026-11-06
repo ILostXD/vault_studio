@@ -1,5 +1,5 @@
 import { useId } from "react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 
 interface ToggleGroupOption {
@@ -25,6 +25,7 @@ export function ToggleGroup({
   layoutId,
 }: ToggleGroupProps) {
   const generatedId = useId();
+  const reduceMotion = useReducedMotion();
   const activeLayoutId = layoutId || `toggle-active-bg-${generatedId}`;
   const isSmall = size === "sm";
 
@@ -59,7 +60,7 @@ export function ToggleGroup({
                   "absolute inset-0 bg-[var(--bg-4)] border border-border shadow-sm -z-10",
                   isSmall ? "rounded-[9px]" : "rounded-[16px]"
                 )}
-                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 400, damping: 30 }}
               />
             )}
             <span className="relative z-10">{option.label}</span>

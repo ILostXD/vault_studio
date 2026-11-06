@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ToggleGroup } from "@/components/ui/toggle-group";
 
 const DEFAULT_COLORS = [
-  "#ffba00", // Vault Yellow
+  "#ffba00", // { vault.studio } Yellow
   "#00d4ff", // Cyan
   "#ff007f", // Neon Pink
   "#8a2be2", // Purple

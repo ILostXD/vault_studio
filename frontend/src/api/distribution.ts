@@ -17,6 +17,7 @@ export interface Credit {
 export interface ArtistProfile {
 	display_name: string;
 	legal_name: string;
+	usual_genre?: string;
 	default_credits: Credit[];
 }
 

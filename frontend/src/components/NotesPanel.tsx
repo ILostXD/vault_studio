@@ -145,9 +145,9 @@ export default function NotesPanel(props: NotesPanelProps) {
 
 	return (
 		<motion.div
-			initial={embedded ? { opacity: 0, y: 8 } : { opacity: 0, x: 20 }}
+			initial={embedded ? false : { opacity: 0, x: 20 }}
 			animate={{ opacity: 1, x: 0, y: 0 }}
-			exit={embedded ? { opacity: 0, y: 6 } : { opacity: 0, x: 20 }}
+			exit={embedded ? undefined : { opacity: 0, x: 20 }}
 			transition={
 				embedded
 					? { duration: 0.18, ease: [0.22, 1, 0.36, 1] }

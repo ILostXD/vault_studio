@@ -209,7 +209,7 @@ export function ProjectTrackList({
                 {filteredTracks.map((track, index) => (
                   <div
                     key={track.public_id}
-                    style={{ animationDelay: `${Math.min(index * 60, 900)}ms` }}
+                    style={{ animationDelay: `${Math.min(index * 20, 120)}ms` }}
                     data-track-drop-zone
                     onDragEnter={(e) =>
                       handleTrackDragEnter(e, track.public_id)

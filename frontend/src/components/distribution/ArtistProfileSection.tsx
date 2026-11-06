@@ -10,6 +10,7 @@ import {
 } from "@/api/distribution";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DisclosureSummary } from "@/components/ui/disclosure-summary";
 import { CreditsEditor } from "./CreditsEditor";
 
 const creditsDisclosureKey = "vault:artist-profile:credits-open";
@@ -32,6 +33,7 @@ export function ArtistProfileSection() {
 		onSuccess: (profile) => {
 			client.setQueryData(distributionKeys.profile, profile);
 			void client.invalidateQueries({ queryKey: ["release-preparation"] });
+			void client.invalidateQueries({ queryKey: ["project-audio-metadata"] });
 			setDraft(null);
 		},
 	});
@@ -91,6 +93,10 @@ export function ArtistProfileSection() {
 										}
 									/>
 								</label>
+								<label className="space-y-1 text-sm sm:col-span-2">
+									<span>Usual genre</span>
+									<Input value={profile.usual_genre ?? ""} maxLength={512} onChange={(event) => setDraft({ ...profile, usual_genre: event.target.value })} />
+								</label>
 							</div>
 							<details
 								open={creditsOpen}
@@ -103,10 +109,10 @@ export function ArtistProfileSection() {
 									);
 								}}
 							>
-								<summary className="mb-3 cursor-pointer text-sm font-medium">
+								<DisclosureSummary>
 									Reusable credits
-								</summary>
-								<p className="mb-3 text-sm text-(--text-1)">
+								</DisclosureSummary>
+								<p className="mt-3 mb-3 text-sm text-(--text-1)">
 									These fill every track by default. Individual tracks can
 									override them during release preparation.
 								</p>

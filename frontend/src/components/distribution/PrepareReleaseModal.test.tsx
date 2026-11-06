@@ -107,7 +107,7 @@ afterEach(() => {
 });
 
 describe("PrepareReleaseModal", () => {
-	it("shows inherited Vault data, per-track overrides, and keeps final submission in Too Lost", async () => {
+	it("shows inherited { vault.studio } data, per-track overrides, and keeps final submission in Too Lost", async () => {
 		mocks.getPreparation.mockResolvedValue(releaseResponse);
 		mocks.getProfile.mockResolvedValue({
 			display_name: "Display Artist",

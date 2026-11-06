@@ -33,6 +33,15 @@ export default function AlbumCover({
 	const [isCoverImageLoaded, setIsCoverImageLoaded] = useState(false);
 	const [isMobileScreen, setIsMobileScreen] = useState(false);
 	const imgRef = useRef<HTMLImageElement>(null);
+	const motionRef = useRef<HTMLVideoElement>(null);
+	useEffect(() => {
+		const video = motionRef.current;
+		if (!video) return;
+		video.muted = true;
+		if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) void video.play().catch(() => undefined);
+		else video.pause();
+		return () => video.pause();
+	}, [motionUrl]);
 	const onColorsReadyRef = useRef(onColorsReady);
 	const extractedColors = useColorExtractor(imageUrl);
 
@@ -199,10 +208,10 @@ export default function AlbumCover({
 
 				{motionUrl && (
 					<video
+						ref={motionRef}
 						key={motionUrl}
 						src={motionUrl}
 						poster={imageUrl}
-						autoPlay
 						muted
 						loop
 						playsInline

@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from "motion/react";
+import { useReducedMotion } from "motion/react";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
@@ -103,6 +103,47 @@ const FLOW_LAYERS = [
 	},
 ];
 
+const FLOW_STYLE_ID = "vault-desktop-flow-styles";
+
+function ensureFlowKeyframesInjected() {
+	if (typeof document === "undefined") return;
+	if (document.getElementById(FLOW_STYLE_ID)) return;
+
+	const style = document.createElement("style");
+	style.id = FLOW_STYLE_ID;
+	style.textContent = `
+@keyframes vault-flow-layer-0 {
+  0%   { transform: rotate(-9deg) translate(-6%, -3%) scale(1.02); }
+  25%  { transform: rotate(81deg) translate(3%, -7%) scale(1.08); }
+  50%  { transform: rotate(171deg) translate(7%, 2%) scale(1.04); }
+  75%  { transform: rotate(261deg) translate(-2%, 6%) scale(1.1); }
+  100% { transform: rotate(351deg) translate(-6%, -3%) scale(1.02); }
+}
+@keyframes vault-flow-layer-1 {
+  0%   { transform: rotate(12deg) translate(10%, -9%) scale(0.96); }
+  25%  { transform: rotate(-78deg) translate(-3%, 8%) scale(1.09); }
+  50%  { transform: rotate(-168deg) translate(-12%, 3%) scale(1.02); }
+  75%  { transform: rotate(-258deg) translate(4%, -11%) scale(0.92); }
+  100% { transform: rotate(-348deg) translate(10%, -9%) scale(0.96); }
+}
+@keyframes vault-flow-layer-2 {
+  0%   { transform: rotate(-18deg) translate(-19%, 13%) scale(1.08); }
+  25%  { transform: rotate(72deg) translate(13%, 18%) scale(0.93); }
+  50%  { transform: rotate(162deg) translate(18%, -14%) scale(1.12); }
+  75%  { transform: rotate(252deg) translate(-12%, -18%) scale(0.98); }
+  100% { transform: rotate(342deg) translate(-19%, 13%) scale(1.08); }
+}
+@keyframes vault-flow-layer-3 {
+  0%   { transform: rotate(20deg) translate(23%, 19%) scale(0.9); }
+  25%  { transform: rotate(-70deg) translate(-18%, -23%) scale(1.14); }
+  50%  { transform: rotate(-160deg) translate(-25%, -12%) scale(0.96); }
+  75%  { transform: rotate(-250deg) translate(16%, 24%) scale(1.08); }
+  100% { transform: rotate(-340deg) translate(23%, 19%) scale(0.9); }
+}
+`;
+	document.head.appendChild(style);
+}
+
 export function MotionArtworkFlowBackground({
 	assetUrl,
 	coverUrl,
@@ -111,37 +152,27 @@ export function MotionArtworkFlowBackground({
 	paused = false,
 }: MotionArtworkFlowBackgroundProps) {
 	const shouldReduceMotion = useReducedMotion();
+	ensureFlowKeyframesInjected();
 	const layers = FLOW_LAYERS.slice(0, maxLayers);
 
 	return (
 		<div className={cn("absolute inset-0 overflow-hidden bg-black", className)}>
-			{layers.map((layer) => (
+			{layers.map((layer, index) => (
 				<div
 					key={layer.size}
 					className="absolute inset-0 flex items-center justify-center"
 				>
-					<motion.div
-						animate={
-							shouldReduceMotion || paused
-								? { rotate: 0, x: 0, y: 0, scale: 1 }
-								: {
-										rotate: layer.rotate,
-										x: layer.x,
-										y: layer.y,
-										scale: layer.scale,
-									}
-						}
-						transition={
-							paused || shouldReduceMotion
-								? { duration: 0.18 }
-								: {
-										duration: layer.duration,
-										repeat: Infinity,
-										ease: "linear",
-									}
-						}
+					<div
+						style={{
+							animation: shouldReduceMotion
+								? "none"
+								: `vault-flow-layer-${index} ${layer.duration}s linear infinite`,
+							animationPlayState:
+								paused || shouldReduceMotion ? "paused" : "running",
+							willChange: "transform",
+						}}
 						className={cn(
-							"relative shrink-0 overflow-hidden blur-[90px] brightness-[0.8] saturate-[1.9] will-change-transform",
+							"relative shrink-0 overflow-hidden blur-[90px] brightness-[0.8] saturate-[1.9]",
 							layer.size,
 							layer.opacity,
 						)}
@@ -152,7 +183,7 @@ export function MotionArtworkFlowBackground({
 							coverUrl={coverUrl}
 							className="absolute inset-0 size-full object-cover"
 						/>
-					</motion.div>
+					</div>
 				</div>
 			))}
 			<div className="absolute inset-0 bg-black/12" />

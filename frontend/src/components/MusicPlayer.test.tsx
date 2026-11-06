@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { act, cleanup, render } from "@testing-library/react";
+import { act, cleanup, render, waitForElementToBeRemoved } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PlaybackProgressContext, createPlaybackProgressStore } from "@/contexts/PlaybackProgressContext";
 import MusicPlayer from "./MusicPlayer";
@@ -36,6 +36,27 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe("MusicPlayer fullscreen handoff", () => {
+  it("keeps the fullscreen arrow centered and the thumbnail borderless", () => {
+    const store = createPlaybackProgressStore();
+    const { container } = render(<PlaybackProgressContext.Provider value={store}><MusicPlayer /></PlaybackProgressContext.Provider>);
+    const button = container.querySelector('button[aria-label="Open Now Playing"]')!;
+    const overlay = button.querySelector("span")!;
+    expect(button.className).toContain("border-0");
+    expect(button.className).toContain("bg-(--bg-2)");
+    expect(overlay.className).toContain("items-center justify-center");
+    expect(overlay.querySelector("svg")?.getAttribute("class")).not.toContain("translate");
+  });
+  it("lets skip icons inherit theme-aware hover colors from their buttons", () => {
+    const store = createPlaybackProgressStore();
+    const { container } = render(<PlaybackProgressContext.Provider value={store}><MusicPlayer /></PlaybackProgressContext.Provider>);
+    for (const label of ["Previous track", "Next track"]) {
+      const button = container.querySelector(`button[aria-label="${label}"]`)!;
+      expect(button.className).toContain("player-icon-control");
+      expect(button.className).toContain("hover:text-(--text-1)");
+      expect(button.querySelector("svg")?.getAttribute("class")).not.toContain("text-(--text-0)");
+    }
+    expect(container.querySelector('[class*="hover:text-gray-300"]')).toBeNull();
+  });
   it("unsubscribes the hidden controls without replacing, reloading, or pausing the audio", () => {
     const store = createPlaybackProgressStore();
     const subscribers = new Set<() => void>();
@@ -70,5 +91,49 @@ describe("MusicPlayer fullscreen handoff", () => {
     expect(audio.pause).not.toHaveBeenCalled();
     expect(audio.load).toHaveBeenCalledTimes(loadCalls);
     expect(audio.play).toHaveBeenCalledTimes(playCalls);
+  });
+
+  it("keeps the popover above Add and open on outside clicks until Escape", async () => {
+    const store = createPlaybackProgressStore();
+    const { container } = render(
+      <PlaybackProgressContext.Provider value={store}>
+        <MusicPlayer />
+      </PlaybackProgressContext.Provider>
+    );
+
+    // Initially no popover
+    expect(container.querySelector("[data-testid='miniplayer-popover']")).toBeNull();
+
+    // Click queue button
+    const queueBtn = container.querySelector("button[aria-label='Queue']");
+    expect(queueBtn).not.toBeNull();
+    act(() => {
+      queueBtn?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    // Popover is displayed
+    const popover = container.querySelector("[data-testid='miniplayer-popover']")!;
+    expect(popover).not.toBeNull();
+    expect(popover.className).toContain("h-[min(500px,calc(100dvh-180px))]");
+    expect(popover.firstElementChild?.className).toContain("min-h-0");
+    expect(container.querySelector(".mini-player")?.className).toContain("z-130");
+
+    const menu = document.createElement("div");
+    menu.setAttribute("data-queue-menu", "true");
+    document.body.append(menu);
+    act(() => menu.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true })));
+    expect(container.querySelector("[data-testid='miniplayer-popover']")).not.toBeNull();
+    menu.remove();
+
+    // Click outside popover
+    act(() => {
+      document.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    });
+
+    expect(container.querySelector("[data-testid='miniplayer-popover']")).not.toBeNull();
+    act(() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
+    await waitForElementToBeRemoved(() =>
+      container.querySelector("[data-testid='miniplayer-popover']"),
+    );
   });
 });

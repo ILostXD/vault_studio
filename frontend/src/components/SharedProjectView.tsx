@@ -460,7 +460,7 @@ export default function SharedProjectView({
                   .map((track, index) => (
                     <div
                       key={track.public_id}
-                      style={{ animationDelay: `${Math.min(index * 60, 900)}ms` }}
+                      style={{ animationDelay: `${Math.min(index * 20, 120)}ms` }}
                       className="track-reveal relative rounded-2xl"
                     >
                       <TrackListItem

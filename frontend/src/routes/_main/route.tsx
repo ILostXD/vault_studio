@@ -155,9 +155,7 @@ function MainLayout() {
   if (isLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3">
-        <span className="font-mono text-2xl font-bold tracking-tight text-foreground">
-          <BrandWordmark />
-        </span>
+        <BrandWordmark className="text-2xl font-medium text-foreground" />
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <LoaderCircle className="size-3.5 animate-spin" />
           <span>Connecting...</span>

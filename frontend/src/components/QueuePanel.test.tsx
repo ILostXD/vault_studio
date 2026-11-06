@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import QueuePanel from "./QueuePanel";
 
@@ -10,6 +10,7 @@ const mockQueue = [
 		title: "First Track",
 		artist: "Test Artist",
 		projectId: "p1",
+		coverUrl: "/cover.jpg",
 	},
 	{
 		id: "trk_2",
@@ -54,6 +55,9 @@ describe("QueuePanel touch scrolling & reorder", () => {
 		// Tracks rendered
 		expect(screen.getByText("First Track")).toBeTruthy();
 		expect(screen.getByText("Second Track")).toBeTruthy();
+		const coverFrame = screen.getByRole("img", { name: "First Track" }).parentElement!;
+		expect(coverFrame.className).toContain("bg-(--bg-2)");
+		expect(coverFrame.className).not.toContain("border");
 
 		// Reorder handles are present with touch-none
 		const reorderHandles = document.querySelectorAll(
@@ -72,12 +76,28 @@ describe("QueuePanel touch scrolling & reorder", () => {
 				isOpen={true}
 				onClose={vi.fn()}
 				embedded
+				layer="expanded"
 				panelTarget={panelTarget}
 			/>,
 		);
 
 		expect(panelTarget.textContent).toContain("First Track");
+		expect(panelTarget.firstElementChild?.className).toContain("min-h-0");
+		expect(panelTarget.querySelector(".overflow-y-auto")?.className).toContain("flex-1");
 		expect(document.querySelector(".overlay-backdrop")).toBeNull();
+		for (const button of [screen.getByRole("button", { name: "Close queue manager" }), screen.getByRole("button", { name: "Clear" })]) {
+			expect(button.className).toContain("bg-black/20");
+			expect(button.className).not.toContain("linear-gradient");
+		}
 		panelTarget.remove();
+	});
+
+	it("allows a button drag handle to lift a queue item", async () => {
+		render(<QueuePanel isOpen onClose={vi.fn()} />);
+		const handle = screen.getByRole("button", { name: "Reorder First Track" });
+		handle.focus();
+		fireEvent.keyDown(handle, { key: " ", code: "Space", keyCode: 32, which: 32 });
+		await waitFor(() => expect(document.querySelector(".cursor-grabbing")).not.toBeNull());
+		fireEvent.keyDown(window, { key: "Escape", code: "Escape", keyCode: 27 });
 	});
 });

@@ -13,7 +13,6 @@ import {
   Trash2,
   Film,
   PackageCheck,
-  Tags,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,8 +37,8 @@ import {
   useDeleteProject,
   useProject,
   useDuplicateProject,
-  useExportProject,
   useMoveProject,
+  useExportProject,
   projectKeys,
 } from "@/hooks/useProjects";
 import { usePrefetchFolders } from "@/hooks/useFolders";
@@ -83,8 +82,8 @@ function ProjectLayout() {
   const { data: motionAssets = [] } = useProjectMotionAssets(project?.public_id);
   const deleteProject = useDeleteProject();
   const duplicateProject = useDuplicateProject();
-  const exportProject = useExportProject();
   const moveProject = useMoveProject();
+  const exportProject = useExportProject();
   const prefetchFolders = usePrefetchFolders();
   const prefetchSharingData = usePrefetchSharingData();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -220,19 +219,6 @@ function ProjectLayout() {
     }
   };
 
-  const handleExportProject = async () => {
-    if (!project) return;
-
-    try {
-      await exportProject.mutateAsync({
-        id: project.public_id,
-        projectName: String(project.name),
-      });
-    } catch (_error) {
-      toast.error("Failed to export project");
-    }
-  };
-
   const handleMoveClick = () => {
     setShowMoveModal(true);
   };
@@ -364,16 +350,13 @@ function ProjectLayout() {
                     Prepare release
                   </DropdownMenuItem>
                 )}
-                {isProjectOwned && (
-                  <DropdownMenuItem onSelect={() => setShowMetadata(true)}>
-                    <Tags className="ml-1 mr-1.5 size-4.5" />
-                    Project metadata
-                  </DropdownMenuItem>
-                )}
                 {canDownloadProject && (
-                  <DropdownMenuItem onSelect={handleExportProject}>
+                  <DropdownMenuItem disabled={exportProject.isPending} onSelect={() => {
+                    if (isProjectOwned) setShowMetadata(true);
+                    else exportProject.mutate({ id: projectId, projectName: project?.name || "project" });
+                  }}>
                     <Download className="ml-1 mr-1.5 size-4.5" />
-                    Export project
+                    {isProjectOwned ? "Export & Library" : "Download raw project"}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem onSelect={handleAddToQueue}>
@@ -471,7 +454,14 @@ function ProjectLayout() {
       )}
       {project && isProjectOwned && showMetadata && (
         <Suspense fallback={null}>
-          <ProjectMetadataModal projectId={project.id} coverUrl={projectCoverImage} onClose={() => setShowMetadata(false)} />
+          <ProjectMetadataModal
+            projectId={project.id}
+            projectPublicId={project.public_id}
+            projectName={String(project.name)}
+            coverUrl={projectCoverImage}
+            isOwned={isProjectOwned}
+            onClose={() => setShowMetadata(false)}
+          />
         </Suspense>
       )}
     </>

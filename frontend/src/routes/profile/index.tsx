@@ -527,7 +527,7 @@ function ProfilePage() {
 									<div className="flex items-center justify-between gap-4 border-b border-(--card-border) pb-4">
 										<div className="min-w-0">
 											<p className="text-(--text-0) text-base">
-												Waveform comments
+												Comments
 											</p>
 											<p className="text-(--text-2) text-sm">
 												Show feedback markers and the comment button

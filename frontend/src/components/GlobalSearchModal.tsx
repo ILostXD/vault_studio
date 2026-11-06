@@ -491,7 +491,7 @@ export default function GlobalSearchModal({
                           >
                             {/* Artwork/Cover */}
                             {item.type === "project" ? (
-                              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-[#333333] border border-[rgba(53,51,51,0.2)]">
+                              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-(--bg-2)">
                                 <ProjectSearchCover project={item} />
                               </div>
                             ) : (

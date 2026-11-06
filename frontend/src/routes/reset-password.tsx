@@ -138,10 +138,7 @@ function ResetPasswordPage() {
 
             <button
               onClick={() => navigate({ to: "/login" })}
-              className="w-full border border-(--card-border) hover:brightness-110 text-(--text-0) font-semibold text-lg h-12 rounded-2xl transition-all relative overflow-hidden"
-              style={{
-                background: "linear-gradient(0deg, #1D1D1D 0%, #282828 100%)",
-              }}
+              className="w-full btn-surface hover:brightness-110 text-(--text-0) font-semibold text-lg h-12 rounded-2xl transition-all relative overflow-hidden"
             >
               Back to Login
             </button>
@@ -192,10 +189,7 @@ function ResetPasswordPage() {
             </div>
             <button
               onClick={() => navigate({ to: "/login" })}
-              className="w-full border border-(--card-border) hover:brightness-110 text-(--text-0) font-semibold text-lg h-12 rounded-2xl transition-all relative overflow-hidden"
-              style={{
-                background: "linear-gradient(0deg, #1D1D1D 0%, #282828 100%)",
-              }}
+              className="w-full btn-surface hover:brightness-110 text-(--text-0) font-semibold text-lg h-12 rounded-2xl transition-all relative overflow-hidden"
             >
               Go to Login
             </button>

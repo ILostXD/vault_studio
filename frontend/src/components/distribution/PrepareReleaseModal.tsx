@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	AlertCircle,
 	CheckCircle2,
-	ChevronDown,
 	ChevronRight,
 	Download,
 	FileImage,
@@ -42,6 +41,7 @@ import {
 } from "@/api/distribution";
 import BaseModal from "@/components/modals/BaseModal";
 import { Button } from "@/components/ui/button";
+import { DisclosureSummary } from "@/components/ui/disclosure-summary";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -134,7 +134,7 @@ export function PrepareReleaseModal({
 			else
 				setActionError(
 					result.message ||
-						"Too Lost is not configured on this Vault instance.",
+						"Too Lost is not configured on this { vault.studio } instance.",
 				);
 		},
 	});
@@ -273,7 +273,7 @@ export function PrepareReleaseModal({
 							Prepare Release
 						</h2>
 						<p className="mt-1 text-sm text-(--text-1)">
-							Review what Vault knows, then export it or create a distributor
+							Review what {"{ vault.studio }"} knows, then export it or create a distributor
 							draft.
 						</p>
 					</div>
@@ -374,7 +374,7 @@ export function PrepareReleaseModal({
 									<h3 className="text-lg font-semibold">Release Package</h3>
 									<p className="mt-1 text-sm text-(--text-1)">
 										Original active masters, artwork, metadata, credits,
-										checksums, and a README in one ZIP. Vault never modifies
+										checksums, and a README in one ZIP. {"{ vault.studio }"} never modifies
 										your masters.
 									</p>
 									<ArtworkSummary release={response.release} />
@@ -418,7 +418,7 @@ export function PrepareReleaseModal({
 										<div>
 											<h3 className="text-lg font-semibold">Too Lost</h3>
 											<p className="mt-1 text-sm text-(--text-1)">
-												Vault creates or updates a draft and sends the square
+												{"{ vault.studio }"} creates or updates a draft and sends the square
 												cover when available. Stores, territories, licensing,
 												review, and final submission stay in Too Lost.
 											</p>
@@ -602,7 +602,7 @@ export function PrepareReleaseModal({
 							</p>
 						)}
 						{(tab === "release" || tab === "tracks") && (
-							<div className="mt-6 flex items-center justify-end gap-3 border-t border-(--card-border) pt-4">
+							<div className="mt-2 flex items-center justify-end gap-3 border-t border-(--card-border) pt-4">
 								<Button
 									className="gap-2"
 									onClick={() => draft && save.mutate(draft)}
@@ -848,8 +848,8 @@ function TracksTab({
 				const hasCreditOverride = override.credits !== undefined;
 				const language = String(value("language") ?? "");
 				return (
-					<details key={track.track_id} className="group py-3 first:pt-0">
-						<summary className="flex items-center justify-between gap-3 cursor-pointer select-none rounded-xl p-2.5 sm:p-3 font-medium text-sm transition-colors hover:bg-(--action-bg-hover)">
+					<details key={track.track_id} className="group py-3 first:pt-0 last:pb-0">
+						<DisclosureSummary>
 							<div className="flex items-center gap-3 min-w-0">
 								<span className="font-mono text-xs text-(--text-2) w-5 text-right shrink-0">
 									{track.number}
@@ -858,8 +858,7 @@ function TracksTab({
 									{String(value("title") ?? track.title)}
 								</span>
 							</div>
-							<ChevronDown className="size-4 text-(--text-2) transition-transform duration-200 group-open:rotate-180 shrink-0" />
-						</summary>
+						</DisclosureSummary>
 						<div className="mt-3 grid gap-x-5 gap-y-4 px-2.5 sm:px-4 sm:grid-cols-2">
 							<Field label="Title">
 								<Input
@@ -1057,7 +1056,7 @@ function ValidationSummary({
 			<h3 className="text-lg font-semibold">Release readiness</h3>
 			<p className="mt-1 text-sm text-(--text-1)">
 				{validation.can_send
-					? "Vault has enough information to prepare a distributor draft."
+					? "{ vault.studio } has enough information to prepare a distributor draft."
 					: "Resolve the blocking items before sending this release."}
 			</p>
 			{validation.issues.length > 0 ? (

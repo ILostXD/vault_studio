@@ -238,7 +238,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 		);
 		observer.observe(video);
 
-		return () => observer.disconnect();
+		return () => { observer.disconnect(); video.pause(); };
 	}, [
 		isCoverModalOpen,
 		isMobilePortrait,
@@ -816,7 +816,6 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 											key={portraitMotionUrl}
 											src={portraitMotionUrl}
 											poster={projectCoverImage || undefined}
-											autoPlay
 											muted
 											loop
 											playsInline

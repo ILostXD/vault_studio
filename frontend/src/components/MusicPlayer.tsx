@@ -13,7 +13,13 @@ import {
 } from "lucide-react";
 import type React from "react";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "motion/react";
 import { Filter } from "virtual:refractionFilter?width=20&height=32&radius=10&bezelWidth=12&glassThickness=50&refractiveIndex=1.48&bezelType=convex_squircle";
 import { useAudioPlayer } from "../contexts/AudioPlayerContext";
 import QueuePanel from "./QueuePanel";
@@ -75,6 +81,7 @@ interface MiniPlayerScrubberProps {
   commentsEnabled?: boolean;
   isCommentsOpen: boolean;
   setIsCommentsOpen: (open: boolean) => void;
+  commentsPanelTarget?: HTMLElement | null;
 }
 
 function MiniPlayerScrubber({
@@ -90,10 +97,16 @@ function MiniPlayerScrubber({
   commentsEnabled = true,
   isCommentsOpen,
   setIsCommentsOpen,
+  commentsPanelTarget = null,
 }: MiniPlayerScrubberProps) {
   const currentTime = usePlaybackProgress();
   const [isDragging, setIsDragging] = useState(false);
   const waveformRef = useRef<HTMLDivElement | null>(null);
+
+  const handleCommentSeek = useCallback((time: number) => {
+    if (audioRef.current) audioRef.current.currentTime = time;
+    onProgressUpdate(time);
+  }, [audioRef, onProgressUpdate]);
 
   useEffect(() => () => {
     isDraggingRef.current = false;
@@ -242,10 +255,10 @@ function MiniPlayerScrubber({
           isOpen={isCommentsOpen}
           onOpenChange={setIsCommentsOpen}
           showButton={false}
-          onSeek={(time) => {
-            if (audioRef.current) audioRef.current.currentTime = time;
-            onProgressUpdate(time);
-          }}
+          embedded={true}
+          fillEmbedded={true}
+          panelTarget={commentsPanelTarget}
+          onSeek={handleCommentSeek}
         />
       )}
       <div
@@ -359,6 +372,11 @@ export default function MusicPlayer({
   const [isVolumeDragging, setIsVolumeDragging] = useState(false);
   const [isQueueOpen, setIsQueueOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [popoverTarget, setPopoverTarget] = useState<HTMLDivElement | null>(null);
+  const [arrowLeft, setArrowLeft] = useState<number | null>(null);
+  const commentsButtonRef = useRef<HTMLButtonElement | null>(null);
+  const queueButtonRef = useRef<HTMLButtonElement | null>(null);
+  const popoverContainerRef = useRef<HTMLDivElement | null>(null);
   const [showPlayer, setShowPlayer] = useState(false);
   const [duration, setDuration] = useState(0);
   const isDraggingRef = useRef(false);
@@ -599,6 +617,50 @@ export default function MusicPlayer({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isMobileScreen, isVolumePopupOpen]);
+
+  useEffect(() => {
+    if (!isQueueOpen && !isCommentsOpen) {
+      setArrowLeft(null);
+      return;
+    }
+
+    const updateArrow = () => {
+      const activeButton = isQueueOpen
+        ? queueButtonRef.current
+        : commentsButtonRef.current;
+      const container = popoverContainerRef.current;
+      if (!activeButton || !container) return;
+
+      const bRect = activeButton.getBoundingClientRect();
+      const cRect = container.getBoundingClientRect();
+      const offset = bRect.left + bRect.width / 2 - cRect.left;
+      const clamped = Math.max(24, Math.min(cRect.width - 24, offset));
+      setArrowLeft(clamped);
+    };
+
+    const rId = requestAnimationFrame(updateArrow);
+    window.addEventListener("resize", updateArrow);
+    return () => {
+      cancelAnimationFrame(rId);
+      window.removeEventListener("resize", updateArrow);
+    };
+  }, [isQueueOpen, isCommentsOpen]);
+
+  useEffect(() => {
+    if (!isQueueOpen && !isCommentsOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented && !document.querySelector('[data-queue-menu][data-state="open"]')) {
+        setIsQueueOpen(false);
+        setIsCommentsOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isQueueOpen, isCommentsOpen]);
 
   useEffect(() => {
     const volumeControl = volumeControlRef.current;
@@ -1002,7 +1064,7 @@ export default function MusicPlayer({
 
       {!hideControls && !isNowPlayingOpen && (
         <div
-          className={`mini-player fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] sm:bottom-6 left-1/2 -translate-x-1/2 z-110 w-[calc(100%-1rem)] sm:w-[calc(100%-3rem)] max-w-[800px] transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
+          className={`mini-player fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] sm:bottom-6 left-1/2 -translate-x-1/2 ${isQueueOpen || isCommentsOpen ? "z-130" : "z-110"} w-[calc(100%-1rem)] sm:w-[calc(100%-3rem)] max-w-[800px] transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
             isNowPlayingOpen
               ? "pointer-events-none translate-y-5 opacity-0"
               : showPlayer
@@ -1023,6 +1085,7 @@ export default function MusicPlayer({
             commentsEnabled={preferences?.comments_enabled !== false}
             isCommentsOpen={isCommentsOpen}
             setIsCommentsOpen={setIsCommentsOpen}
+            commentsPanelTarget={isCommentsOpen ? popoverTarget : null}
           />
 
           <div
@@ -1040,7 +1103,7 @@ export default function MusicPlayer({
                 disabled={!currentTrack}
                 aria-label="Open Now Playing"
                 title="Open Now Playing"
-                className="group relative size-9 sm:size-10 cursor-pointer bg-[#333333] border border-[rgba(53,51,51,0.2)] rounded-tl-[9px] rounded-tr-[9px] rounded-br-[9px] rounded-bl-[13px] shrink-0 overflow-hidden focus-visible:outline-2 focus-visible:outline-(--accent-color)"
+                className="group relative size-9 sm:size-10 cursor-pointer bg-(--bg-2) border-0 p-0 rounded-tl-[9px] rounded-tr-[9px] rounded-br-[9px] rounded-bl-[13px] shrink-0 overflow-hidden focus-visible:outline-2 focus-visible:outline-(--accent-color)"
               >
                 {currentTrack && coverUrl && (
                   <img
@@ -1059,7 +1122,7 @@ export default function MusicPlayer({
                   />
                 )}
                 <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/55 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none">
-                  <ArrowUpRight className="size-5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:transform-none" />
+                  <ArrowUpRight className="size-5" />
                 </span>
               </button>
 
@@ -1115,7 +1178,7 @@ export default function MusicPlayer({
                     blurOnClick(e);
                   }}
                   onKeyDown={preventSpacebarDefault}
-                  className={`text-(--text-0) hover:text-gray-300 transition-[opacity,color] duration-200 cursor-pointer text-[12px] ${
+                  className={`text-(--text-0) hover:text-(--text-1) transition-[opacity,color] duration-200 cursor-pointer text-[12px] ${
                     isCurrentTimeHovered
                       ? "opacity-100"
                       : "opacity-0 pointer-events-none"
@@ -1132,7 +1195,7 @@ export default function MusicPlayer({
 
               <button
                 type="button"
-                className="text-(--text-0) hover:text-gray-300 transition-colors cursor-pointer"
+                className="player-icon-control text-(--text-0) hover:text-(--text-1) cursor-pointer"
                 aria-label="Previous track"
                 onClick={(e) => {
                   previousTrack();
@@ -1144,7 +1207,7 @@ export default function MusicPlayer({
               >
                 <AnimatedSkipBackIcon
                   ref={skipBackRef}
-                  className="size-6 sm:size-5 text-(--text-0)"
+                  className="size-6 sm:size-5"
                 />
               </button>
 
@@ -1155,7 +1218,7 @@ export default function MusicPlayer({
                   haptic.trigger("medium");
                   blurOnClick(e);
                 }}
-                className="text-(--text-0) hover:text-gray-300 transition-colors cursor-pointer"
+                className="player-icon-control text-(--text-0) hover:text-(--text-1) cursor-pointer"
                 aria-label={isPlaying ? "Pause" : "Play"}
                 onKeyDown={preventSpacebarDefault}
               >
@@ -1168,7 +1231,7 @@ export default function MusicPlayer({
 
               <button
                 type="button"
-                className="text-(--text-0) hover:text-gray-300 transition-colors cursor-pointer"
+                className="player-icon-control text-(--text-0) hover:text-(--text-1) cursor-pointer"
                 aria-label="Next track"
                 onClick={(e) => {
                   nextTrack();
@@ -1180,7 +1243,7 @@ export default function MusicPlayer({
               >
                 <AnimatedSkipForwardIcon
                   ref={skipForwardRef}
-                  className="size-6 sm:size-5 text-(--text-0)"
+                  className="size-6 sm:size-5"
                 />
               </button>
 
@@ -1209,7 +1272,7 @@ export default function MusicPlayer({
                     blurOnClick(e);
                   }}
                   onKeyDown={preventSpacebarDefault}
-                  className={`text-(--text-0) hover:text-gray-300 transition-[opacity,color] duration-200 cursor-pointer text-[12px] ${
+                  className={`text-(--text-0) hover:text-(--text-1) transition-[opacity,color] duration-200 cursor-pointer text-[12px] ${
                     isDurationHovered
                       ? "opacity-100"
                       : "opacity-0 pointer-events-none"
@@ -1230,8 +1293,9 @@ export default function MusicPlayer({
                 currentTrack?.versionId &&
                 duration > 0 && (
                   <button
+                    ref={commentsButtonRef}
                     type="button"
-                    className={`cursor-pointer transition-colors ${isCommentsOpen ? "text-accent-blue" : "text-(--text-0) hover:text-gray-300"}`}
+                    className={`player-icon-control cursor-pointer ${isCommentsOpen ? "text-accent-blue" : "text-(--text-0) hover:text-(--text-1)"}`}
                     aria-label={
                       isCommentsOpen ? "Hide comments" : "Show comments"
                     }
@@ -1250,7 +1314,7 @@ export default function MusicPlayer({
 
               <button
                 type="button"
-                className={`cursor-pointer transition-colors ${loopMode !== "off" ? "text-accent-blue" : "text-(--text-0) hover:text-gray-300"}`}
+                className={`player-icon-control cursor-pointer ${loopMode !== "off" ? "text-accent-blue" : "text-(--text-0) hover:text-(--text-1)"}`}
                 aria-label={
                   loopMode === "off"
                     ? "Loop off"
@@ -1275,7 +1339,7 @@ export default function MusicPlayer({
 
               <button
                 type="button"
-                className={`cursor-pointer transition-colors ${isShuffled ? "text-accent-blue" : "text-(--text-0) hover:text-gray-300"}`}
+                className={`player-icon-control cursor-pointer ${isShuffled ? "text-accent-blue" : "text-(--text-0) hover:text-(--text-1)"}`}
                 aria-label="Shuffle"
                 aria-pressed={isShuffled}
                 onClick={(e) => {
@@ -1289,8 +1353,9 @@ export default function MusicPlayer({
               </button>
 
               <button
+                ref={queueButtonRef}
                 type="button"
-                className={`relative order-2 cursor-pointer transition-colors sm:order-none ${isQueueOpen ? "text-accent-blue" : "text-(--text-0) hover:text-gray-300"}`}
+                className={`player-icon-control relative order-2 cursor-pointer sm:order-none ${isQueueOpen ? "text-accent-blue" : "text-(--text-0) hover:text-(--text-1)"}`}
                 aria-label="Queue"
                 onClick={(e) => {
                   setIsQueueOpen(!isQueueOpen);
@@ -1429,7 +1494,7 @@ export default function MusicPlayer({
                         blurOnClick(e);
                       }}
                       onKeyDown={preventSpacebarDefault}
-                      className="text-(--text-0) hover:text-gray-300 transition-colors cursor-pointer"
+                      className="text-(--text-0) hover:text-(--text-1) transition-colors cursor-pointer"
                       aria-label={
                         isMobileScreen
                           ? "Close volume control"
@@ -1445,7 +1510,7 @@ export default function MusicPlayer({
 
                 <button
                   type="button"
-                  className="text-(--text-0) hover:text-gray-300 transition-colors"
+                  className="text-(--text-0) hover:text-(--text-1) transition-colors"
                   aria-label={
                     isMobileScreen
                       ? "Volume control"
@@ -1469,9 +1534,43 @@ export default function MusicPlayer({
             </div>
           </div>
 
+          <AnimatePresence>
+            {(isQueueOpen || isCommentsOpen) && (
+              <motion.div
+                ref={popoverContainerRef}
+                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                className="absolute bottom-[calc(100%+14px)] right-0 sm:right-2 z-120 w-[min(420px,calc(100vw-2rem))] h-[min(500px,calc(100dvh-180px))] min-h-0 flex flex-col"
+                onClick={(e) => e.stopPropagation()}
+                data-testid="miniplayer-popover"
+              >
+                <div className="relative flex min-h-0 flex-1 flex-col w-full rounded-3xl border border-(--card-border) overlay-surface shadow-2xl overflow-hidden">
+                  <div
+                    ref={setPopoverTarget}
+                    className="flex-1 min-h-0 overflow-hidden flex flex-col p-4 sm:p-5"
+                  />
+                </div>
+
+                {arrowLeft !== null && (
+                  <div
+                    className="pointer-events-none absolute -bottom-2 size-4 -translate-x-1/2 rotate-45 border-r border-b border-(--card-border) shadow-md"
+                    style={{
+                      left: `${arrowLeft}px`,
+                      backgroundColor: "var(--surface-overlay-from)",
+                    }}
+                  />
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <QueuePanel
             isOpen={isQueueOpen}
             onClose={() => setIsQueueOpen(false)}
+            embedded={true}
+            panelTarget={popoverTarget}
           />
         </div>
       )}

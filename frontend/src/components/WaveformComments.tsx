@@ -213,7 +213,7 @@ function WaveformCommentsComponent({
 					variant="outline"
 					className={`${placement === "miniPlayer" ? "absolute -top-11 right-0" : "absolute right-1 top-1"} pointer-events-auto z-30 size-9 bg-background/95 shadow-md`}
 					aria-label="Open waveform comments"
-					title="Waveform comments"
+					title="Comments"
 					onMouseDown={(event) => event.stopPropagation()}
 					onTouchStart={(event) => event.stopPropagation()}
 					onClick={(event) => {
@@ -237,7 +237,7 @@ function WaveformCommentsComponent({
 						className={
 							embedded
 								? fillEmbedded
-									? "h-full"
+									? "h-full min-h-0 flex flex-col"
 									: "w-full max-h-full"
 								: `fixed inset-0 ${placement === "fullscreen" ? "z-[10002]" : "z-200"} flex items-end sm:items-center justify-center p-3 sm:p-6`
 						}
@@ -257,11 +257,11 @@ function WaveformCommentsComponent({
 							data-testid="comments-scroll-container"
 							className={
 								embedded
-									? `${fillEmbedded ? "h-full" : "max-h-[72dvh]"} w-full overflow-y-auto overscroll-contain touch-pan-y pr-2 text-white`
+									? `${fillEmbedded ? "min-h-0 flex-1" : "max-h-[72dvh]"} w-full overflow-y-auto overscroll-contain touch-pan-y pr-2 ${placement === "fullscreen" ? "text-white" : "text-(--text-0)"}`
 									: "relative w-full max-w-lg max-h-[min(82dvh,680px)] overflow-y-auto overscroll-contain touch-pan-y rounded-2xl border border-(--card-border) bg-background p-5 text-(--text-0) shadow-2xl"
 							}
 							style={
-								embedded
+								embedded && placement === "fullscreen"
 									? ({
 											"--text-0": "#ffffff",
 											"--text-1": "rgba(255, 255, 255, 0.65)",
@@ -288,7 +288,7 @@ function WaveformCommentsComponent({
 												: undefined
 										}
 									>
-										Waveform comments
+										Comments
 									</h2>
 									<p className="text-sm text-muted-foreground">
 										New comment at {formatTime(Math.min(currentTime, duration))}
@@ -300,7 +300,9 @@ function WaveformCommentsComponent({
 									variant="ghost"
 									className={
 										embedded
-											? "size-8 rounded-full bg-black/20 text-white/65 hover:bg-black/40 hover:text-white"
+											? placement === "fullscreen"
+												? "size-8 rounded-full bg-black/20 text-white/65 hover:bg-black/40 hover:text-white"
+												: "size-8 rounded-lg border border-(--card-border) bg-(--inner-card-bg) hover:bg-(--muted-2) text-(--text-0)"
 											: undefined
 									}
 									onClick={() => setIsOpen(false)}
@@ -326,7 +328,9 @@ function WaveformCommentsComponent({
 												key={comment.id}
 												className={
 													embedded
-														? "rounded-2xl border border-(--card-border) bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) p-4 transition-colors hover:bg-(--muted-2)"
+														? placement === "fullscreen"
+															? "rounded-2xl border border-(--card-border) bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) p-4 transition-colors hover:bg-(--muted-2)"
+															: "rounded-xl border border-(--card-border) bg-(--inner-card-bg) p-3 transition-colors hover:bg-(--muted-2)"
 														: "rounded-lg border border-(--card-border) p-3 hover:bg-(--muted-2)"
 												}
 											>
@@ -455,7 +459,9 @@ function WaveformCommentsComponent({
 								onSubmit={submit}
 								className={
 									embedded
-										? "space-y-3 rounded-2xl border border-(--card-border) bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) p-4"
+										? placement === "fullscreen"
+											? "space-y-3 rounded-2xl border border-(--card-border) bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) p-4"
+											: "space-y-3 rounded-2xl border border-(--card-border) bg-(--inner-card-bg) p-3"
 										: "space-y-3 border-t border-(--card-border) pt-4"
 								}
 							>
@@ -478,9 +484,9 @@ function WaveformCommentsComponent({
 									aria-label="Comment"
 									required
 									className={
-										embedded
+										embedded && placement === "fullscreen"
 											? "flex w-full resize-none rounded-xl border border-(--card-border) bg-black/15 px-3 py-2 text-base text-(--text-0) outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-[color-mix(in_oklab,var(--accent-blue)_40%,transparent)]"
-											: "flex w-full resize-none rounded-md border border-border bg-[color-mix(in_oklab,var(--bg-1)_30%,transparent)] px-3 py-2 text-base text-(--text-0) outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-[color-mix(in_oklab,var(--accent-blue)_40%,transparent)]"
+											: "flex w-full resize-none rounded-xl border border-(--card-border) themed-input-surface px-3 py-2 text-base text-(--text-0) outline-none placeholder:text-muted-foreground focus-visible:border-(--accent-blue) focus-visible:ring-2 focus-visible:ring-(--accent-blue)/25"
 									}
 								/>
 								{error && <p className="text-sm text-red-500">{error}</p>}

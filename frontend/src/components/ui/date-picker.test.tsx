@@ -7,7 +7,7 @@ import { DatePicker } from "./date-picker";
 afterEach(cleanup);
 
 describe("DatePicker", () => {
-	it("uses the Vault calendar and emits an ISO date", async () => {
+	it("uses the { vault.studio } calendar and emits an ISO date", async () => {
 		const onValueChange = vi.fn();
 		render(<DatePicker value="" onValueChange={onValueChange} />);
 
