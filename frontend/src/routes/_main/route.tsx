@@ -43,7 +43,9 @@ function MainLayout() {
 		if (!isFolderRoute || !folder || !allFolders) return [];
 
 		const folderMap = new Map<number, Folder>();
-		allFolders.forEach((f) => folderMap.set(f.id, f));
+		allFolders.forEach((f) => {
+			folderMap.set(f.id, f);
+		});
 
 		const path: Folder[] = [];
 		let currentFolder: Folder | undefined = folder;

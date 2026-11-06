@@ -85,34 +85,31 @@ export default function MoveTrackModal({
 							<div className="text-center py-8 text-muted-foreground">
 								Loading projects...
 							</div>
+						) : projects.length === 0 ? (
+							<div className="text-center py-8 text-muted-foreground">
+								No other projects available
+							</div>
 						) : (
-							<>
-								{projects.length === 0 ? (
-									<div className="text-center py-8 text-muted-foreground">
-										No other projects available
+							projects.map((project) => (
+								<button
+									type="button"
+									key={project.id}
+									onClick={() => handleProjectClick(project.id)}
+									disabled={isMoving}
+									className={`w-full px-4 py-3 text-left transition-all border-b border-white/5 last:border-b-0 flex items-center gap-3 ${
+										isMoving
+											? "opacity-50 cursor-not-allowed"
+											: "bg-white/5 hover:bg-white/10"
+									}`}
+								>
+									<div className="size-8 rounded-md overflow-hidden shrink-0">
+										<ProjectCover project={project} />
 									</div>
-								) : (
-									projects.map((project) => (
-										<button
-											key={project.id}
-											onClick={() => handleProjectClick(project.id)}
-											disabled={isMoving}
-											className={`w-full px-4 py-3 text-left transition-all border-b border-white/5 last:border-b-0 flex items-center gap-3 ${
-												isMoving
-													? "opacity-50 cursor-not-allowed"
-													: "bg-white/5 hover:bg-white/10"
-											}`}
-										>
-											<div className="size-8 rounded-md overflow-hidden shrink-0">
-												<ProjectCover project={project} />
-											</div>
-											<span className="text-base font-medium text-(--text-0)">
-												{project.name}
-											</span>
-										</button>
-									))
-								)}
-							</>
+									<span className="text-base font-medium text-(--text-0)">
+										{project.name}
+									</span>
+								</button>
+							))
 						)}
 					</div>
 				</div>

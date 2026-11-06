@@ -136,7 +136,7 @@ function InvitePage() {
 		);
 	}
 
-	if (inviteData && inviteData.valid) {
+	if (inviteData?.valid) {
 		const resource = inviteData.track || inviteData.project;
 		const resourceType = inviteData.track ? "Track" : "Project";
 

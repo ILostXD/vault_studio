@@ -8,6 +8,7 @@ export function BrandWordmark({ className }: BrandWordmarkProps) {
 	return (
 		<span
 			className={cn("whitespace-nowrap", className)}
+			role="img"
 			aria-label="{ vault.studio }"
 		>
 			{"{ vault"}

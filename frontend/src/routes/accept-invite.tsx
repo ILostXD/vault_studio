@@ -176,6 +176,7 @@ function AcceptInvitePage() {
 						</div>
 
 						<button
+							type="button"
 							onClick={() => navigate({ to: "/login" })}
 							className="w-full btn-surface hover:brightness-110 text-(--text-0) font-semibold text-lg h-12 rounded-2xl transition-all relative overflow-hidden"
 						>

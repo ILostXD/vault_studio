@@ -41,15 +41,11 @@ export default function DeleteFolderModal({
 				<p className="text-sm text-muted-foreground text-center mb-6">
 					Are you sure you want to delete{" "}
 					<span className="text-(--text-0) font-medium">"{folderName}"</span>?{" "}
-					{itemCount > 0 ? (
-						<>
-							{itemCount === 1
-								? "The project inside will be moved to the home."
-								: `The ${itemCount} projects inside will be moved to the home.`}
-						</>
-					) : (
-						"This folder is empty."
-					)}
+					{itemCount > 0
+						? itemCount === 1
+							? "The project inside will be moved to the home."
+							: `The ${itemCount} projects inside will be moved to the home.`
+						: "This folder is empty."}
 				</p>
 
 				<div className="flex flex-col gap-3">

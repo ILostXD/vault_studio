@@ -328,14 +328,18 @@ export default function DraggableProjectGrid({
 				if (newFolders.length > 0) {
 					setNewFolderIds((prev) => {
 						const next = new Set(prev);
-						newFolders.forEach((folder) => next.add(folder.id));
+						newFolders.forEach((folder) => {
+							next.add(folder.id);
+						});
 						return next;
 					});
 
 					setTimeout(() => {
 						setNewFolderIds((prev) => {
 							const next = new Set(prev);
-							newFolders.forEach((folder) => next.delete(folder.id));
+							newFolders.forEach((folder) => {
+								next.delete(folder.id);
+							});
 							return next;
 						});
 					}, 500);
@@ -346,7 +350,9 @@ export default function DraggableProjectGrid({
 					if (item.type === "project") {
 						existingProjectIds.add(item.id);
 					} else if (item.type === "folder") {
-						item.items.forEach((p) => existingProjectIds.add(String(p.id)));
+						item.items.forEach((p) => {
+							existingProjectIds.add(String(p.id));
+						});
 					}
 				});
 
@@ -365,14 +371,18 @@ export default function DraggableProjectGrid({
 				if (newProjects.length > 0) {
 					setNewProjectIds((prev) => {
 						const next = new Set(prev);
-						newProjects.forEach((project) => next.add(project.id));
+						newProjects.forEach((project) => {
+							next.add(project.id);
+						});
 						return next;
 					});
 
 					setTimeout(() => {
 						setNewProjectIds((prev) => {
 							const next = new Set(prev);
-							newProjects.forEach((project) => next.delete(project.id));
+							newProjects.forEach((project) => {
+								next.delete(project.id);
+							});
 							return next;
 						});
 					}, 500);

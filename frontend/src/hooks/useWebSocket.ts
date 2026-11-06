@@ -66,7 +66,9 @@ export function useWebSocket(enabled: boolean = true) {
 						queryClient.invalidateQueries({ queryKey: trackKeys.all });
 					}
 
-					messageListeners.forEach((listener) => listener(message));
+					messageListeners.forEach((listener) => {
+						listener(message);
+					});
 				} catch (error) {
 					console.error("[WebSocket] Failed to parse message:", error);
 				}

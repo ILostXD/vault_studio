@@ -113,9 +113,7 @@ export async function leaveSharedProject(projectId: string): Promise<void> {
 	return del<void>(`/api/projects/${projectId}/leave`);
 }
 
-export async function listProjectShareUsers(
-	projectId: string,
-): Promise<
+export async function listProjectShareUsers(projectId: string): Promise<
 	Array<{
 		id: number;
 		shared_to: number;
@@ -126,9 +124,7 @@ export async function listProjectShareUsers(
 	return get(`/api/projects/${projectId}/share-users`);
 }
 
-export async function listTrackShareUsers(
-	trackId: string,
-): Promise<
+export async function listTrackShareUsers(trackId: string): Promise<
 	Array<{
 		id: number;
 		shared_to: number;

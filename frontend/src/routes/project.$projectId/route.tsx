@@ -188,7 +188,7 @@ function ProjectLayout() {
 			await deleteProject.mutateAsync(project.public_id);
 			setShowDeleteModal(false);
 			navigate({ to: "/" });
-		} catch (error) {
+		} catch (_error) {
 			toast.error("Failed to delete project");
 		}
 	};

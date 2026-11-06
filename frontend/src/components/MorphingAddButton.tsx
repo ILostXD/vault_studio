@@ -90,6 +90,7 @@ export default function MorphingAddButton({
 						}}
 					>
 						<button
+							type="button"
 							onClick={handleToggle}
 							className="h-10 text-base font-semibold inline-flex items-center justify-center gap-2 whitespace-nowrap px-6 text-primary-foreground hover:brightness-120 transition-all cursor-pointer active:scale-95 w-full"
 							style={{

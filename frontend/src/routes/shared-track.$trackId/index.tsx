@@ -107,7 +107,7 @@ function SharedTrackPage() {
 	const projectLoading = false;
 	const queryClient = useQueryClient();
 	let projectCoverImage: string | undefined;
-	if (track && track.project_cover_url) {
+	if (track?.project_cover_url) {
 		let coverUrl = track.project_cover_url;
 		// Add size parameter for optimized image
 		if (!coverUrl.includes("size=")) {
@@ -229,7 +229,7 @@ function SharedTrackPage() {
 					queryKey: trackKeys.list(track.project_id),
 				});
 			}
-		} catch (error) {
+		} catch (_error) {
 			const { toast } = await import("@/routes/__root");
 			toast.error("Failed to update track title");
 			setTrackTitle(String(track.title)); // Revert on error
@@ -385,7 +385,7 @@ function SharedTrackPage() {
 
 	const projectName = useMemo(() => {
 		if (project?.name) return project.name;
-		if (track && track.project_name) return track.project_name;
+		if (track?.project_name) return track.project_name;
 		return "Unknown Project";
 	}, [project?.name, track]);
 

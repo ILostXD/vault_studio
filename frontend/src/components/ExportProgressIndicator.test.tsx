@@ -35,6 +35,7 @@ function Start() {
 	const exportProject = useExportProject();
 	return (
 		<button
+			type="button"
 			onClick={() => exportProject.mutate({ id: "p1", projectName: "Album" })}
 		>
 			Export

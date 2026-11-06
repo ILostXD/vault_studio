@@ -70,7 +70,7 @@ function ProjectCoverThumbnail({ project }: { project: Project }) {
 	);
 }
 
-function FolderThumbnail({}: { folder: Folder }) {
+function FolderThumbnail(_props: { folder: Folder }) {
 	return (
 		<div className="size-full bg-neutral-700/50 border-(--card-border) border rounded-2xl flex items-center justify-center">
 			<FolderIcon className="size-6 text-(--text-0)/40" />
@@ -369,7 +369,8 @@ export default function FolderCard({
 	};
 
 	return (
-		// biome-ignore lint/a11y/noStaticElementInteractions lint/a11y/noNoninteractiveTabindex:
+		// biome-ignore lint/a11y/noStaticElementInteractions: the card is a custom interactive container with its own keyboard handling
+		// biome-ignore lint/a11y/noNoninteractiveTabindex: focusable so the card can be opened from the keyboard
 		<div
 			className={cn(
 				"group select-none cursor-pointer transition-transform duration-300",

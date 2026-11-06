@@ -155,7 +155,7 @@ export default function AlbumCover({
 			}}
 		>
 			{!isMobileScreen && (
-				<svg className="absolute w-0 h-0">
+				<svg aria-hidden="true" className="absolute w-0 h-0">
 					<defs>
 						<filter id="cd-noise">
 							<feTurbulence

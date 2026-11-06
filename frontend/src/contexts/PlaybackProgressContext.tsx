@@ -14,7 +14,9 @@ export function createPlaybackProgressStore() {
 		setProgress: (next: number) => {
 			if (!Number.isFinite(next) || next < 0 || next === progress) return;
 			progress = next;
-			listeners.forEach((listener) => listener());
+			listeners.forEach((listener) => {
+				listener();
+			});
 		},
 	};
 }

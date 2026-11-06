@@ -71,6 +71,7 @@ export const AnimatedSkipForwardIcon = forwardRef<
 
 	return (
 		<svg
+			aria-hidden="true"
 			xmlns="http://www.w3.org/2000/svg"
 			viewBox="0 0 26 24"
 			fill="currentColor"
@@ -161,6 +162,7 @@ export const AnimatedSkipBackIcon = forwardRef<
 
 	return (
 		<svg
+			aria-hidden="true"
 			xmlns="http://www.w3.org/2000/svg"
 			viewBox="0 0 26 24"
 			fill="currentColor"

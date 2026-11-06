@@ -25,7 +25,26 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true
+			"recommended": true,
+			"a11y": {
+				"useMediaCaption": "off",
+				"noLabelWithoutControl": {
+					"level": "error",
+					"options": { "inputComponents": ["Input", "Textarea"] }
+				},
+				"noStaticElementInteractions": "warn",
+				"useKeyWithClickEvents": "warn",
+				"useSemanticElements": "warn",
+				"noAutofocus": "warn",
+				"noAriaHiddenOnFocusable": "warn"
+			},
+			"correctness": {
+				"useExhaustiveDependencies": "warn",
+				"useUniqueElementIds": "warn"
+			},
+			"suspicious": {
+				"noArrayIndexKey": "warn"
+			}
 		}
 	},
 	"javascript": {

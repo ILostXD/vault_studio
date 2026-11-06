@@ -288,6 +288,7 @@ export default function EditProfileModal({
 											Edit Profile
 										</h2>
 										<button
+											type="button"
 											onClick={handleCancel}
 											className="text-(--text-1) hover:text-(--text-0) transition-colors"
 										>
@@ -318,9 +319,9 @@ export default function EditProfileModal({
 										</div>
 
 										<div>
-											<label className="text-(--text-1) text-sm mb-2 block">
+											<p className="text-(--text-1) text-sm mb-2 block">
 												Disc Colors
-											</label>
+											</p>
 											<div className="bg-(--inner-card-bg) border border-(--card-border) rounded-[12px] p-3 sm:p-6 relative overflow-hidden">
 												<DotPattern
 													width={10}
@@ -352,6 +353,7 @@ export default function EditProfileModal({
 
 													<div className="flex gap-2 items-center">
 														<button
+															type="button"
 															onClick={() =>
 																setNumPoints(Math.max(1, numPoints - 1))
 															}
@@ -364,6 +366,7 @@ export default function EditProfileModal({
 															{numPoints} {numPoints === 1 ? "color" : "colors"}
 														</span>
 														<button
+															type="button"
 															onClick={() =>
 																setNumPoints(Math.min(3, numPoints + 1))
 															}
@@ -374,6 +377,7 @@ export default function EditProfileModal({
 														</button>
 														<div className="w-px h-5 bg-[#353333] mx-1"></div>
 														<button
+															type="button"
 															onClick={handleShiftColors}
 															disabled={numPoints <= 1}
 															title="Rotate color order"

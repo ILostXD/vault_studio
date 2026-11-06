@@ -142,6 +142,7 @@ export default function ScrollingText({
 				className,
 			)}
 			style={inlineStyles}
+			role="group"
 			aria-label={ariaLabel ?? text}
 		>
 			<div

@@ -66,63 +66,61 @@ function SharedTrackLayout() {
 		project?.allow_downloads ?? (track as any)?.can_download ?? false;
 
 	return (
-		<>
-			<div className="min-h-screen bg-background">
-				<header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-linear-to-b from-background from-30% to-transparent text-(--text-0) md:p-10 p-6">
-					<Button
-						variant="default"
-						size="icon-lg"
-						haptic="light"
-						onClick={() => navigate({ to: "/" })}
-					>
-						<ChevronLeftIcon className="size-4.5" />
-					</Button>
-					<div className="flex items-center gap-2.5">
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button variant="default" size="icon-lg" haptic="light">
-									<MoreHorizontal strokeWidth={3} className="size-4.5" />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent
-								align="end"
-								sideOffset={8}
-								className="w-44 border-muted bg-background"
+		<div className="min-h-screen bg-background">
+			<header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-linear-to-b from-background from-30% to-transparent text-(--text-0) md:p-10 p-6">
+				<Button
+					variant="default"
+					size="icon-lg"
+					haptic="light"
+					onClick={() => navigate({ to: "/" })}
+				>
+					<ChevronLeftIcon className="size-4.5" />
+				</Button>
+				<div className="flex items-center gap-2.5">
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button variant="default" size="icon-lg" haptic="light">
+								<MoreHorizontal strokeWidth={3} className="size-4.5" />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							align="end"
+							sideOffset={8}
+							className="w-44 border-muted bg-background"
+						>
+							{canEdit && (
+								<DropdownMenuItem onSelect={handleRename}>
+									<Pencil className="ml-1 mr-1.5 size-4.5" />
+									Rename
+								</DropdownMenuItem>
+							)}
+							<DropdownMenuItem onSelect={handleMove}>
+								<FolderInput className="ml-1 mr-1.5 size-4.5" />
+								Move
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onSelect={() =>
+									window.dispatchEvent(new Event("open-track-notes"))
+								}
 							>
-								{canEdit && (
-									<DropdownMenuItem onSelect={handleRename}>
-										<Pencil className="ml-1 mr-1.5 size-4.5" />
-										Rename
-									</DropdownMenuItem>
-								)}
-								<DropdownMenuItem onSelect={handleMove}>
-									<FolderInput className="ml-1 mr-1.5 size-4.5" />
-									Move
+								<FileText className="ml-1 mr-1.5 size-4.5" />
+								Notes
+							</DropdownMenuItem>
+							{canDownload && (
+								<DropdownMenuItem onSelect={handleExport}>
+									<Download className="ml-1 mr-1.5 size-4.5" />
+									Export
 								</DropdownMenuItem>
-								<DropdownMenuItem
-									onSelect={() =>
-										window.dispatchEvent(new Event("open-track-notes"))
-									}
-								>
-									<FileText className="ml-1 mr-1.5 size-4.5" />
-									Notes
-								</DropdownMenuItem>
-								{canDownload && (
-									<DropdownMenuItem onSelect={handleExport}>
-										<Download className="ml-1 mr-1.5 size-4.5" />
-										Export
-									</DropdownMenuItem>
-								)}
-								<DropdownMenuItem onSelect={handleAddToQueue}>
-									<ListPlus className="ml-1 mr-1.5 size-4.5" />
-									Add to queue
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					</div>
-				</header>
-				<Outlet />
-			</div>
-		</>
+							)}
+							<DropdownMenuItem onSelect={handleAddToQueue}>
+								<ListPlus className="ml-1 mr-1.5 size-4.5" />
+								Add to queue
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</div>
+			</header>
+			<Outlet />
+		</div>
 	);
 }

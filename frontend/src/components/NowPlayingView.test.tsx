@@ -108,7 +108,7 @@ vi.mock("motion/react", async (importOriginal) => {
 			realPresence ? (
 				<actual.AnimatePresence {...props}>{children}</actual.AnimatePresence>
 			) : (
-				<>{children}</>
+				children
 			),
 	};
 });

@@ -57,7 +57,7 @@ it.each([
 				onDragCancel={vi.fn()}
 				onDrop={() => false}
 			>
-				{() => <button>Project</button>}
+				{() => <button type="button">Project</button>}
 			</DraggableTile>,
 		);
 		handlers.onDrag?.(null, { point: { x: 120 + scrollX, y: 300 + scrollY } });

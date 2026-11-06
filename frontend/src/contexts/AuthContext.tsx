@@ -125,13 +125,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	};
 
 	const updateUsername = async (username: string) => {
-		try {
-			const updatedUser = await authApi.updateUsername(username);
-			storeCachedUser(updatedUser, isPersistentAuthSession());
-			setUser(updatedUser);
-		} catch (error) {
-			throw error;
-		}
+		const updatedUser = await authApi.updateUsername(username);
+		storeCachedUser(updatedUser, isPersistentAuthSession());
+		setUser(updatedUser);
 	};
 
 	const value: AuthContextType = {

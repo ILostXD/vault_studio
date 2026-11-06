@@ -212,7 +212,7 @@ export default function ShareModal({
 				});
 				queryClient.invalidateQueries({ queryKey: trackKeys.lists() });
 			}
-		} catch (error) {
+		} catch (_error) {
 			toast.error(
 				shouldShare ? "Failed to share with user" : "Failed to unshare",
 			);
@@ -250,7 +250,7 @@ export default function ShareModal({
 					can_download: canDownload,
 				});
 			}
-		} catch (error) {
+		} catch (_error) {
 			// Revert on failure
 			queryClient.invalidateQueries({ queryKey });
 			toast.error("Failed to update permissions");
@@ -642,6 +642,7 @@ export default function ShareModal({
 
 											return (
 												<button
+													type="button"
 													key={mode.value}
 													onClick={() => handleVisibilityChange(mode.value)}
 													title={mode.description}
@@ -692,6 +693,7 @@ export default function ShareModal({
 										/>
 										{userSearchQuery && (
 											<button
+												type="button"
 												onClick={() => setUserSearchQuery("")}
 												className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-(--text-0) transition-colors"
 											>
@@ -783,6 +785,7 @@ export default function ShareModal({
 																	</span>
 																</div>
 																<button
+																	type="button"
 																	onClick={() => handleShareToggle(u.id, false)}
 																	className="p-1 hover:bg-red-500/20 rounded transition-colors"
 																>
@@ -791,6 +794,7 @@ export default function ShareModal({
 															</div>
 														) : (
 															<button
+																type="button"
 																onClick={() => handleShareToggle(u.id, true)}
 																className="px-3 py-1 text-xs bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors text-(--text-0) whitespace-nowrap"
 															>

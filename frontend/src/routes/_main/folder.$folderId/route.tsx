@@ -5,9 +5,5 @@ export const Route = createFileRoute("/_main/folder/$folderId")({
 });
 
 function FolderLayout() {
-	return (
-		<>
-			<Outlet />
-		</>
-	);
+	return <Outlet />;
 }

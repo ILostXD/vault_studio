@@ -476,6 +476,7 @@ export default function GlobalSearchModal({
 											<div className="space-y-1">
 												{filteredResults.map((item: any, index: number) => (
 													<button
+														type="button"
 														key={
 															item.type === "project"
 																? item.public_id

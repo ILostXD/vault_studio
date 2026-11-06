@@ -97,9 +97,7 @@ function SharePage() {
 								placeholder="Enter password"
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
-								className={
-									"text-(--text-0) " + (passwordError ? "border-red-500" : "")
-								}
+								className={`text-(--text-0) ${passwordError ? "border-red-500" : ""}`}
 								autoFocus
 							/>
 							{passwordError && (

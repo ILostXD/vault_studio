@@ -1052,6 +1052,7 @@ export default function TrackVersionsModal({
 												}}
 											>
 												<svg
+													aria-hidden="true"
 													width="100%"
 													height={String(PREVIEW_WAVEFORM_HEIGHT)}
 													viewBox={`0 0 ${PREVIEW_WAVEFORM_BARS * 2} ${PREVIEW_WAVEFORM_HEIGHT}`}

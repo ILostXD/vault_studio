@@ -154,7 +154,9 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
 
 		return () => {
 			active = false;
-			playersRef.current.forEach((player) => player.dispose());
+			playersRef.current.forEach((player) => {
+				player.dispose();
+			});
 			playersRef.current.clear();
 		};
 	}, []);
@@ -179,7 +181,7 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
 			playersRef.current.set(soundFile, player);
 		}
 
-		if (player && player.loaded) {
+		if (player?.loaded) {
 			player.playbackRate = 2 ** (semitoneOffset / 12);
 			player.start();
 			currentPlayerRef.current = player;
@@ -294,6 +296,7 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
 		<div className="flex flex-col gap-4">
 			<div className="flex gap-2">
 				<button
+					type="button"
 					onClick={() => handleModeToggle("major")}
 					className={cn(
 						"flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all",
@@ -305,6 +308,7 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
 					Major
 				</button>
 				<button
+					type="button"
 					onClick={() => handleModeToggle("minor")}
 					className={cn(
 						"flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all",
@@ -319,12 +323,14 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
 
 			<div className="flex gap-2">
 				<button
+					type="button"
 					onClick={playChord}
 					className="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white/10 text-(--text-0) hover:bg-white/15"
 				>
 					Play Chord
 				</button>
 				<button
+					type="button"
 					onClick={playArpeggio}
 					className="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white/10 text-(--text-0) hover:bg-white/15"
 				>
@@ -338,6 +344,7 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
 						const isSelected = selectedNote === note;
 						return (
 							<button
+								type="button"
 								key={note}
 								onClick={() => handleNoteSelect(note)}
 								className={cn(
@@ -367,6 +374,7 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
 								}}
 							>
 								<button
+									type="button"
 									onClick={() => handleNoteSelect(sharp)}
 									className={cn(
 										"flex-1 rounded-t-xs transition-all border-b border-white/10",
@@ -381,6 +389,7 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
 								</button>
 
 								<button
+									type="button"
 									onClick={() => handleNoteSelect(flat)}
 									className={cn(
 										"flex-1 rounded-b-md transition-all",

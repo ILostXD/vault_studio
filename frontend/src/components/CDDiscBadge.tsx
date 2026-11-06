@@ -85,7 +85,7 @@ export default function CDDiscBadge({
 	const conicGradient = createConicGradient(discColors, colorSpread);
 	return (
 		<div className={cn("relative flex items-center justify-center", className)}>
-			<svg className="absolute w-0 h-0">
+			<svg aria-hidden="true" className="absolute w-0 h-0">
 				<defs>
 					<filter id="cd-noise-badge">
 						<feTurbulence

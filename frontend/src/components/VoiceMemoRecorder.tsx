@@ -114,7 +114,9 @@ export default function VoiceMemoRecorder({
 		meterFrameRef.current = null;
 		audioContextRef.current?.close().catch(() => undefined);
 		audioContextRef.current = null;
-		streamRef.current?.getTracks().forEach((track) => track.stop());
+		streamRef.current?.getTracks().forEach((track) => {
+			track.stop();
+		});
 		streamRef.current = null;
 		setActivity(0);
 		stopTimer();
@@ -201,7 +203,9 @@ export default function VoiceMemoRecorder({
 			setStatus("requesting");
 			const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 			if (closingRef.current) {
-				stream.getTracks().forEach((track) => track.stop());
+				stream.getTracks().forEach((track) => {
+					track.stop();
+				});
 				return;
 			}
 
@@ -419,6 +423,7 @@ export default function VoiceMemoRecorder({
 						</div>
 						<div
 							className="flex h-12 w-full max-w-xs items-end justify-center gap-1"
+							role="img"
 							aria-label="Microphone activity"
 						>
 							{Array.from({ length: 18 }, (_, index) => (

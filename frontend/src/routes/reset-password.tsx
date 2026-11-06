@@ -35,7 +35,7 @@ function ResetPasswordPage() {
 			try {
 				await validateResetToken(token);
 				setIsValidating(false);
-			} catch (error) {
+			} catch (_error) {
 				navigate({ to: "/login" });
 			}
 		};
@@ -137,6 +137,7 @@ function ResetPasswordPage() {
 						</div>
 
 						<button
+							type="button"
 							onClick={() => navigate({ to: "/login" })}
 							className="w-full btn-surface hover:brightness-110 text-(--text-0) font-semibold text-lg h-12 rounded-2xl transition-all relative overflow-hidden"
 						>
@@ -188,6 +189,7 @@ function ResetPasswordPage() {
 							</p>
 						</div>
 						<button
+							type="button"
 							onClick={() => navigate({ to: "/login" })}
 							className="w-full btn-surface hover:brightness-110 text-(--text-0) font-semibold text-lg h-12 rounded-2xl transition-all relative overflow-hidden"
 						>
@@ -361,6 +363,7 @@ function ResetPasswordPage() {
 					<p className="text-(--text-2) text-center text-sm mt-6">
 						Remember your password?{" "}
 						<button
+							type="button"
 							onClick={() => navigate({ to: "/login" })}
 							className="text-(--text-0) hover:underline transition-colors"
 							style={{ fontFamily: '"IBM Plex Mono", monospace' }}

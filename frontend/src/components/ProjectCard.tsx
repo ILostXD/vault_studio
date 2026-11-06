@@ -404,7 +404,8 @@ export default function ProjectCard({
 	}, [hoverAsFolder, hoverFolderItems]);
 
 	return (
-		// biome-ignore lint/a11y/noStaticElementInteractions lint/a11y/noNoninteractiveTabindex:
+		// biome-ignore lint/a11y/noStaticElementInteractions: the card is a custom interactive container with its own keyboard handling
+		// biome-ignore lint/a11y/noNoninteractiveTabindex: focusable so the card can be opened from the keyboard
 		<div
 			className={cn(
 				"group select-none cursor-pointer transition-transform duration-300",

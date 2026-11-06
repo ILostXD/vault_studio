@@ -991,7 +991,7 @@ export function AudioPlayerProvider({
 		Object.entries(handlers).forEach(([action, handler]) => {
 			try {
 				navigator.mediaSession.setActionHandler(action as any, handler);
-			} catch (error) {
+			} catch (_error) {
 				console.error(`[Media Session] ${action} not supported`);
 			}
 		});

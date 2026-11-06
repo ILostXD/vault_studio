@@ -62,15 +62,23 @@ function Card({ index }: { index: number }) {
 
 	return (
 		<>
-			<button data-testid="mounted-card" onClick={() => setMenuOpen(true)}>
+			<button
+				type="button"
+				data-testid="mounted-card"
+				onClick={() => setMenuOpen(true)}
+			>
 				Card {index}
 			</button>
-			<button onClick={() => setMenuOpen(true)}>Options {index}</button>
+			<button type="button" onClick={() => setMenuOpen(true)}>
+				Options {index}
+			</button>
 			{menuOpen &&
 				createPortal(
 					<div role="menu">
-						<button autoFocus>First action</button>
-						<button>Second action</button>
+						<button type="button" autoFocus>
+							First action
+						</button>
+						<button type="button">Second action</button>
 					</div>,
 					document.body,
 				)}
@@ -92,7 +100,7 @@ function Grid({ pinned = -1 }: { pinned?: number }) {
 					</GridTileViewport>
 				))}
 			</div>
-			<button>Outside grid</button>
+			<button type="button">Outside grid</button>
 		</>
 	);
 }
@@ -225,7 +233,7 @@ it("retains mounted cards until their exit animation completes", async () => {
 	function ExitingCard() {
 		const [, safeToRemove] = usePresence();
 		finishExit = safeToRemove ?? undefined;
-		return <button>Leaving card</button>;
+		return <button type="button">Leaving card</button>;
 	}
 	const { rerender } = render(
 		<AnimatePresence mode="popLayout">
@@ -250,7 +258,7 @@ it("does not mount an off-screen card merely to remove it", async () => {
 	const mount = vi.fn();
 	function UnseenCard() {
 		mount();
-		return <button>Unseen card</button>;
+		return <button type="button">Unseen card</button>;
 	}
 	const { rerender } = render(
 		<AnimatePresence mode="popLayout">

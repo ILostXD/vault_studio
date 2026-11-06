@@ -660,6 +660,7 @@ export default function SharedTrackPlayer({
 							onTouchStart={handleWaveformTouchStart}
 						>
 							<svg
+								aria-hidden="true"
 								width="100%"
 								height="100%"
 								viewBox={`0 0 ${waveformViewBoxWidth} ${WAVEFORM_VIEWBOX_HEIGHT}`}
@@ -769,6 +770,7 @@ export default function SharedTrackPlayer({
 						</span>
 
 						<button
+							type="button"
 							onClick={handleSkipBack}
 							onMouseDown={(e) => e.currentTarget.blur()}
 							tabIndex={-1}
@@ -779,6 +781,7 @@ export default function SharedTrackPlayer({
 						</button>
 
 						<button
+							type="button"
 							onClick={togglePlay}
 							onMouseDown={(e) => e.currentTarget.blur()}
 							tabIndex={-1}
@@ -805,6 +808,7 @@ export default function SharedTrackPlayer({
 					<div className="flex items-center gap-4 sm:gap-4 ml-auto">
 						{allowDownloads && (
 							<button
+								type="button"
 								onClick={handleDownload}
 								onMouseDown={(e) => e.currentTarget.blur()}
 								tabIndex={-1}
@@ -946,6 +950,7 @@ export default function SharedTrackPlayer({
 								</div>
 							</div>
 							<button
+								type="button"
 								className="text-(--text-0) hover:text-gray-300 transition-colors outline-none focus:outline-none"
 								onMouseDown={(e) => e.currentTarget.blur()}
 								tabIndex={-1}

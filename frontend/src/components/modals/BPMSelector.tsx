@@ -28,14 +28,14 @@ export default function BPMSelector({
 	}, []);
 
 	const handleIncrement = () => {
-		const currentBpm = parseInt(bpm) || 120;
+		const currentBpm = parseInt(bpm, 10) || 120;
 		const newBpm = Math.min(currentBpm + 1, 999);
 		setBpm(newBpm.toString());
 		onChange(newBpm);
 	};
 
 	const handleDecrement = () => {
-		const currentBpm = parseInt(bpm) || 120;
+		const currentBpm = parseInt(bpm, 10) || 120;
 		const newBpm = Math.max(currentBpm - 1, 1);
 		setBpm(newBpm.toString());
 		onChange(newBpm);
@@ -45,7 +45,7 @@ export default function BPMSelector({
 		const value = e.target.value;
 		setBpm(value);
 
-		const numValue = parseInt(value);
+		const numValue = parseInt(value, 10);
 		if (!isNaN(numValue) && numValue > 0 && numValue <= 999) {
 			onChange(numValue);
 		}

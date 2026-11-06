@@ -283,6 +283,7 @@ export function TrackCard({
 				>
 					{/* Vinyl Record Disc Mask */}
 					<svg
+						aria-hidden="true"
 						className="absolute inset-2 w-[calc(100%-1rem)] h-[calc(100%-1rem)] z-10 pointer-events-none"
 						viewBox="0 0 200 200"
 						xmlns="http://www.w3.org/2000/svg"

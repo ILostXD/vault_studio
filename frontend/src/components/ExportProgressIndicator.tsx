@@ -12,6 +12,7 @@ export function ExportProgressIndicator() {
 	const hasPlayer = !!currentTrack || queue.length > 0;
 	return (
 		<div
+			role="region"
 			aria-label="Exports"
 			className={`pointer-events-none fixed inset-x-4 z-120 flex max-h-[50dvh] flex-col gap-2 overflow-y-auto sm:left-auto sm:right-6 sm:w-80 ${hasPlayer ? "bottom-[calc(env(safe-area-inset-bottom)+10rem)] sm:bottom-36" : "bottom-[calc(env(safe-area-inset-bottom)+1rem)] sm:bottom-6"}`}
 		>

@@ -410,7 +410,7 @@ function ColorPickerPopover({
 		const val = e.target.value;
 		setHexInput(val);
 		let hex = val.trim();
-		if (!hex.startsWith("#")) hex = "#" + hex;
+		if (!hex.startsWith("#")) hex = `#${hex}`;
 
 		if (/^#[0-9A-F]{6}$/i.test(hex)) {
 			commitHsv(hexToHsv(hex));
@@ -419,7 +419,7 @@ function ColorPickerPopover({
 
 	const handleHexInputBlur = () => {
 		let hex = hexInput.trim();
-		if (!hex.startsWith("#")) hex = "#" + hex;
+		if (!hex.startsWith("#")) hex = `#${hex}`;
 
 		if (/^#[0-9A-F]{6}$/i.test(hex)) {
 			commitHsv(hexToHsv(hex));
@@ -685,11 +685,8 @@ type ColorPickerProps =
 	| (ColorWheelPickerProps & { variant?: "wheel" })
 	| (ColorPickerPopoverProps & { variant: "popover" });
 
-const ColorPicker = memo((props: ColorPickerProps) => {
-	if (props.variant === "popover") {
-		return <ColorPickerPopover {...props} />;
-	}
-
+// Split from ColorPicker so hooks never run conditionally on `variant`.
+const ColorWheelPicker = memo((props: ColorWheelPickerProps) => {
 	const {
 		size = 280,
 		padding = 20,
@@ -805,7 +802,7 @@ const ColorPicker = memo((props: ColorPickerProps) => {
 
 	const handleHexInputBlur = () => {
 		let cleaned = hexInput.trim();
-		if (!cleaned.startsWith("#")) cleaned = "#" + cleaned;
+		if (!cleaned.startsWith("#")) cleaned = `#${cleaned}`;
 		if (/^#[0-9A-F]{6}$/i.test(cleaned)) {
 			applyColor(cleaned);
 		} else {
@@ -1073,6 +1070,16 @@ const ColorPicker = memo((props: ColorPickerProps) => {
 		</div>
 	);
 });
+
+ColorWheelPicker.displayName = "ColorWheelPicker";
+
+const ColorPicker = memo((props: ColorPickerProps) =>
+	props.variant === "popover" ? (
+		<ColorPickerPopover {...props} />
+	) : (
+		<ColorWheelPicker {...props} />
+	),
+);
 
 ColorPicker.displayName = "ColorPicker";
 

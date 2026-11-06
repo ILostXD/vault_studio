@@ -85,11 +85,13 @@ function CustomToast(props: ToastProps) {
 			style={{ minWidth: "250px", maxWidth: "420px" }}
 		>
 			<button
+				type="button"
 				onClick={() => sonnerToast.dismiss(id)}
 				className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-background border border-(--button-border) flex items-center justify-center text-muted-foreground hover:text-foreground transition-all shadow-md opacity-0 group-hover:opacity-100"
 				aria-label="Close"
 			>
 				<svg
+					aria-hidden="true"
 					xmlns="http://www.w3.org/2000/svg"
 					width="12"
 					height="12"

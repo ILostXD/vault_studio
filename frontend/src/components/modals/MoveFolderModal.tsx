@@ -105,6 +105,7 @@ export default function MoveFolderModal({
 						) : (
 							<>
 								<button
+									type="button"
 									onClick={() => handleFolderClick(null)}
 									disabled={isMoving}
 									className={`w-full px-4 py-3 text-left transition-all border-b border-white/5 flex items-center gap-2 ${
@@ -125,6 +126,7 @@ export default function MoveFolderModal({
 								) : (
 									folders.map((folder) => (
 										<button
+											type="button"
 											key={folder.id}
 											onClick={() => handleFolderClick(folder.id)}
 											disabled={isMoving}

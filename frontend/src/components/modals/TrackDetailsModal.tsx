@@ -548,6 +548,7 @@ function TrackDetailsModal({
 
 													return (
 														<svg
+															aria-hidden="true"
 															width="100%"
 															height="44"
 															viewBox={`0 0 ${barCount * 2} 44`}
@@ -744,7 +745,7 @@ function TrackDetailsModal({
 				}}
 				onConfirm={handleConfirmMove}
 				trackName={track.title}
-				currentProjectId={projectId ? parseInt(projectId) : 0}
+				currentProjectId={projectId ? parseInt(projectId, 10) : 0}
 				isMoving={isMovingTrack}
 			/>
 			<ShareModal
@@ -786,6 +787,7 @@ function ActionButton({
 
 	return (
 		<button
+			type="button"
 			onClick={() => {
 				haptic.trigger(variant === "destructive" ? "warning" : "light");
 				onClick();
