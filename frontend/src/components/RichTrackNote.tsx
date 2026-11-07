@@ -55,7 +55,7 @@ export function RichTrackNoteEditor({
 }: EditorProps) {
 	const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const changedRef = useRef(false);
-	const editorRef = useRef<Editor | null>(null);
+	const lastJsonRef = useRef<string | null>(null);
 	const onSaveRef = useRef(onSave);
 
 	useEffect(() => {
@@ -74,28 +74,21 @@ export function RichTrackNoteEditor({
 		},
 		onUpdate: ({ editor: currentEditor }) => {
 			changedRef.current = true;
-			editorRef.current = currentEditor;
+			const json = JSON.stringify(currentEditor.getJSON());
+			lastJsonRef.current = json;
 			if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
 			saveTimeoutRef.current = setTimeout(() => {
-				onSaveRef.current(
-					JSON.stringify(currentEditor.getJSON()),
-					"tiptap_json",
-				);
+				onSaveRef.current(json, "tiptap_json");
 			}, 1000);
-		},
-		onCreate: ({ editor: currentEditor }) => {
-			editorRef.current = currentEditor;
 		},
 	});
 
 	useEffect(
 		() => () => {
 			if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-			if (changedRef.current && editorRef.current) {
-				onSaveRef.current(
-					JSON.stringify(editorRef.current.getJSON()),
-					"tiptap_json",
-				);
+			// Flush from the last snapshot; the editor itself may already be destroyed here.
+			if (changedRef.current && lastJsonRef.current) {
+				onSaveRef.current(lastJsonRef.current, "tiptap_json");
 			}
 		},
 		[],
@@ -122,20 +115,38 @@ export function RichTrackNoteEditor({
 	);
 }
 
+const INACTIVE_TOOLBAR_STATE = {
+	bold: false,
+	italic: false,
+	heading2: false,
+	heading3: false,
+	bulletList: false,
+	orderedList: false,
+	blockquote: false,
+	canUndo: false,
+	canRedo: false,
+};
+
+// A destroyed editor has no command manager, so `can()` throws; panels swap while the editor unmounts.
+export function readToolbarState(editor: Editor | null) {
+	if (!editor || editor.isDestroyed) return INACTIVE_TOOLBAR_STATE;
+	return {
+		bold: editor.isActive("bold"),
+		italic: editor.isActive("italic"),
+		heading2: editor.isActive("heading", { level: 2 }),
+		heading3: editor.isActive("heading", { level: 3 }),
+		bulletList: editor.isActive("bulletList"),
+		orderedList: editor.isActive("orderedList"),
+		blockquote: editor.isActive("blockquote"),
+		canUndo: editor.can().undo(),
+		canRedo: editor.can().redo(),
+	};
+}
+
 function RichTextToolbar({ editor }: { editor: Editor }) {
 	const state = useEditorState({
 		editor,
-		selector: ({ editor: currentEditor }) => ({
-			bold: currentEditor.isActive("bold"),
-			italic: currentEditor.isActive("italic"),
-			heading2: currentEditor.isActive("heading", { level: 2 }),
-			heading3: currentEditor.isActive("heading", { level: 3 }),
-			bulletList: currentEditor.isActive("bulletList"),
-			orderedList: currentEditor.isActive("orderedList"),
-			blockquote: currentEditor.isActive("blockquote"),
-			canUndo: currentEditor.can().undo(),
-			canRedo: currentEditor.can().redo(),
-		}),
+		selector: ({ editor: currentEditor }) => readToolbarState(currentEditor),
 	});
 
 	const controls = [

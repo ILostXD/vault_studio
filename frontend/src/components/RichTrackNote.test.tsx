@@ -1,8 +1,10 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen } from "@testing-library/react";
+import { Editor } from "@tiptap/core";
+import StarterKit from "@tiptap/starter-kit";
 import { afterEach, describe, expect, it } from "vitest";
-import { RichTrackNoteContent } from "./RichTrackNote";
+import { RichTrackNoteContent, readToolbarState } from "./RichTrackNote";
 
 afterEach(cleanup);
 
@@ -55,5 +57,21 @@ describe("RichTrackNoteContent", () => {
 		render(<RichTrackNoteContent content={content} />);
 
 		expect(screen.getByRole("link").textContent).toBe("Final mix");
+	});
+});
+
+describe("readToolbarState", () => {
+	it("does not throw once the editor is destroyed (panel swap while unmounting)", () => {
+		const editor = new Editor({
+			extensions: [StarterKit],
+			content: "<p>note</p>",
+		});
+		expect(readToolbarState(editor).bold).toBe(false);
+		editor.destroy();
+		// The underlying failure: a destroyed editor has no command manager.
+		expect(() => editor.can().undo()).toThrow();
+		expect(() => readToolbarState(editor)).not.toThrow();
+		expect(readToolbarState(editor).canUndo).toBe(false);
+		expect(readToolbarState(null).canRedo).toBe(false);
 	});
 });
