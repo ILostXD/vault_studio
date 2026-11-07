@@ -43,6 +43,9 @@ The project is also inspired by [untitled](https://untitled.stream/), while rema
 - Mobile voice-memo capture that uploads ideas directly into a project
 - Animated artwork management and previews for Apple Music `1:1` and `3:4` motion artwork and Spotify Canvas `9:16` video
 - Release preparation with reusable credits, validation, distributor-ready ZIP packages, and Too Lost draft delivery
+- Export & Library: tagged FLAC or MP3 albums with embedded cover art, untouched raw masters, and one-click publishing to a server music library for Navidrome, Jellyfin, or Plex
+- Per-project audio tags (album, artist, album artist, genre, year, per-track overrides) with a reusable "usual genre" in your artist profile
+- Redesigned fullscreen player with an animated artwork backdrop and a single rail for queue, notes, and comments
 - Light, Default, Black, and System themes with a configurable accent color
 - Mobile-focused layouts, edge-to-edge Android presentation, and gesture-aware navigation
 
@@ -86,6 +89,17 @@ Apple Motion `1:1`, Apple Motion `3:4`, and Spotify Canvas files are included wh
 When Too Lost is connected, { vault.studio } uses Too Lost's genre and language catalogs, uploads temporary FLAC delivery copies, sends known release metadata and the square cover, and creates or updates a **draft**. { vault.studio } never calls a final-submission endpoint. The artist finishes stores, territories, licensing, motion artwork, review, and submission in Too Lost.
 
 The current integration supports audio releases of type Single, EP, Album, and Compilation. Apple motion artwork remains in the Release Package because Too Lost's published API does not yet define a stable contract for { vault.studio }'s MP4 assets. Existing ISRC and UPC values are optional; leave them blank when Too Lost should assign them.
+
+## Export And Music Library
+
+Open a project's menu and choose **Export & Library**.
+
+- **Library Ready (Tagged)** exports the album as FLAC or MP3 with full tags, track numbers, and the project cover embedded in every file, plus `cover.png`. Download it as a ZIP, or publish it to a server folder that your music player scans.
+- **Raw Masters** downloads the original uploaded files, byte for byte, as one ZIP or per track.
+
+Your stored masters are never modified. Lossless sources (WAV, AIFF, ALAC, FLAC) become FLAC by default; 32-bit float WAV stays float WAV so no precision is lost. Lossy sources never offer FLAC (that would only bloat the file). Existing MP3 audio is not re-encoded, and AAC is repackaged as M4A without re-encoding. Choose MP3 for a 320 kbps copy of everything else. Every conversion is disclosed in the modal before you download or publish.
+
+Publishing writes to `Vault-<owner ID>-<project ID>` inside the folder you configure, replaces it atomically, and refuses to overwrite folders or files it does not own or that were edited outside { vault.studio }. Publishing is off until an administrator mounts a library folder; see [docs/audio-metadata.md](docs/audio-metadata.md) for setup and details.
 
 ## Core { vault } Features
 
@@ -171,6 +185,7 @@ After that one-time setup, each future tagged release can be installed from Sett
 | `TOOLOST_ENVIRONMENT` | Too Lost API environment (`sandbox` or `production`) | `sandbox` |
 | `PUBLIC_BASE_URL` | Public HTTPS instance URL used for OAuth callbacks | Required for Too Lost |
 | `PROVIDER_TOKEN_ENCRYPTION_KEY` | Advanced override: base64-encoded 32-byte key for provider credentials | Derived from `JWT_SECRET` |
+| `MUSIC_LIBRARY_DIR` | Writable folder for publishing tagged albums to a music library (Docker: set `MUSIC_LIBRARY_HOST_DIR` and use `docker-compose.music-library.yml`) | Disabled |
 
 ### Too Lost Drafts
 
