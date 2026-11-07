@@ -43,7 +43,7 @@ import {
 	resolveProjectPageArtworkMode,
 } from "@/lib/motionArtwork";
 import { createShuffledPlaylist } from "@/lib/optimalShuffle";
-import { cn } from "@/lib/utils";
+import { cn, plural } from "@/lib/utils";
 import { toast } from "@/routes/__root";
 import type { Track, VisibilityStatus } from "@/types/api";
 
@@ -782,7 +782,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 						}}
 						className={cn(
 							"flex items-start justify-center overflow-visible md:sticky md:self-start md:pl-5 md:pr-22 top-30",
-							isMobilePortrait ? "p-0 -mt-2" : "px-2 pt-2",
+							isMobilePortrait ? "p-0 -mt-2" : "pt-2",
 						)}
 					>
 						<AnimatePresence initial={false} mode="sync">
@@ -938,7 +938,8 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 									onKeyDown={(e) => {
 										if (e.key === "Enter") e.currentTarget.blur();
 									}}
-									className="hidden sm:block min-w-0 flex-1 text-3xl font-semibold bg-transparent border-none p-0 m-0 h-auto outline-none text-(--text-0) placeholder:text-(--text-0)/50 focus:outline-none focus:ring-0"
+									title={editing.projectName}
+									className="hidden sm:block min-w-0 flex-1 truncate text-ellipsis text-3xl font-semibold bg-transparent border-none p-0 m-0 h-auto outline-none text-(--text-0) placeholder:text-(--text-0)/50 focus:outline-none focus:ring-0"
 									placeholder="Project name"
 								/>
 								<div className="flex items-center gap-2 shrink-0">
@@ -1055,7 +1056,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 									}}
 								/>
 								<DotIcon className="w-4 shrink-0" />
-								<span>{tracks.length} tracks</span>
+								<span>{plural(tracks.length, "track")}</span>
 								<DotIcon className="w-4 shrink-0" />
 								<span>{totalDuration}</span>
 							</div>

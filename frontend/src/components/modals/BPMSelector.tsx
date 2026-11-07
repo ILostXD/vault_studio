@@ -72,8 +72,8 @@ export default function BPMSelector({
 					aria-label="Decrease BPM by one"
 					className={cn(
 						"flex h-8 w-8 items-center justify-center rounded-sm",
-						"border border-white/10 bg-transparent p-2",
-						"hover:bg-white/5 transition-colors duration-300",
+						"border border-(--card-border) bg-transparent p-2",
+						"hover:bg-(--muted-2)/50 transition-colors duration-300",
 					)}
 				>
 					<Minus className="size-3.5 text-(--text-0)/60" />
@@ -111,8 +111,8 @@ export default function BPMSelector({
 					aria-label="Increase BPM by one"
 					className={cn(
 						"flex h-8 w-8 items-center justify-center rounded-sm",
-						"border border-white/10 bg-transparent p-2",
-						"hover:bg-white/5 transition-colors duration-300",
+						"border border-(--card-border) bg-transparent p-2",
+						"hover:bg-(--muted-2)/50 transition-colors duration-300",
 					)}
 				>
 					<Plus className="size-3.5 text-(--text-0)/60" />

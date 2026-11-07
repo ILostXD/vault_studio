@@ -24,6 +24,7 @@ import {
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDurationLong, formatTrackDuration } from "@/lib/duration";
+import { plural } from "@/lib/utils";
 import { toast } from "@/routes/__root";
 import type { Track } from "@/types/api";
 
@@ -376,7 +377,7 @@ export default function SharedProjectView({
 							y: showCoverPanel ? 0 : 8,
 						}}
 						transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
-						className="flex items-start justify-center overflow-visible px-2 md:pl-5 md:pr-22 md:sticky md:self-start pt-2 top-30"
+						className="flex items-start justify-center overflow-visible md:pl-5 md:pr-22 md:sticky md:self-start pt-2 top-30"
 					>
 						<div className="relative w-full md:max-w-[24rem]">
 							<AlbumCover
@@ -453,7 +454,7 @@ export default function SharedProjectView({
 							<div className="flex items-center text-muted-foreground text-md gap-0 relative z-10">
 								<span>{project.author_override || "Unknown artist"}</span>
 								<DotIcon className="w-4 shrink-0" />
-								<span>{tracks.length} tracks</span>
+								<span>{plural(tracks.length, "track")}</span>
 								<DotIcon className="w-4 shrink-0" />
 								<span>{totalDuration}</span>
 							</div>

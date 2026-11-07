@@ -520,7 +520,7 @@ function SharedTrackPage() {
 								isNotesOpen && !isSmallScreen ? 0 : showCoverPanel ? 1 : 0,
 						}}
 						transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
-						className="flex items-start justify-center overflow-visible px-2 md:pl-5 md:pr-22 md:sticky md:self-start pt-2 top-30"
+						className="flex items-start justify-center overflow-visible md:pl-5 md:pr-22 md:sticky md:self-start pt-2 top-30"
 					>
 						<div className="relative w-full md:max-w-[24rem]">
 							<AlbumCover

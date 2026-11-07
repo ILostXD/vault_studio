@@ -301,8 +301,8 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
 					className={cn(
 						"flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all",
 						selectedMode === "major"
-							? "bg-white text-black"
-							: "bg-white/10 text-(--text-0)/60 hover:bg-white/15",
+							? "bg-(--text-0) text-(--bg-0)"
+							: "bg-(--muted-2) text-(--text-0)/60 hover:bg-(--muted-2)/70",
 					)}
 				>
 					Major
@@ -313,8 +313,8 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
 					className={cn(
 						"flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all",
 						selectedMode === "minor"
-							? "bg-white text-black"
-							: "bg-white/10 text-(--text-0)/60 hover:bg-white/15",
+							? "bg-(--text-0) text-(--bg-0)"
+							: "bg-(--muted-2) text-(--text-0)/60 hover:bg-(--muted-2)/70",
 					)}
 				>
 					Minor
@@ -325,14 +325,14 @@ export default function KeySelector({ value, onChange }: KeySelectorProps) {
 				<button
 					type="button"
 					onClick={playChord}
-					className="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white/10 text-(--text-0) hover:bg-white/15"
+					className="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-(--muted-2) text-(--text-0) hover:bg-(--muted-2)/70"
 				>
 					Play Chord
 				</button>
 				<button
 					type="button"
 					onClick={playArpeggio}
-					className="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white/10 text-(--text-0) hover:bg-white/15"
+					className="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-(--muted-2) text-(--text-0) hover:bg-(--muted-2)/70"
 				>
 					Play Arpeggio
 				</button>

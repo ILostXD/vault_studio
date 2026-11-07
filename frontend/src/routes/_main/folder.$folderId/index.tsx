@@ -139,7 +139,7 @@ function FolderPage() {
           transition: opacity 300ms ease-in-out;
         }
       `}</style>
-			<div className="mx-auto max-w-4xl px-6 md:pt-35 pt-30 pb-12">
+			<div className="mx-auto max-w-4xl px-4 min-[400px]:px-6 md:pt-35 pt-30 pb-12">
 				<div ref={contentRef} className="folder-content-hidden">
 					<DraggableProjectGrid
 						key={folderId}

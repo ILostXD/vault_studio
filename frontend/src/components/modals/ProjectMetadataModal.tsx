@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup } from "@/components/ui/toggle-group";
 import { projectKeys, useExportProject } from "@/hooks/useProjects";
+import { plural } from "@/lib/utils";
 import BaseModal from "./BaseModal";
 
 export default function ProjectMetadataModal({
@@ -307,7 +308,7 @@ export default function ProjectMetadataModal({
 									{data.metadata.artist}
 								</p>
 								<p className="text-xs text-(--text-2)">
-									{data.tracks.length} tracks ·{" "}
+									{plural(data.tracks.length, "track")} ·{" "}
 									{data.artwork ? "Cover included" : "No cover"}
 								</p>
 							</div>

@@ -45,7 +45,7 @@ import {
 	CROSSFADE_DURATION_MS,
 	CROSSFADE_EASING,
 } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import { cn, plural } from "@/lib/utils";
 import { toast } from "@/routes/__root";
 import type { Project } from "@/types/api";
 import DeleteProjectModal from "./modals/DeleteProjectModal";
@@ -600,7 +600,7 @@ export default function ProjectCard({
 							New Folder
 						</div>
 						<div className="text-xs text-muted-foreground">
-							{(1 + hoverFolderItems.length).toString()} items
+							{plural(1 + hoverFolderItems.length, "item")}
 						</div>
 					</div>
 

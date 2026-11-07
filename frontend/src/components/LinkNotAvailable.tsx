@@ -18,7 +18,7 @@ export default function LinkNotAvailable() {
 				className="text-center"
 			>
 				<div className="flex justify-center mb-6">
-					<div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center">
+					<div className="w-20 h-20 rounded-full bg-(--muted-2) flex items-center justify-center">
 						<Link2Off className="size-10 text-(--text-0)" />
 					</div>
 				</div>

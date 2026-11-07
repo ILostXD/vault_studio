@@ -18,7 +18,7 @@ function ProjectSearchCover({ project }: { project: Project }) {
 
 	if (!imageUrl) {
 		return (
-			<div className="w-full h-full bg-linear-to-br from-white/10 to-white/5 flex items-center justify-center">
+			<div className="w-full h-full bg-linear-to-br from-(--muted-2) to-(--muted-2)/60 flex items-center justify-center">
 				<span className="text-xs text-(--text-0)/30">
 					{project.name?.charAt(0)?.toUpperCase()}
 				</span>
@@ -49,7 +49,7 @@ function TrackSearchCover({ track }: { track: any }) {
 
 	if (!imageUrl) {
 		return (
-			<div className="w-full h-full bg-linear-to-br from-white/10 to-white/5 flex items-center justify-center rounded-full">
+			<div className="w-full h-full bg-linear-to-br from-(--muted-2) to-(--muted-2)/60 flex items-center justify-center rounded-full">
 				<span className="text-xs text-(--text-0)/30">
 					{track.title?.charAt(0)?.toUpperCase()}
 				</span>
@@ -417,8 +417,8 @@ export default function GlobalSearchModal({
 											}}
 											className={`rounded-xl px-3 h-8 text-sm transition-colors ${
 												showMineOnly
-													? "bg-white/15 text-(--text-0) hover:bg-white/20"
-													: "bg-transparent text-(--text-0)/50 hover:bg-white/5 hover:text-(--text-0)/70"
+													? "bg-(--muted-2) text-(--text-0)"
+													: "bg-transparent text-(--text-0)/50 hover:bg-(--muted-2)/50 hover:text-(--text-0)/70"
 											}`}
 										>
 											Mine
@@ -434,8 +434,8 @@ export default function GlobalSearchModal({
 											}}
 											className={`rounded-xl px-3 h-8 text-sm transition-colors ${
 												showType === "projects"
-													? "bg-white/15 text-(--text-0) hover:bg-white/20"
-													: "bg-transparent text-(--text-0)/50 hover:bg-white/5 hover:text-(--text-0)/70"
+													? "bg-(--muted-2) text-(--text-0)"
+													: "bg-transparent text-(--text-0)/50 hover:bg-(--muted-2)/50 hover:text-(--text-0)/70"
 											}`}
 										>
 											Projects
@@ -449,8 +449,8 @@ export default function GlobalSearchModal({
 											}}
 											className={`rounded-xl px-3 h-8 text-sm transition-colors ${
 												showType === "tracks"
-													? "bg-white/15 text-(--text-0) hover:bg-white/20"
-													: "bg-transparent text-(--text-0)/50 hover:bg-white/5 hover:text-(--text-0)/70"
+													? "bg-(--muted-2) text-(--text-0)"
+													: "bg-transparent text-(--text-0)/50 hover:bg-(--muted-2)/50 hover:text-(--text-0)/70"
 											}`}
 										>
 											Tracks
@@ -489,8 +489,8 @@ export default function GlobalSearchModal({
 														onClick={() => handleItemSelect(item)}
 														className={`w-full flex items-center gap-4 rounded-2xl p-3 ${
 															selectedSearchIndex === index
-																? "bg-white/5 ring-1 ring-white/10"
-																: "hover:bg-white/5 hover:ring-1 hover:ring-white/10"
+																? "bg-(--muted-2)/40 ring-1 ring-(--card-border)"
+																: "hover:bg-(--muted-2)/40 hover:ring-1 hover:ring-(--card-border)"
 														}`}
 														data-search-index={index}
 													>

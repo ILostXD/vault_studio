@@ -1064,7 +1064,7 @@ export default function DraggableProjectGrid({
 			<div className="relative">
 				<div
 					className={cn(
-						"flex flex-wrap justify-center gap-6 gap-y-3 sm:gap-14 sm:gap-y-14 pb-40",
+						"flex flex-wrap justify-center gap-x-3 min-[400px]:gap-x-6 gap-y-3 sm:gap-14 sm:gap-y-14 pb-40",
 						className,
 					)}
 				>

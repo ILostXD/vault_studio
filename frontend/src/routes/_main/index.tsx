@@ -113,7 +113,7 @@ function App() {
 
 	return (
 		<div className="min-h-screen bg-background">
-			<div className="mx-auto max-w-4xl px-6 md:pt-35 pt-30 pb-12">
+			<div className="mx-auto max-w-4xl px-4 min-[400px]:px-6 md:pt-35 pt-30 pb-12">
 				<motion.div
 					initial={{ opacity: 0, y: 18, scale: 0.985 }}
 					animate={

@@ -388,8 +388,8 @@ export default function EditProfileModal({
 																	key={i}
 																	className={`w-2 h-2 rounded-full transition-colors ${
 																		i === colorShift % numPoints
-																			? "bg-white"
-																			: "bg-[#484848]"
+																			? "bg-(--text-0)"
+																			: "bg-(--muted-2)"
 																	}`}
 																/>
 															))}
@@ -413,7 +413,7 @@ export default function EditProfileModal({
 															onChange={(e) =>
 																setGradientSpread(Number(e.target.value))
 															}
-															className="w-full h-1 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0"
+															className="w-full h-1 bg-(--muted-2) rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0"
 														/>
 														<div className="flex items-center justify-between text-[10px] text-[#5a5a5a]">
 															<span>Narrow</span>
@@ -438,7 +438,7 @@ export default function EditProfileModal({
 															onChange={(e) =>
 																setColorSpread(Number(e.target.value))
 															}
-															className="w-full h-1 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0"
+															className="w-full h-1 bg-(--muted-2) rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0"
 														/>
 														<div className="flex items-center justify-between text-[10px] text-[#5a5a5a]">
 															<span>Tight</span>
@@ -464,7 +464,7 @@ export default function EditProfileModal({
 										<div className="flex items-center gap-4 pt-2">
 											<Button
 												onClick={handleCancel}
-												className="flex-1 bg-[#1e1e1e] border border-[#2e2e2e] hover:bg-[#252525] active:bg-[#2a2a2a] text-(--text-0) rounded-xl h-[41px]"
+												className="flex-1 bg-[#1e1e1e] border border-[#2e2e2e] hover:bg-[#252525] active:bg-(--muted-2) text-(--text-0) rounded-xl h-[41px]"
 												disabled={isSaving}
 											>
 												<span className="text-sm font-semibold">Cancel</span>

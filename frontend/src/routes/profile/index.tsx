@@ -26,7 +26,7 @@ import { Switch } from "@/components/ui/switch";
 import { ToggleGroup } from "@/components/ui/toggle-group";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePreferences } from "@/contexts/PreferencesContext";
-import { cn } from "@/lib/utils";
+import { cn, formatBytes, plural } from "@/lib/utils";
 import { toast } from "@/routes/__root";
 import type {
 	InstanceInfo,
@@ -173,8 +173,6 @@ function ProfilePage() {
 	};
 
 	const totalGB = storageStats ? bytesToGB(storageStats.total_size_bytes) : 0;
-	const sourceGB = storageStats ? bytesToGB(storageStats.source_size_bytes) : 0;
-	const lossyGB = storageStats ? bytesToGB(storageStats.lossy_size_bytes) : 0;
 	const quotaGB = instanceInfo?.storage_quota_bytes
 		? bytesToGB(instanceInfo.storage_quota_bytes)
 		: null;
@@ -268,7 +266,7 @@ function ProfilePage() {
 													USED
 												</p>
 												<p className="text-(--text-0) text-3xl font-semibold">
-													{totalGB} GB
+													{formatBytes(storageStats?.total_size_bytes ?? 0)}
 												</p>
 												<p className="text-(--text-1) text-sm font-medium mb-3">
 													{utilizedPercent}% utilized
@@ -322,11 +320,11 @@ function ProfilePage() {
 												USER STORAGE
 											</p>
 											<p className="text-(--text-0) text-3xl font-semibold mb-1">
-												{totalGB} GB
+												{formatBytes(storageStats?.total_size_bytes ?? 0)}
 											</p>
 											<p className="text-(--text-1) text-sm font-medium">
 												{storageStats?.file_count || 0} files across{" "}
-												{storageStats?.track_count || 0} tracks
+												{plural(storageStats?.track_count || 0, "track")}
 											</p>
 										</div>
 
@@ -336,11 +334,11 @@ function ProfilePage() {
 													TOTAL STORAGE
 												</p>
 												<p className="text-(--text-0) text-3xl font-semibold mb-1">
-													{bytesToGB(globalStorageStats.total_size_bytes)} GB
+													{formatBytes(globalStorageStats.total_size_bytes)}
 												</p>
 												<p className="text-(--text-1) text-sm font-medium">
 													{globalStorageStats.file_count} files across{" "}
-													{globalStorageStats.track_count} tracks
+													{plural(globalStorageStats.track_count, "track")}
 												</p>
 											</div>
 										)}
@@ -355,19 +353,21 @@ function ProfilePage() {
 										<div className="flex items-center justify-between border-t border-(--card-border) pt-3">
 											<p className="text-(--text-1) text-base">Source (WAV)</p>
 											<p className="text-(--text-0) text-base font-medium">
-												{user?.is_admin && globalStorageStats
-													? bytesToGB(globalStorageStats.source_size_bytes)
-													: sourceGB}{" "}
-												GB
+												{formatBytes(
+													user?.is_admin && globalStorageStats
+														? globalStorageStats.source_size_bytes
+														: (storageStats?.source_size_bytes ?? 0),
+												)}
 											</p>
 										</div>
 										<div className="flex items-center justify-between border-t border-(--card-border) pt-3">
 											<p className="text-(--text-1) text-base">Lossy (MP3)</p>
 											<p className="text-(--text-0) text-base font-medium">
-												{user?.is_admin && globalStorageStats
-													? bytesToGB(globalStorageStats.lossy_size_bytes)
-													: lossyGB}{" "}
-												GB
+												{formatBytes(
+													user?.is_admin && globalStorageStats
+														? globalStorageStats.lossy_size_bytes
+														: (storageStats?.lossy_size_bytes ?? 0),
+												)}
 											</p>
 										</div>
 									</div>

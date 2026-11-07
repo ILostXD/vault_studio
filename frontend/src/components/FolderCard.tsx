@@ -29,7 +29,7 @@ import {
 	preloadCover,
 	useProjectCoverImage,
 } from "@/hooks/useProjectCoverImage";
-import { cn } from "@/lib/utils";
+import { cn, plural } from "@/lib/utils";
 import { toast } from "@/routes/__root";
 import type { Folder, Project, SharedTrackResponse } from "@/types/api";
 import DeleteFolderModal from "./modals/DeleteFolderModal";
@@ -44,7 +44,7 @@ function ProjectCoverThumbnail({ project }: { project: Project }) {
 
 	if (isLoading) {
 		return (
-			<div className="size-full bg-neutral-800 border-(--card-border) border rounded-2xl animate-pulse" />
+			<div className="size-full bg-(--bg-2) border-(--card-border) border rounded-2xl animate-pulse" />
 		);
 	}
 
@@ -62,7 +62,7 @@ function ProjectCoverThumbnail({ project }: { project: Project }) {
 	}
 
 	return (
-		<div className="size-full bg-neutral-800 border-(--card-border) border rounded-2xl flex items-center justify-center">
+		<div className="size-full bg-(--bg-2) border-(--card-border) border rounded-2xl flex items-center justify-center">
 			<span className="text-(--text-0)/30 text-lg font-bold">
 				{String(project.name).charAt(0).toUpperCase()}
 			</span>
@@ -72,7 +72,7 @@ function ProjectCoverThumbnail({ project }: { project: Project }) {
 
 function FolderThumbnail(_props: { folder: Folder }) {
 	return (
-		<div className="size-full bg-neutral-700/50 border-(--card-border) border rounded-2xl flex items-center justify-center">
+		<div className="size-full bg-(--bg-2)/60 border-(--card-border) border rounded-2xl flex items-center justify-center">
 			<FolderIcon className="size-6 text-(--text-0)/40" />
 		</div>
 	);
@@ -102,12 +102,12 @@ function SharedTrackCoverThumbnail({ track }: { track: SharedTrackResponse }) {
 
 	if (isLoading) {
 		return (
-			<div className="size-full bg-neutral-800 border-(--card-border) border rounded-2xl animate-pulse" />
+			<div className="size-full bg-(--bg-2) border-(--card-border) border rounded-2xl animate-pulse" />
 		);
 	}
 
 	return (
-		<div className="size-full bg-neutral-800 border-(--card-border) border rounded-2xl flex items-center justify-center">
+		<div className="size-full bg-(--bg-2) border-(--card-border) border rounded-2xl flex items-center justify-center">
 			{resolvedCover ? (
 				<img
 					src={resolvedCover}
@@ -153,7 +153,7 @@ function IncomingItemCover({ project }: { project: Project }) {
 	}
 
 	return (
-		<div className="size-full bg-neutral-800 flex items-center justify-center">
+		<div className="size-full bg-(--bg-2) flex items-center justify-center">
 			<span className="text-(--text-0) text-lg font-bold">
 				{String(project.name).charAt(0).toUpperCase()}
 			</span>
@@ -390,7 +390,7 @@ export default function FolderCard({
 				}
 			}}
 		>
-			<div className="media-tile-visual relative aspect-square rounded-(--card-border-radius) border border-(--card-border) bg-neutral-800/40 overflow-hidden">
+			<div className="media-tile-visual relative aspect-square rounded-(--card-border-radius) border border-(--card-border) bg-(--bg-2)/40 overflow-hidden">
 				<div className="grid grid-cols-2 grid-rows-2 size-full gap-1 p-2">
 					{[0, 1, 2, 3].map((index) => {
 						const item = previewItems[index];
@@ -455,7 +455,7 @@ export default function FolderCard({
 							{folder.name}
 						</div>
 						<div className="text-xs text-muted-foreground">
-							{totalCount} items
+							{plural(totalCount, "item")}
 						</div>
 					</div>
 

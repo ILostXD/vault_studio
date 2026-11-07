@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { offWSMessage, onWSMessage } from "@/hooks/useWebSocket";
+import { formatBytes } from "@/lib/utils";
 import BaseModal from "./BaseModal";
 import ModalIcon from "./ModalIcon";
 
@@ -21,14 +22,6 @@ interface ExportProgress {
 interface ExportInstanceModalProps {
 	isOpen: boolean;
 	onClose: () => void;
-}
-
-function formatSize(bytes: number): string {
-	if (bytes < 1024) return `${bytes} B`;
-	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-	if (bytes < 1024 * 1024 * 1024)
-		return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-	return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
 const spring = { type: "spring" as const, bounce: 0, duration: 0.4 };
@@ -153,7 +146,7 @@ export default function ExportInstanceModal({
 									{result.totalFiles > 0 && (
 										<>{result.totalFiles} files &middot; </>
 									)}
-									{formatSize(result.sizeBytes)}
+									{formatBytes(result.sizeBytes)}
 								</p>
 							</div>
 						</motion.div>
@@ -194,7 +187,7 @@ export default function ExportInstanceModal({
 								<p className="text-xs text-muted-foreground text-center mb-6">
 									Estimated size:{" "}
 									<span className="text-(--text-0) font-medium">
-										{formatSize(estimatedBytes)}
+										{formatBytes(estimatedBytes)}
 									</span>
 								</p>
 							</motion.div>
