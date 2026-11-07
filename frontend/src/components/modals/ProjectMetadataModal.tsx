@@ -266,7 +266,9 @@ export default function ProjectMetadataModal({
 						]}
 						value={mode}
 						onValueChange={(val) => {
-							if (!busy) setMode(val as "tagged" | "raw");
+							if (busy) return;
+							setMode(val as "tagged" | "raw");
+							setMessage("");
 						}}
 					/>
 				</div>
