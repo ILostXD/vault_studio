@@ -68,7 +68,7 @@ function IncomingItemCover({ project }: { project: Project }) {
 	}
 
 	return (
-		<div className="size-full bg-neutral-800 flex items-center justify-center text-(--text-0) text-lg font-bold">
+		<div className="size-full bg-(--bg-2) flex items-center justify-center text-(--text-0) text-lg font-bold">
 			{String(project.name).charAt(0).toUpperCase()}
 		</div>
 	);
@@ -422,7 +422,7 @@ export default function ProjectCard({
 		>
 			<div
 				className={cn(
-					"project-cover media-tile-visual relative aspect-square rounded-(--card-border-radius) bg-neutral-800/40",
+					"project-cover media-tile-visual relative aspect-square rounded-(--card-border-radius) bg-(--bg-2)/40",
 				)}
 				style={{ touchAction: "auto" }}
 				{...dragHandleProps}
@@ -449,7 +449,9 @@ export default function ProjectCard({
 							decoding="async"
 						/>
 					) : (
-						<div className="size-full bg-neutral-800 flex items-center justify-center"></div>
+						<div className="size-full bg-(--bg-2) flex items-center justify-center text-(--text-0)/30 text-5xl font-bold">
+							{String(project.name).charAt(0).toUpperCase()}
+						</div>
 					)}
 				</motion.div>
 
@@ -627,6 +629,7 @@ export default function ProjectCard({
 							<DropdownMenuContent
 								align="center"
 								side="top"
+								collisionPadding={16}
 								className="w-44 border-muted bg-background"
 							>
 								{hoverAsFolder ? (

@@ -265,7 +265,7 @@ export function TrackCard({
 		>
 			{/* Disc Container */}
 			<div
-				className="media-tile-visual relative aspect-square rounded-(--card-border-radius) border border-(--card-border) bg-neutral-800/40"
+				className="media-tile-visual relative aspect-square rounded-(--card-border-radius) border border-(--card-border) bg-(--bg-2)/40"
 				style={{ touchAction: "auto" }}
 				{...dragHandleProps}
 			>
@@ -373,7 +373,7 @@ export function TrackCard({
 								decoding="async"
 							/>
 						) : (
-							<div className="size-full bg-neutral-800 flex items-center justify-center text-(--text-0) text-lg font-bold">
+							<div className="size-full bg-(--bg-2) flex items-center justify-center text-(--text-0) text-lg font-bold">
 								{String(
 									hoverFolderItems[0]?.name || hoverFolderItems[0]?.title || "",
 								)
@@ -541,6 +541,7 @@ export function TrackCard({
 							<DropdownMenuContent
 								align="center"
 								side="top"
+								collisionPadding={16}
 								className="w-44 border-muted bg-background"
 							>
 								{isOwned ? (

@@ -396,7 +396,7 @@ export default function VoiceMemoRecorder({
 						<div>
 							<p className="font-medium">Ready when you are</p>
 							<p className="mt-1 text-sm text-(--text-1)">
-								Your browser will ask for microphone access.
+								You will be asked to allow microphone access.
 							</p>
 						</div>
 						{error && (
@@ -507,9 +507,12 @@ export default function VoiceMemoRecorder({
 							<div className="flex items-center justify-between gap-3">
 								<span className="text-sm">Destination</span>
 								<Button
-									variant="ghost"
+									variant="default"
 									size="sm"
-									onClick={() => setCreatingInline((value) => !value)}
+									onClick={() => {
+										setCreatingInline((value) => !value);
+										setError("");
+									}}
 									disabled={status === "uploading"}
 								>
 									{creatingInline ? "Choose project" : "New project"}
@@ -522,6 +525,7 @@ export default function VoiceMemoRecorder({
 									value={projectName}
 									onChange={(event) => {
 										setProjectName(event.target.value);
+										setError("");
 										if (createdProject) setCreatedProject(null);
 									}}
 									maxLength={200}
@@ -529,7 +533,10 @@ export default function VoiceMemoRecorder({
 							) : (
 								<Select
 									value={projectId}
-									onValueChange={setProjectId}
+									onValueChange={(value) => {
+										setProjectId(value);
+										setError("");
+									}}
 									disabled={status === "uploading"}
 								>
 									<SelectTrigger className="w-full">

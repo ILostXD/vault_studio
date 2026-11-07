@@ -486,6 +486,7 @@ export default function FolderCard({
 							<DropdownMenuContent
 								align="center"
 								side="top"
+								collisionPadding={16}
 								className="w-44 border-muted bg-background"
 							>
 								<DropdownMenuItem
