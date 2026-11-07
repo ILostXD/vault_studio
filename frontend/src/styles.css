@@ -39,6 +39,13 @@ code,
 /* Design tokens from Figma palette */
 /* Base colors */
 :root {
+  --tile-size: 10rem;
+  --danger-bg: #381d1d;
+  --danger-bg-hover: #4a2626;
+  --danger-border: #7f3434;
+  --danger-text: #ff5656;
+  --danger-surface-from: #2a1515;
+  --danger-surface-to: rgba(40, 20, 20, 0.3);
   --bg-0: #181818;
   --bg-1: #191919;
   --bg-2: #201f1f;
@@ -247,11 +254,17 @@ code,
 }
 
 .light {
+  --danger-bg: #fee2e2;
+  --danger-bg-hover: #fecaca;
+  --danger-border: #fca5a5;
+  --danger-text: #b91c1c;
+  --danger-surface-from: #fee2e2;
+  --danger-surface-to: rgba(254, 226, 226, 0.4);
   --bg-0: #f4f4f5;
   --bg-1: #ffffff;
   --bg-2: #e4e4e7;
   --bg-3: #d4d4d8;
-  --bg-4: #a1a1aa;
+  --bg-4: #ffffff;
   --text-0: #18181b;
   --text-1: #3f3f46;
   --text-2: #71717a;
@@ -874,4 +887,21 @@ input[type="date"]::-webkit-datetime-edit-day-field,
 input[type="date"]::-webkit-datetime-edit-year-field {
   background: transparent !important;
   background-color: transparent !important;
+}
+
+/* Phones under 400px: smaller tiles so two still fit per row. */
+@media (max-width: 399px) {
+  :root {
+    --tile-size: 9rem;
+  }
+}
+
+.btn-danger {
+  background-color: var(--danger-bg);
+  border: 0.5px solid var(--danger-border);
+  color: var(--danger-text);
+}
+
+.btn-danger:hover {
+  background-color: var(--danger-bg-hover);
 }

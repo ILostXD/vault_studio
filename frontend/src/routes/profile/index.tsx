@@ -158,9 +158,9 @@ function ProfilePage() {
 	const getQualityDisplay = (quality: Quality): string => {
 		switch (quality) {
 			case "source":
-				return "Source (WAV)";
+				return "Original files";
 			case "lossy":
-				return "Lossy (MP3)";
+				return "Streaming copies (MP3)";
 			case "lossless":
 				return "Lossless"; // Not used but keep for type compatibility
 			default:
@@ -351,7 +351,9 @@ function ProfilePage() {
 									</p>
 									<div className="space-y-3">
 										<div className="flex items-center justify-between border-t border-(--card-border) pt-3">
-											<p className="text-(--text-1) text-base">Source (WAV)</p>
+											<p className="text-(--text-1) text-base">
+												Original files
+											</p>
 											<p className="text-(--text-0) text-base font-medium">
 												{formatBytes(
 													user?.is_admin && globalStorageStats
@@ -361,7 +363,9 @@ function ProfilePage() {
 											</p>
 										</div>
 										<div className="flex items-center justify-between border-t border-(--card-border) pt-3">
-											<p className="text-(--text-1) text-base">Lossy (MP3)</p>
+											<p className="text-(--text-1) text-base">
+												Streaming copies (MP3)
+											</p>
 											<p className="text-(--text-0) text-base font-medium">
 												{formatBytes(
 													user?.is_admin && globalStorageStats
@@ -671,7 +675,7 @@ function ProfilePage() {
 													}}
 													className="text-(--text-0) text-base font-medium text-right bg-transparent border-none outline-none focus:outline-none cursor-text"
 													style={{
-														caretColor: "white",
+														caretColor: "var(--text-0)",
 													}}
 												/>
 												<Pencil
@@ -766,7 +770,7 @@ function ProfilePage() {
 											</div>
 											<Button
 												variant={"destructive"}
-												className="w-20 justify-center text-center bg-[#381d1d] rounded-[7px] px-4 py-1 text-[#ff5656] text-sm font-medium h-auto hover:bg-[#6a2a2a] border-[#7f3434] border-[0.5px]"
+												className="w-20 justify-center text-center btn-danger rounded-[7px] px-4 py-1 text-sm font-medium h-auto"
 												onClick={() => setIsResetModalOpen(true)}
 											>
 												Reset

@@ -39,7 +39,7 @@ function LoginPage() {
 
 	const isNative = Capacitor.isNativePlatform();
 	const showServerUrlField = useMemo(
-		() => isNative || connectionError || !getServerUrl(),
+		() => isNative || connectionError,
 		[isNative, connectionError],
 	);
 
@@ -395,7 +395,7 @@ function LoginPage() {
 								</Button>
 							</div>
 							{serverUrlError && (
-								<p className="text-red-400 text-xs text-center px-4">
+								<p className="text-(--danger-text) text-xs text-center px-4">
 									{serverUrlError}
 								</p>
 							)}
@@ -435,11 +435,11 @@ function LoginPage() {
 									className="p-4 border border-red-500/30 rounded-2xl"
 									style={{
 										background:
-											"linear-gradient(0deg, #2a1515 0%, rgba(40, 20, 20, 0.3) 100%)",
+											"linear-gradient(0deg, var(--danger-surface-from) 0%, var(--danger-surface-to) 100%)",
 									}}
 								>
 									<p
-										className="text-red-400 text-sm text-center font-light whitespace-pre-line leading-relaxed"
+										className="text-(--danger-text) text-sm text-center font-light whitespace-pre-line leading-relaxed"
 										style={{ fontFamily: '"IBM Plex Mono", monospace' }}
 									>
 										{connectionErrorMessage ||

@@ -110,7 +110,7 @@ export const GridTileViewport = forwardRef<
 	return (
 		<div
 			ref={setRef}
-			className="relative w-40 h-54 shrink-0"
+			className="relative w-(--tile-size) h-[calc(var(--tile-size)+3.5rem)] shrink-0"
 			data-grid-slot=""
 			data-card-mounted={mounted}
 			role="group"

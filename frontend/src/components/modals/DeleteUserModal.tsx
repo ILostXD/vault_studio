@@ -86,7 +86,7 @@ export default function DeleteUserModal({
 						<div className="p-6 md:p-8">
 							<div className="flex justify-center mb-4">
 								<div className="w-14 h-14 rounded-full flex items-center justify-center bg-red-500/10 border border-red-500/20">
-									<Trash2 className="size-7 text-red-500" />
+									<Trash2 className="size-7 text-(--danger-text)" />
 								</div>
 							</div>
 
@@ -98,11 +98,11 @@ export default function DeleteUserModal({
 								className="rounded-2xl border border-red-500/30 p-4 mb-6"
 								style={{
 									background:
-										"linear-gradient(0deg, #2a1515 0%, rgba(40, 20, 20, 0.3) 100%)",
+										"linear-gradient(0deg, var(--danger-surface-from) 0%, var(--danger-surface-to) 100%)",
 								}}
 							>
 								<p
-									className="text-sm text-red-400 font-light leading-relaxed text-center"
+									className="text-sm text-(--danger-text) font-light leading-relaxed text-center"
 									style={{ fontFamily: '"IBM Plex Mono", monospace' }}
 								>
 									{warningText || defaultWarning}
@@ -133,7 +133,7 @@ export default function DeleteUserModal({
 										disabled={isDeleting}
 									/>
 									{error && (
-										<p className="text-xs text-[#ff5656] mt-2">{error}</p>
+										<p className="text-xs text-(--danger-text) mt-2">{error}</p>
 									)}
 								</div>
 							)}
@@ -150,11 +150,11 @@ export default function DeleteUserModal({
 									disabled={isDeleting || (requirePassword && !password.trim())}
 									haptic="warning"
 									variant="destructive"
-									className="w-full bg-[#381d1d] hover:bg-[#4a2626] border-[#7f3434] border-[0.5px] text-[#ff5656] font-medium"
+									className="w-full btn-danger font-medium"
 								>
 									{isDeleting ? (
 										<>
-											<div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#ff5656]/20 border-t-[#ff5656] mr-2" />
+											<div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-(--danger-text)/20 border-t-(--danger-text) mr-2" />
 											Deleting...
 										</>
 									) : (

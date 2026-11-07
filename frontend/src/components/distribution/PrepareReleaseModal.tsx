@@ -598,7 +598,7 @@ export function PrepareReleaseModal({
 							</section>
 						)}
 						{actionError && (
-							<p className="mt-5 text-sm text-red-500" role="alert">
+							<p className="mt-5 text-sm text-(--danger-text)" role="alert">
 								{actionError}
 							</p>
 						)}
@@ -1073,7 +1073,9 @@ function ValidationSummary({
 							<span
 								aria-hidden
 								className={
-									issue.severity === "error" ? "text-red-500" : "text-amber-500"
+									issue.severity === "error"
+										? "text-(--danger-text)"
+										: "text-amber-500"
 								}
 							>
 								●

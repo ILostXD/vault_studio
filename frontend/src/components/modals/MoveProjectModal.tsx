@@ -53,7 +53,7 @@ export default function MoveProjectModal({
 				</div>
 
 				<div className="space-y-2">
-					<div className="max-h-[300px] overflow-y-auto rounded-2xl border border-white/10">
+					<div className="max-h-[300px] overflow-y-auto rounded-2xl border border-(--card-border)">
 						{isLoadingFolders ? (
 							<div className="text-center py-8 text-muted-foreground">
 								Loading folders...
@@ -65,10 +65,10 @@ export default function MoveProjectModal({
 										type="button"
 										onClick={() => handleFolderClick(null)}
 										disabled={isMoving}
-										className={`w-full px-4 py-3 text-left transition-all border-b border-white/5 flex items-center gap-2 ${
+										className={`w-full px-4 py-3 text-left transition-all border-b border-(--card-border) flex items-center gap-2 ${
 											isMoving
 												? "opacity-50 cursor-not-allowed"
-												: "bg-white/5 hover:bg-white/10"
+												: "bg-(--muted-2)/30 hover:bg-(--muted-2)/55"
 										}`}
 									>
 										<Home className="size-4 text-(--text-0)" />
@@ -88,10 +88,10 @@ export default function MoveProjectModal({
 											key={folder.id}
 											onClick={() => handleFolderClick(folder.id)}
 											disabled={isMoving}
-											className={`w-full px-4 py-3 text-left transition-all border-b border-white/5 last:border-b-0 flex items-center gap-2 ${
+											className={`w-full px-4 py-3 text-left transition-all border-b border-(--card-border) last:border-b-0 flex items-center gap-2 ${
 												isMoving
 													? "opacity-50 cursor-not-allowed"
-													: "bg-white/5 hover:bg-white/10"
+													: "bg-(--muted-2)/30 hover:bg-(--muted-2)/55"
 											}`}
 										>
 											<FolderIcon className="size-4 text-(--text-0)" />

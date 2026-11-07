@@ -129,11 +129,11 @@ export function LoginForm({
 								className="p-4 border border-red-500/30 rounded-2xl"
 								style={{
 									background:
-										"linear-gradient(0deg, #2a1515 0%, rgba(40, 20, 20, 0.3) 100%)",
+										"linear-gradient(0deg, var(--danger-surface-from) 0%, var(--danger-surface-to) 100%)",
 								}}
 							>
 								<p
-									className="text-red-400 text-sm text-center font-light whitespace-pre-line"
+									className="text-(--danger-text) text-sm text-center font-light whitespace-pre-line"
 									style={{ fontFamily: '"IBM Plex Mono", monospace' }}
 								>
 									{error}

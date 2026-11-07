@@ -138,11 +138,13 @@ function ProjectLayout() {
 		);
 	};
 
-	const hasMobilePortraitArtwork =
-		resolveProjectPageArtworkMode(
-			projectArtworkMode,
-			motionAssets.map((asset) => asset.kind),
-		) === "apple_portrait";
+	const artworkKinds = motionAssets.map((asset) => asset.kind);
+	// The menu shows what the page actually displays, not just the saved preference.
+	const effectiveArtworkMode = resolveProjectPageArtworkMode(
+		projectArtworkMode,
+		artworkKinds,
+	);
+	const hasMobilePortraitArtwork = effectiveArtworkMode === "apple_portrait";
 
 	const { data: sharedProjects = [] } = useQuery({
 		queryKey: ["shared-projects"],
@@ -311,13 +313,19 @@ function ProjectLayout() {
 										Artwork display
 									</DropdownMenuLabel>
 									<DropdownMenuRadioGroup
-										value={projectArtworkMode}
+										value={effectiveArtworkMode}
 										onValueChange={handleArtworkModeChange}
 									>
-										<DropdownMenuRadioItem value="apple_portrait">
+										<DropdownMenuRadioItem
+											value="apple_portrait"
+											disabled={!artworkKinds.includes("apple_portrait")}
+										>
 											Apple Motion 3x4
 										</DropdownMenuRadioItem>
-										<DropdownMenuRadioItem value="apple_square">
+										<DropdownMenuRadioItem
+											value="apple_square"
+											disabled={!artworkKinds.includes("apple_square")}
+										>
 											Apple Motion 1x1
 										</DropdownMenuRadioItem>
 										<DropdownMenuRadioItem value="still_cover">

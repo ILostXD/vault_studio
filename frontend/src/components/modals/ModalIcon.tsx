@@ -14,7 +14,7 @@ const variantStyles = {
 	},
 	destructive: {
 		container: "bg-red-500/10 border border-red-500/20",
-		icon: "text-red-500",
+		icon: "text-(--danger-text)",
 	},
 	warning: {
 		container: "bg-amber-500/10 border border-amber-500/20",

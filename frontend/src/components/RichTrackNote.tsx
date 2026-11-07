@@ -199,7 +199,7 @@ function RichTextToolbar({ editor }: { editor: Editor }) {
 
 	return (
 		<div
-			className="flex touch-pan-x gap-1 overflow-x-auto border-b border-(--control-border-subtle) p-2"
+			className="hide-scrollbar flex touch-pan-x gap-1 overflow-x-auto border-b border-(--control-border-subtle) p-2"
 			role="toolbar"
 			aria-label="Note formatting"
 		>

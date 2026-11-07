@@ -156,13 +156,14 @@ function AcceptInvitePage() {
 						}}
 						className="border border-(--card-border) rounded-[45px] px-10 py-12"
 						style={{
-							background: "linear-gradient(0deg, #131313 0%, #161616 100%)",
+							background:
+								"linear-gradient(180deg, var(--card-gradient-from) 0%, var(--card-gradient-to) 100%)",
 							boxShadow: "0 25px 27.4px -10px rgba(0, 0, 0, 0.19)",
 						}}
 					>
 						<div className="text-center mb-6">
 							<div className="flex justify-center mb-3">
-								<AlertCircle className="h-8 w-8 text-red-400" />
+								<AlertCircle className="h-8 w-8 text-(--danger-text)" />
 							</div>
 							<h1 className="text-[39px] font-light text-(--text-0)">
 								Invalid Link
@@ -203,7 +204,8 @@ function AcceptInvitePage() {
 					}}
 					className="border border-(--card-border) rounded-[45px] px-10 py-12"
 					style={{
-						background: "linear-gradient(0deg, #131313 0%, #161616 100%)",
+						background:
+							"linear-gradient(180deg, var(--card-gradient-from) 0%, var(--card-gradient-to) 100%)",
 						boxShadow: "0 25px 27.4px -10px rgba(0, 0, 0, 0.19)",
 					}}
 				>
@@ -246,11 +248,11 @@ function AcceptInvitePage() {
 										className="p-4 border border-red-500/30 rounded-2xl"
 										style={{
 											background:
-												"linear-gradient(0deg, #2a1515 0%, rgba(40, 20, 20, 0.3) 100%)",
+												"linear-gradient(0deg, var(--danger-surface-from) 0%, var(--danger-surface-to) 100%)",
 										}}
 									>
 										<p
-											className="text-red-400 text-sm text-center font-light whitespace-pre-line"
+											className="text-(--danger-text) text-sm text-center font-light whitespace-pre-line"
 											style={{ fontFamily: '"IBM Plex Mono", monospace' }}
 										>
 											{errors.submit}
@@ -287,14 +289,12 @@ function AcceptInvitePage() {
 									}
 								}}
 								disabled={isLoading}
-								className="border-(--card-border)/50 text-(--text-0) text-lg md:text-lg placeholder:text-(--text-0)/80 h-12 rounded-2xl px-5"
-								style={{
-									background:
-										"linear-gradient(0deg, #1D1D1D 0%, rgba(40, 40, 40, 0.22) 100%)",
-								}}
+								className="themed-input-surface text-(--text-0) text-lg md:text-lg placeholder:text-(--text-0)/80 h-12 rounded-2xl px-5"
 							/>
 							{errors.username && (
-								<p className="text-red-400 text-xs ml-5">{errors.username}</p>
+								<p className="text-(--danger-text) text-xs ml-5">
+									{errors.username}
+								</p>
 							)}
 						</div>
 
@@ -323,14 +323,12 @@ function AcceptInvitePage() {
 									}
 								}}
 								disabled={isLoading}
-								className="border-(--card-border)/50 text-(--text-0) text-lg md:text-lg placeholder:text-(--text-0)/80 h-12 rounded-2xl px-5"
-								style={{
-									background:
-										"linear-gradient(0deg, #1D1D1D 0%, rgba(40, 40, 40, 0.22) 100%)",
-								}}
+								className="themed-input-surface text-(--text-0) text-lg md:text-lg placeholder:text-(--text-0)/80 h-12 rounded-2xl px-5"
 							/>
 							{errors.email && (
-								<p className="text-red-400 text-xs ml-5">{errors.email}</p>
+								<p className="text-(--danger-text) text-xs ml-5">
+									{errors.email}
+								</p>
 							)}
 						</div>
 
@@ -359,14 +357,12 @@ function AcceptInvitePage() {
 									}
 								}}
 								disabled={isLoading}
-								className="border-(--card-border)/50 text-(--text-0) text-lg md:text-lg placeholder:text-(--text-0)/80 h-12 rounded-2xl px-5"
-								style={{
-									background:
-										"linear-gradient(0deg, #1D1D1D 0%, rgba(40, 40, 40, 0.22) 100%)",
-								}}
+								className="themed-input-surface text-(--text-0) text-lg md:text-lg placeholder:text-(--text-0)/80 h-12 rounded-2xl px-5"
 							/>
 							{errors.password && (
-								<p className="text-red-400 text-xs ml-5">{errors.password}</p>
+								<p className="text-(--danger-text) text-xs ml-5">
+									{errors.password}
+								</p>
 							)}
 						</div>
 
@@ -395,14 +391,10 @@ function AcceptInvitePage() {
 									}
 								}}
 								disabled={isLoading}
-								className="border-(--card-border)/50 text-(--text-0) text-lg md:text-lg placeholder:text-(--text-0)/80 h-12 rounded-2xl px-5"
-								style={{
-									background:
-										"linear-gradient(0deg, #1D1D1D 0%, rgba(40, 40, 40, 0.22) 100%)",
-								}}
+								className="themed-input-surface text-(--text-0) text-lg md:text-lg placeholder:text-(--text-0)/80 h-12 rounded-2xl px-5"
 							/>
 							{errors.confirmPassword && (
-								<p className="text-red-400 text-xs ml-5">
+								<p className="text-(--danger-text) text-xs ml-5">
 									{errors.confirmPassword}
 								</p>
 							)}

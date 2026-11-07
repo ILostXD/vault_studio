@@ -1147,7 +1147,7 @@ export default function DraggableProjectGrid({
 
 												return (
 													<div
-														className="flex items-center justify-center w-40"
+														className="flex items-center justify-center w-(--tile-size)"
 														style={
 															isEmptied
 																? { opacity: 0, pointerEvents: "none" }
@@ -1164,7 +1164,7 @@ export default function DraggableProjectGrid({
 																items: item.items,
 																folderId: item.folderId,
 															}}
-															className="w-40"
+															className="w-(--tile-size)"
 															hoverActive={
 																hoverTargetId === item.id &&
 																draggingId !== item.id
@@ -1220,9 +1220,9 @@ export default function DraggableProjectGrid({
 											onDrop={handleDrop}
 										>
 											{(dragHandleProps, dragged) => (
-												<div className="flex items-center justify-center w-40">
+												<div className="flex items-center justify-center w-(--tile-size)">
 													<TrackCard
-														className="w-40"
+														className="w-(--tile-size)"
 														track={{
 															...item.track,
 															projectCoverUrl: resolveApiMediaUrl(coverUrl),
@@ -1289,10 +1289,10 @@ export default function DraggableProjectGrid({
 										onDrop={handleDrop}
 									>
 										{(dragHandleProps, dragged) => (
-											<div className="flex items-center justify-center w-40">
+											<div className="flex items-center justify-center w-(--tile-size)">
 												<ProjectCard
 													project={item.project}
-													className="w-40"
+													className="w-(--tile-size)"
 													dragHandleProps={dragHandleProps}
 													isDragging={dragged}
 													dragScaleDown={scaleDown}

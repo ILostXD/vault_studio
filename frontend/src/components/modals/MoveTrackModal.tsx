@@ -20,7 +20,7 @@ function ProjectCover({ project }: { project: Project }) {
 	}
 
 	return (
-		<div className="size-full bg-neutral-800 flex items-center justify-center text-(--text-0) text-xs font-bold border border-white/10 rounded-md">
+		<div className="size-full bg-(--bg-2) flex items-center justify-center text-(--text-0) text-xs font-bold border border-(--card-border) rounded-md">
 			{String(project.name).charAt(0).toUpperCase()}
 		</div>
 	);
@@ -80,7 +80,7 @@ export default function MoveTrackModal({
 				</div>
 
 				<div className="space-y-2">
-					<div className="max-h-[300px] overflow-y-auto rounded-2xl border border-white/10">
+					<div className="max-h-[300px] overflow-y-auto rounded-2xl border border-(--card-border)">
 						{isLoadingProjects ? (
 							<div className="text-center py-8 text-muted-foreground">
 								Loading projects...
@@ -96,10 +96,10 @@ export default function MoveTrackModal({
 									key={project.id}
 									onClick={() => handleProjectClick(project.id)}
 									disabled={isMoving}
-									className={`w-full px-4 py-3 text-left transition-all border-b border-white/5 last:border-b-0 flex items-center gap-3 ${
+									className={`w-full px-4 py-3 text-left transition-all border-b border-(--card-border) last:border-b-0 flex items-center gap-3 ${
 										isMoving
 											? "opacity-50 cursor-not-allowed"
-											: "bg-white/5 hover:bg-white/10"
+											: "bg-(--muted-2)/30 hover:bg-(--muted-2)/55"
 									}`}
 								>
 									<div className="size-8 rounded-md overflow-hidden shrink-0">

@@ -905,15 +905,16 @@ export default function TrackVersionsModal({
 														e.currentTarget.blur();
 													}
 												}}
-												className="text-2xl font-semibold text-(--text-0) text-center bg-transparent border-none outline-none focus:outline-none w-full"
+												title={trackTitle}
+												className="truncate text-ellipsis text-2xl font-semibold text-(--text-0) text-center bg-transparent border-none outline-none focus:outline-none w-full"
 												style={{
-													caretColor: "white",
+													caretColor: "var(--text-0)",
 												}}
 											/>
 
 											<div className="flex flex-wrap items-center justify-center gap-3">
 												<div
-													className="flex items-center gap-2 text-sm text-[#8f8f8f]"
+													className="flex items-center gap-2 text-sm text-(--text-1)"
 													style={{
 														fontFamily: '"IBM Plex Mono", monospace',
 														fontWeight: 300,
@@ -965,7 +966,7 @@ export default function TrackVersionsModal({
 												</div>
 
 												<div
-													className="flex items-center gap-2 text-sm text-[#8f8f8f]"
+													className="flex items-center gap-2 text-sm text-(--text-1)"
 													style={{
 														fontFamily: '"IBM Plex Mono", monospace',
 														fontWeight: 300,
@@ -1023,7 +1024,7 @@ export default function TrackVersionsModal({
 
 											{metadataString && (
 												<p
-													className="text-sm text-[#7a7a7a] text-center"
+													className="text-sm text-(--text-2) text-center"
 													style={{
 														fontFamily: '"IBM Plex Mono", monospace',
 														fontWeight: 300,
@@ -1122,8 +1123,8 @@ export default function TrackVersionsModal({
 															key={version.id}
 															role="button"
 															tabIndex={isActive ? -1 : 0}
-															className={`relative border border-[#676767] rounded-[15px] p-5 transition-all cursor-pointer hover:border-[#d2d2d2] ${
-																isActive ? "bg-white/5" : ""
+															className={`relative border border-(--card-border) rounded-[15px] p-5 transition-all cursor-pointer hover:border-[#d2d2d2] ${
+																isActive ? "bg-(--muted-2)/30" : ""
 															}`}
 															onClick={() =>
 																!isActive && handleActivateVersion(version.id)
@@ -1138,7 +1139,7 @@ export default function TrackVersionsModal({
 														>
 															{isActive && (
 																<div
-																	className="absolute top-0 left-0 translate-x-1/4 -translate-y-1/2 px-2 py-1 bg-[#151414] border border-[#595959] rounded-[7px] text-[10px] text-(--text-0)"
+																	className="absolute top-0 left-0 translate-x-1/4 -translate-y-1/2 px-2 py-1 bg-(--bg-2) border border-(--card-border) rounded-[7px] text-[10px] text-(--text-0)"
 																	style={{
 																		fontFamily: '"IBM Plex Mono", monospace',
 																		fontWeight: 300,
@@ -1191,7 +1192,7 @@ export default function TrackVersionsModal({
 																				fontFamily:
 																					'"IBM Plex Mono", monospace',
 																				fontWeight: 300,
-																				caretColor: "white",
+																				caretColor: "var(--text-0)",
 																			}}
 																		/>
 																	) : (
@@ -1207,7 +1208,7 @@ export default function TrackVersionsModal({
 																		</p>
 																	)}
 																	<p
-																		className="text-xs text-[#7a7a7a]"
+																		className="text-xs text-(--text-2)"
 																		style={{
 																			fontFamily: '"IBM Plex Mono", monospace',
 																			fontWeight: 300,
@@ -1234,7 +1235,7 @@ export default function TrackVersionsModal({
 																			<Button
 																				size="icon-sm"
 																				variant="ghost"
-																				className="shrink-0 h-5 rounded-md hover:bg-white/10"
+																				className="shrink-0 h-5 rounded-md hover:bg-(--muted-2)/55"
 																			>
 																				<MoreHorizontal className="size-4 text-(--text-0)" />
 																			</Button>
@@ -1320,7 +1321,7 @@ export default function TrackVersionsModal({
 											<Button
 												onClick={handleClose}
 												variant={"hot"}
-												className="flex-1 bg-[#e0e0e0] hover:bg-[#d5d5d5] active:bg-[#cacaca] text-black rounded-xl h-[41px]"
+												className="flex-1 bg-none bg-(--text-0) hover:opacity-90 active:opacity-80 text-(--bg-0) rounded-xl h-[41px]"
 											>
 												<span className="text-sm font-semibold">Done</span>
 											</Button>

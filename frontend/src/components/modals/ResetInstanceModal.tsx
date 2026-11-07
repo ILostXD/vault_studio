@@ -37,11 +37,11 @@ export default function ResetInstanceModal({
 					className="rounded-2xl border border-red-500/30 p-4 mb-6"
 					style={{
 						background:
-							"linear-gradient(0deg, #2a1515 0%, rgba(40, 20, 20, 0.3) 100%)",
+							"linear-gradient(0deg, var(--danger-surface-from) 0%, var(--danger-surface-to) 100%)",
 					}}
 				>
 					<p
-						className="text-sm text-red-400 font-light leading-relaxed text-center"
+						className="text-sm text-(--danger-text) font-light leading-relaxed text-center"
 						style={{ fontFamily: '"IBM Plex Mono", monospace' }}
 					>
 						This will permanently delete ALL data including all users, projects,
@@ -57,7 +57,7 @@ export default function ResetInstanceModal({
 					<Button
 						onClick={handleReset}
 						variant="destructive"
-						className="w-full bg-[#381d1d] hover:bg-[#4a2626] border-[#7f3434] border-[0.5px] text-[#ff5656] font-medium"
+						className="w-full btn-danger font-medium"
 					>
 						Proceed to Reset
 					</Button>

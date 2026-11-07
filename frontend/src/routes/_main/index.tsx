@@ -104,7 +104,7 @@ function App() {
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-background">
 				<div className="text-center">
-					<p className="text-red-400">Error loading projects</p>
+					<p className="text-(--danger-text)">Error loading projects</p>
 					<p className="text-gray-400 text-sm mt-2">{error.message}</p>
 				</div>
 			</div>

@@ -42,7 +42,7 @@ export default function DeleteVersionModal({
 						variant="destructive"
 						onClick={onConfirm}
 						disabled={isDeleting}
-						className="w-full bg-[#381d1d] hover:bg-[#4a2626] border-[#7f3434] border-[0.5px] text-[#ff5656]"
+						className="w-full btn-danger"
 					>
 						{isDeleting ? "Deleting..." : "Delete version"}
 					</Button>

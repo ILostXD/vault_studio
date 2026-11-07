@@ -175,7 +175,7 @@ export default function CDDiscBadge({
 								onChange={(e) => onLabelChange?.(e.target.value)}
 								onKeyDown={onLabelKeyDown}
 								className="text-(--text-0) text-lg font-medium bg-transparent border-none outline-none text-center cursor-text px-2 min-w-[100px] placeholder:text-(--text-1)"
-								style={{ caretColor: "white" }}
+								style={{ caretColor: "var(--text-0)" }}
 								autoFocus
 							/>
 						) : (

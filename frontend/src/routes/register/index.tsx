@@ -124,7 +124,8 @@ function RegisterPage() {
 					}}
 					className="border border-(--card-border) rounded-[45px] px-10 py-12"
 					style={{
-						background: "linear-gradient(0deg, #131313 0%, #161616 100%)",
+						background:
+							"linear-gradient(180deg, var(--card-gradient-from) 0%, var(--card-gradient-to) 100%)",
 						boxShadow: "0 25px 27.4px -10px rgba(0, 0, 0, 0.19)",
 					}}
 				>
@@ -167,11 +168,11 @@ function RegisterPage() {
 										className="p-4 border border-red-500/30 rounded-2xl"
 										style={{
 											background:
-												"linear-gradient(0deg, #2a1515 0%, rgba(40, 20, 20, 0.3) 100%)",
+												"linear-gradient(0deg, var(--danger-surface-from) 0%, var(--danger-surface-to) 100%)",
 										}}
 									>
 										<p
-											className="text-red-400 text-sm text-center font-light whitespace-pre-line"
+											className="text-(--danger-text) text-sm text-center font-light whitespace-pre-line"
 											style={{ fontFamily: '"IBM Plex Mono", monospace' }}
 										>
 											{error}

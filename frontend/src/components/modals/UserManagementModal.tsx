@@ -328,13 +328,13 @@ export function UserManagementModal({
 										<div className="mb-4 rounded-2xl border border-red-500/20 bg-gradient-to-br from-red-500/10 to-red-500/5 p-5">
 											<div className="flex items-center gap-3">
 												<div className="flex items-center justify-center size-9 rounded-xl bg-red-500/20">
-													<X className="size-4 text-red-400" />
+													<X className="size-4 text-(--danger-text)" />
 												</div>
 												<div>
 													<p className="text-sm font-medium text-(--text-0)">
 														Failed to load users
 													</p>
-													<p className="text-xs text-red-400/70 mt-0.5">
+													<p className="text-xs text-(--danger-text)/70 mt-0.5">
 														Please try again or contact support
 													</p>
 												</div>
@@ -348,7 +348,7 @@ export function UserManagementModal({
 											<div className="relative">
 												<div className="h-10 w-10 animate-spin rounded-full border-3 border-(--border-0) border-t-accent-blue" />
 											</div>
-											<p className="text-sm text-[#6a6a6a] mt-4">
+											<p className="text-sm text-(--text-2) mt-4">
 												Loading users...
 											</p>
 										</div>
@@ -364,7 +364,7 @@ export function UserManagementModal({
 													placeholder="Search users..."
 													value={userSearchQuery}
 													onChange={(e) => setUserSearchQuery(e.target.value)}
-													className="pl-9 pr-8 text-(--text-0) rounded-xl text-sm bg-white/5 border-white/10"
+													className="pl-9 pr-8 text-(--text-0) rounded-xl text-sm bg-(--inner-card-bg) border-(--card-border)"
 												/>
 												{userSearchQuery && (
 													<button
@@ -377,7 +377,7 @@ export function UserManagementModal({
 												)}
 											</div>
 
-											<div className="rounded-xl border border-white/10 divide-y divide-white/5 mt-3">
+											<div className="rounded-xl border border-(--card-border) divide-y divide-(--card-border) mt-3">
 												{(() => {
 													const filteredUsers = users
 														.sort((a, b) => {
@@ -471,13 +471,13 @@ export function UserManagementModal({
 													<button
 														type="button"
 														onClick={() => setGeneratedInvite(null)}
-														className="p-1 rounded-md text-[#6a6a6a] hover:text-(--text-0) hover:bg-white/5 transition-all"
+														className="p-1 rounded-md text-(--text-2) hover:text-(--text-0) hover:bg-(--muted-2)/50 transition-all"
 													>
 														<X className="h-3.5 w-3.5" />
 													</button>
 												</div>
 
-												<div className="bg-[#0d0d0d] rounded-lg p-2.5 border border-(--border-0) flex items-center gap-2">
+												<div className="bg-(--bg-2) rounded-lg p-2.5 border border-(--border-0) flex items-center gap-2">
 													<code className="text-[11px] text-emerald-400 break-all flex-1 font-mono">
 														{generatedInvite.link}
 													</code>
@@ -571,13 +571,13 @@ export function UserManagementModal({
 													<button
 														type="button"
 														onClick={() => setGeneratedResetLink(null)}
-														className="p-1 rounded-md text-[#6a6a6a] hover:text-(--text-0) hover:bg-white/5 transition-all"
+														className="p-1 rounded-md text-(--text-2) hover:text-(--text-0) hover:bg-(--muted-2)/50 transition-all"
 													>
 														<X className="h-3.5 w-3.5" />
 													</button>
 												</div>
 
-												<div className="bg-[#0d0d0d] rounded-lg p-2.5 border border-(--border-0) flex items-center gap-2">
+												<div className="bg-(--bg-2) rounded-lg p-2.5 border border-(--border-0) flex items-center gap-2">
 													<code className="text-[11px] text-accent-blue break-all flex-1 font-mono">
 														{generatedResetLink.link}
 													</code>
@@ -752,7 +752,7 @@ function UserCard({
 	};
 
 	return (
-		<div className="flex items-center justify-between gap-3 px-3 py-2.5 min-h-[57px] hover:bg-white/5 transition-colors first:rounded-t-xl last:rounded-b-xl">
+		<div className="flex items-center justify-between gap-3 px-3 py-2.5 min-h-[57px] hover:bg-(--muted-2)/50 transition-colors first:rounded-t-xl last:rounded-b-xl">
 			<div className="flex-1 min-w-0">
 				<div className="flex items-center gap-2">
 					<div className="relative min-w-0">
@@ -769,7 +769,7 @@ function UserCard({
 								value={newUsername}
 								onChange={(e) => onRenameChange(e.target.value)}
 								className="absolute inset-0 text-base font-medium text-(--text-0) bg-transparent border-none outline-none focus:outline-none w-full"
-								style={{ caretColor: "white" }}
+								style={{ caretColor: "var(--text-0)" }}
 								onBlur={() => {
 									if (!hasFocusedRef.current) return;
 									if (newUsername.trim() && newUsername !== user.username) {
@@ -796,7 +796,7 @@ function UserCard({
 						)}
 						{user.is_admin && (
 							<div
-								className="px-2 py-0.5 bg-[#151414] border border-[#595959] rounded-md text-[10px] text-(--text-0)"
+								className="px-2 py-0.5 bg-(--bg-2) border border-(--card-border) rounded-md text-[10px] text-(--text-0)"
 								style={{
 									fontFamily: '"IBM Plex Mono", monospace',
 									fontWeight: 300,
@@ -807,7 +807,7 @@ function UserCard({
 						)}
 						{user.is_owner && (
 							<div
-								className="px-2 py-0.5 bg-[#2a1515] border border-red-500/30 rounded-md text-[10px] text-red-400"
+								className="px-2 py-0.5 bg-(--danger-bg) border border-(--danger-border) rounded-md text-[10px] text-(--danger-text)"
 								style={{
 									fontFamily: '"IBM Plex Mono", monospace',
 									fontWeight: 300,
@@ -829,7 +829,7 @@ function UserCard({
 					<DropdownMenuTrigger asChild>
 						<button
 							type="button"
-							className="p-2 rounded-xl hover:bg-white/5 transition-colors shrink-0"
+							className="p-2 rounded-xl hover:bg-(--muted-2)/50 transition-colors shrink-0"
 						>
 							<MoreVertical className="size-4 text-muted-foreground" />
 						</button>
@@ -844,9 +844,9 @@ function UserCard({
 						{isCurrentUser && (
 							<DropdownMenuItem
 								onClick={handleRenameMenuClick}
-								className="text-(--text-0) hover:bg-white/5 cursor-pointer rounded-lg mx-1"
+								className="text-(--text-0) hover:bg-(--muted-2)/50 cursor-pointer rounded-lg mx-1"
 							>
-								<Pencil className="size-4 mr-2 text-[#6a6a6a]" />
+								<Pencil className="size-4 mr-2 text-(--text-2)" />
 								Rename
 							</DropdownMenuItem>
 						)}
@@ -855,16 +855,16 @@ function UserCard({
 							<DropdownMenuItem
 								onClick={onToggleAdmin}
 								disabled={isUpdateRoleMutating}
-								className="text-(--text-0) hover:bg-white/5 cursor-pointer rounded-lg mx-1"
+								className="text-(--text-0) hover:bg-(--muted-2)/50 cursor-pointer rounded-lg mx-1"
 							>
 								{user.is_admin ? (
 									<>
-										<ShieldAlert className="size-4 mr-2 text-[#6a6a6a]" />
+										<ShieldAlert className="size-4 mr-2 text-(--text-2)" />
 										Remove Admin
 									</>
 								) : (
 									<>
-										<Shield className="size-4 mr-2 text-[#6a6a6a]" />
+										<Shield className="size-4 mr-2 text-(--text-2)" />
 										Make Admin
 									</>
 								)}
@@ -874,9 +874,9 @@ function UserCard({
 						<DropdownMenuItem
 							onClick={onCreateResetLink}
 							disabled={isCreateResetMutating}
-							className="text-(--text-0) hover:bg-white/5 cursor-pointer rounded-lg mx-1"
+							className="text-(--text-0) hover:bg-(--muted-2)/50 cursor-pointer rounded-lg mx-1"
 						>
-							<RotateCcw className="size-4 mr-2 text-[#6a6a6a]" />
+							<RotateCcw className="size-4 mr-2 text-(--text-2)" />
 							{isCreateResetMutating ? "Generating..." : "Reset Password"}
 						</DropdownMenuItem>
 

@@ -101,7 +101,9 @@ function SharePage() {
 								autoFocus
 							/>
 							{passwordError && (
-								<p className="text-red-500 text-sm mt-2">Incorrect password</p>
+								<p className="text-(--danger-text) text-sm mt-2">
+									Incorrect password
+								</p>
 							)}
 							<Button type="submit" className="w-full mt-4">
 								Unlock

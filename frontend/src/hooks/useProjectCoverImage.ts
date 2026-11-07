@@ -5,6 +5,25 @@ import type { Project } from "@/types/api";
 const MAX_CACHE_ENTRIES = 100;
 const coverCache = new Map<string, string>();
 const activeRefCounts = new Map<string, number>();
+const inflight = new Map<string, Promise<Blob>>();
+
+// Several components ask for the same cover at once (grid, search, player); share one request.
+function fetchCoverOnce(
+	key: string,
+	project: { public_id: string; cover_url: string },
+	size?: CoverSize,
+): Promise<Blob> {
+	let request = inflight.get(key);
+	if (!request) {
+		request = fetchProjectCover(
+			project.public_id,
+			project.cover_url,
+			size,
+		).finally(() => inflight.delete(key));
+		inflight.set(key, request);
+	}
+	return request;
+}
 
 function trimCache() {
 	if (coverCache.size <= MAX_CACHE_ENTRIES) return;
@@ -37,7 +56,11 @@ export function preloadCover(
 	const cacheKey = `${project.public_id}|${project.cover_url}|${size ?? "default"}`;
 	if (coverCache.has(cacheKey)) return;
 
-	fetchProjectCover(project.public_id, project.cover_url, size)
+	fetchCoverOnce(
+		cacheKey,
+		{ public_id: project.public_id, cover_url: project.cover_url },
+		size,
+	)
 		.then((blob) => {
 			if (coverCache.has(cacheKey)) return;
 			const url = URL.createObjectURL(blob);
@@ -90,9 +113,18 @@ export function useProjectCoverImage(
 		let createdUrl: string | null = null;
 		setIsLoading(true);
 
-		fetchProjectCover(project.public_id, project.cover_url, size)
+		fetchCoverOnce(
+			currentCacheKey,
+			{ public_id: project.public_id, cover_url: project.cover_url },
+			size,
+		)
 			.then((blob) => {
 				if (cancelled) return;
+				const existing = coverCache.get(currentCacheKey);
+				if (existing) {
+					setImageUrl(existing);
+					return;
+				}
 				createdUrl = URL.createObjectURL(blob);
 				coverCache.set(currentCacheKey, createdUrl);
 				setImageUrl(createdUrl);

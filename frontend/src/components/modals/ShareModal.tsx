@@ -638,7 +638,7 @@ export default function ShareModal({
 									<Label className="text-sm text-muted-foreground mb-3 block">
 										Who can access
 									</Label>
-									<div className="relative flex w-full p-1 rounded-xl border border-white/10 bg-white/5">
+									<div className="relative flex w-full p-1 rounded-xl border border-(--card-border) bg-(--muted-2)/30">
 										{visibilityModes.map((mode) => {
 											const Icon = mode.icon;
 											const isActive = visibility === mode.value;
@@ -666,7 +666,7 @@ export default function ShareModal({
 										})}
 										<motion.div
 											layoutId="visibility-toggle-indicator"
-											className="absolute top-1 bottom-1 rounded-lg bg-white/15 z-0"
+											className="absolute top-1 bottom-1 rounded-lg bg-(--muted-2) z-0"
 											initial={false}
 											animate={{
 												left: visibility === "private" ? 4 : "calc(50% + 2px)",
@@ -677,7 +677,7 @@ export default function ShareModal({
 									</div>
 								</div>
 
-								<div className="p-4 rounded-2xl border border-white/10 bg-white/5">
+								<div className="p-4 rounded-2xl border border-(--card-border) bg-(--muted-2)/30">
 									<div className="flex items-center gap-2 mb-3 ml-1">
 										<Users className="size-4 text-muted-foreground" />
 										<Label className="text-sm text-muted-foreground">
@@ -692,7 +692,7 @@ export default function ShareModal({
 											placeholder="Search users..."
 											value={userSearchQuery}
 											onChange={(e) => setUserSearchQuery(e.target.value)}
-											className="pl-9 pr-8 text-(--text-0) rounded-xl text-sm bg-white/5 border-white/10"
+											className="pl-9 pr-8 text-(--text-0) rounded-xl text-sm bg-(--muted-2)/30 border-(--card-border)"
 										/>
 										{userSearchQuery && (
 											<button
@@ -705,7 +705,7 @@ export default function ShareModal({
 										)}
 									</div>
 
-									<div className="h-43 overflow-y-auto rounded-xl border border-white/10 divide-y divide-white/5">
+									<div className="h-43 overflow-y-auto rounded-xl border border-(--card-border) divide-y divide-(--card-border)">
 										{(() => {
 											const availableUsers = allUsers
 												.filter((u) => {
@@ -745,7 +745,7 @@ export default function ShareModal({
 												return (
 													<div
 														key={u.id}
-														className="flex items-center justify-between gap-3 px-3 py-2.5 min-h-[57px] hover:bg-white/5 transition-colors"
+														className="flex items-center justify-between gap-3 px-3 py-2.5 min-h-[57px] hover:bg-(--muted-2)/40 transition-colors"
 													>
 														<div className="flex-1 min-w-0">
 															<div className="text-sm font-medium text-(--text-0) truncate">
@@ -792,14 +792,14 @@ export default function ShareModal({
 																	onClick={() => handleShareToggle(u.id, false)}
 																	className="p-1 hover:bg-red-500/20 rounded transition-colors"
 																>
-																	<X className="size-4 text-red-400" />
+																	<X className="size-4 text-(--danger-text)" />
 																</button>
 															</div>
 														) : (
 															<button
 																type="button"
 																onClick={() => handleShareToggle(u.id, true)}
-																className="px-3 py-1 text-xs bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors text-(--text-0) whitespace-nowrap"
+																className="px-3 py-1 text-xs bg-(--muted-2)/30 border border-(--card-border) rounded-lg hover:bg-(--muted-2)/55 transition-colors text-(--text-0) whitespace-nowrap"
 															>
 																Share
 															</button>
@@ -825,7 +825,7 @@ export default function ShareModal({
 											transition={{ type: "spring", bounce: 0, duration: 0.4 }}
 											className="overflow-hidden"
 										>
-											<div className="p-4 rounded-2xl border border-white/10 bg-white/5 mt-6">
+											<div className="p-4 rounded-2xl border border-(--card-border) bg-(--muted-2)/30 mt-6">
 												<div className="flex items-center gap-2 mb-4">
 													<Globe className="size-4 text-muted-foreground" />
 													<Label className="text-sm text-muted-foreground">
@@ -888,7 +888,7 @@ export default function ShareModal({
 													</div>
 												)}
 
-												<div className="mb-4 space-y-2 border-t border-white/10 pt-4">
+												<div className="mb-4 space-y-2 border-t border-(--card-border) pt-4">
 													<Label
 														htmlFor="feedback-question"
 														className="text-sm text-muted-foreground"
@@ -919,7 +919,7 @@ export default function ShareModal({
 												</div>
 
 												{visibility === "public" && (
-													<div className="space-y-4 border-t border-white/10 pt-4">
+													<div className="space-y-4 border-t border-(--card-border) pt-4">
 														<div className="flex items-center justify-between">
 															<div>
 																<div className="text-sm font-medium text-(--text-0)">
@@ -942,7 +942,7 @@ export default function ShareModal({
 															/>
 														</div>
 
-														<div className="border-t border-white/10 pt-4">
+														<div className="border-t border-(--card-border) pt-4">
 															<div className="flex items-center justify-between">
 																<div>
 																	<div className="text-sm font-medium text-(--text-0)">
@@ -1029,7 +1029,7 @@ export default function ShareModal({
 													</div>
 												)}
 												{visibility === "invite_only" && (
-													<div className="text-sm text-muted-foreground border-t border-white/10 pt-4">
+													<div className="text-sm text-muted-foreground border-t border-(--card-border) pt-4">
 														Invited users can view and add this {resourceType}{" "}
 														to their library. They will need to sign in to
 														accept the invitation.

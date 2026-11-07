@@ -258,7 +258,7 @@ export default function DraggableTile({
 				elementRef.current = node;
 			}}
 			layoutId={isRestoredFromFolder ? undefined : layoutId}
-			className={cn("relative w-40", dragged ? "z-30" : undefined)}
+			className={cn("relative w-(--tile-size)", dragged ? "z-30" : undefined)}
 			style={{
 				x,
 				y,

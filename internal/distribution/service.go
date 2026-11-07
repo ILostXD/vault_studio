@@ -139,7 +139,14 @@ func (s *Service) Resolve(ctx context.Context, userID, projectID int64) (Release
 	}
 	o := prep.Release
 	r.Title = value(o.Title, project.Name)
-	r.Artist = value(o.Artist, first(project.AuthorOverride.String, profile.DisplayName))
+	// Same fallback chain as the album page, ending at the account name, so every export agrees on the artist.
+	defaultArtist := first(project.AuthorOverride.String, profile.DisplayName)
+	if defaultArtist == "" {
+		if owner, ownerErr := s.queries.GetUserByID(ctx, project.UserID); ownerErr == nil {
+			defaultArtist = owner.Username
+		}
+	}
+	r.Artist = value(o.Artist, defaultArtist)
 	r.ReleaseType = value(o.ReleaseType, "")
 	r.ReleaseDate = value(o.ReleaseDate, project.EstimatedReleaseDate.String)
 	r.OriginalReleaseDate = value(o.OriginalReleaseDate, "")

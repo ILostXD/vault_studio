@@ -314,7 +314,7 @@ export default function EditProfileModal({
 													if (e.key === "Enter") handleSave();
 												}}
 												className="w-full bg-(--inner-card-bg) border border-(--card-border) rounded-[12px] px-4 py-3 text-(--text-0) text-base outline-none focus:border-[#555] transition-colors placeholder:text-(--text-2)"
-												style={{ caretColor: "white" }}
+												style={{ caretColor: "var(--text-0)" }}
 											/>
 										</div>
 
@@ -464,7 +464,7 @@ export default function EditProfileModal({
 										<div className="flex items-center gap-4 pt-2">
 											<Button
 												onClick={handleCancel}
-												className="flex-1 bg-[#1e1e1e] border border-[#2e2e2e] hover:bg-[#252525] active:bg-(--muted-2) text-(--text-0) rounded-xl h-[41px]"
+												className="flex-1 bg-(--muted-2) border border-(--card-border) hover:bg-(--muted-2)/70 active:bg-(--muted-2) text-(--text-0) rounded-xl h-[41px]"
 												disabled={isSaving}
 											>
 												<span className="text-sm font-semibold">Cancel</span>
@@ -473,7 +473,7 @@ export default function EditProfileModal({
 												onClick={handleSave}
 												variant={"hot"}
 												haptic="success"
-												className="flex-1 bg-[#e0e0e0] hover:bg-[#d5d5d5] active:bg-[#cacaca] text-black rounded-xl h-[41px]"
+												className="flex-1 bg-none bg-(--text-0) hover:opacity-90 active:opacity-80 text-(--bg-0) rounded-xl h-[41px]"
 												disabled={isSaving || !username.trim()}
 											>
 												<span className="text-sm font-semibold">Save</span>

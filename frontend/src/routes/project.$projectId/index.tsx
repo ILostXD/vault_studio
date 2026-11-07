@@ -753,7 +753,7 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 								className="absolute inset-0 -inset-x-20 -inset-y-25 rounded-full pointer-events-none"
 								style={{
 									background:
-										"radial-gradient(ellipse at center, #111 0%, #111 40%, transparent 70%)",
+										"radial-gradient(ellipse at center, var(--bg-0) 0%, var(--bg-0) 40%, transparent 70%)",
 								}}
 							/>
 							<p className="text-xl font-medium text-(--text-0) relative">

@@ -493,7 +493,7 @@ export default function ProjectCard({
 							: "Play"
 					}
 					className={cn(
-						"absolute -bottom-3 -right-3 z-10 border border-white/15 shadow-md transition-[opacity,transform] duration-150 active:scale-95 size-12 rounded-2xl flex items-center justify-center",
+						"absolute -bottom-2 -right-2 sm:-bottom-3 sm:-right-3 z-10 border border-white/15 shadow-md transition-[opacity,transform] duration-150 active:scale-95 size-12 rounded-2xl flex items-center justify-center",
 						isDragging || hoverAsFolder
 							? "opacity-0 pointer-events-none"
 							: undefined,

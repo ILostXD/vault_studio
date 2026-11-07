@@ -144,7 +144,7 @@ it("mounts only the viewport plus overscan, with one observer and stable slots",
 	expect(observer.options.rootMargin).toBe("600px 0px");
 	expect(container.querySelectorAll("[data-grid-slot]")).toHaveLength(200);
 	expect(screen.getByRole("group", { name: "Item 150" }).className).toContain(
-		"h-54",
+		"h-[calc(var(--tile-size)+3.5rem)]",
 	);
 
 	act(() => {

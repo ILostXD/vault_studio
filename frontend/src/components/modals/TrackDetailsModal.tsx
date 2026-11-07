@@ -422,16 +422,7 @@ function TrackDetailsModal({
 										className={`grid ${isSharedView ? "grid-cols-1" : "grid-cols-1 md:grid-cols-[2fr_3fr]"} ${isSharedView ? "max-h-auto" : "max-h-[680px] md:min-h-[560px]"} touch-pan-y overscroll-contain overflow-y-auto md:overflow-visible`}
 									>
 										<div
-											className={`flex flex-col ${isSharedView ? "px-6 py-8" : "md:p-6"}`}
-											style={{
-												borderRight: isSharedView ? "none" : "none",
-												backgroundImage: isSharedView
-													? "none"
-													: "linear-gradient(to bottom, #353333 4px, transparent 4px)",
-												backgroundSize: "1px 8px",
-												backgroundRepeat: "repeat-y",
-												backgroundPosition: "right",
-											}}
+											className={`flex flex-col ${isSharedView ? "px-6 py-8" : "md:p-6 md:bg-[linear-gradient(to_bottom,var(--card-border)_4px,transparent_4px)] md:bg-size-[1px_8px] md:bg-repeat-y md:bg-right"}`}
 										>
 											<div
 												className={`sticky top-0 z-10 ${isSharedView ? "pt-0 px-6 pb-4 md:pb-4 bg-none" : "pt-6 px-6 pb-2 md:static md:p-0 bg-linear-to-b from-(--surface-overlay-from) from-70% to-transparent md:bg-none"}`}
@@ -478,7 +469,7 @@ function TrackDetailsModal({
 																	showScrollingTitle && "text-transparent",
 																)}
 																style={{
-																	caretColor: "white",
+																	caretColor: "var(--text-0)",
 																}}
 															/>
 															<ScrollingText
@@ -584,7 +575,7 @@ function TrackDetailsModal({
 
 												{track.fileName && (
 													<p
-														className="text-sm text-muted-foreground text-center"
+														className="max-w-full text-sm text-muted-foreground text-center [overflow-wrap:anywhere]"
 														style={{
 															fontFamily: '"IBM Plex Mono", monospace',
 															fontWeight: 300,
