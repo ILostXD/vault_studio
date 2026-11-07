@@ -52,7 +52,7 @@ export function ArtistProfileSection() {
 	};
 	return (
 		<section aria-labelledby={titleId} className="min-w-0 text-(--text-0)">
-			<h2 id={titleId} className="mb-5 text-xl font-medium">
+			<h2 id={titleId} className="mb-6 text-xl font-medium">
 				Artist Profile
 			</h2>
 			{query.isPending ? (
@@ -75,7 +75,7 @@ export function ArtistProfileSection() {
 							<div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
 								<label
 									htmlFor={displayNameId}
-									className="flex flex-col gap-1.5 text-sm"
+									className="flex flex-col gap-2 text-sm"
 								>
 									<span>Artist / display name</span>
 									<Input
@@ -88,7 +88,7 @@ export function ArtistProfileSection() {
 								</label>
 								<label
 									htmlFor={legalNameId}
-									className="flex flex-col gap-1.5 text-sm"
+									className="flex flex-col gap-2 text-sm"
 								>
 									<span>Legal name</span>
 									<Input
@@ -99,7 +99,7 @@ export function ArtistProfileSection() {
 										}
 									/>
 								</label>
-								<label className="flex flex-col gap-1.5 text-sm sm:col-span-2">
+								<label className="flex flex-col gap-2 text-sm sm:col-span-2">
 									<span>Usual genre</span>
 									<Input
 										value={profile.usual_genre ?? ""}
@@ -111,6 +111,7 @@ export function ArtistProfileSection() {
 								</label>
 							</div>
 							<details
+								className="rounded-xl border border-(--card-border) bg-(--inner-card-bg)"
 								open={creditsOpen}
 								onToggle={(event) => {
 									const open = event.currentTarget.open;
@@ -121,29 +122,29 @@ export function ArtistProfileSection() {
 									);
 								}}
 							>
-								<DisclosureSummary className="-mx-2.5 sm:-mx-3">
-									Reusable credits
-								</DisclosureSummary>
-								<p className="mt-4 mb-4 text-sm text-(--text-1)">
-									These fill every track by default. Individual tracks can
-									override them during release preparation.
-								</p>
-								<CreditsEditor
-									value={profile.default_credits ?? []}
-									onChange={(default_credits) =>
-										setDraft({ ...profile, default_credits })
-									}
-								/>
-								<Button
-									type="button"
-									size="sm"
-									variant="ghost"
-									className="mt-3"
-									disabled={!profile.legal_name.trim()}
-									onClick={addLegalNameDefaults}
-								>
-									Use legal name for standard credits
-								</Button>
+								<DisclosureSummary>Reusable credits</DisclosureSummary>
+								<div className="space-y-4 px-2.5 pb-4 sm:px-3">
+									<p className="text-sm text-(--text-1)">
+										These fill every track by default. Individual tracks can
+										override them during release preparation.
+									</p>
+									<CreditsEditor
+										value={profile.default_credits ?? []}
+										onChange={(default_credits) =>
+											setDraft({ ...profile, default_credits })
+										}
+									/>
+									<Button
+										type="button"
+										size="sm"
+										variant="ghost"
+										className="h-auto px-0 py-1 text-(--text-1) hover:bg-transparent hover:text-(--text-0)"
+										disabled={!profile.legal_name.trim()}
+										onClick={addLegalNameDefaults}
+									>
+										Use legal name for standard credits
+									</Button>
+								</div>
 							</details>
 						</fieldset>
 						<AnimatePresence initial={false}>
@@ -159,7 +160,7 @@ export function ArtistProfileSection() {
 								</motion.p>
 							)}
 						</AnimatePresence>
-						<div className="flex flex-wrap items-center gap-3">
+						<div className="flex flex-wrap items-center gap-3 border-t border-(--card-border) pt-5">
 							<Button type="submit" disabled={!draft || save.isPending}>
 								<Save />
 								{save.isPending ? "Saving..." : "Save artist profile"}
