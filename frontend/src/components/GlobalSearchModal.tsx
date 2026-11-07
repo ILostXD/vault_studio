@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import fuzzysort from "fuzzysort";
 import { SearchIcon, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import * as sharingApi from "@/api/sharing";
 import * as tracksApi from "@/api/tracks";
@@ -216,12 +216,16 @@ export default function GlobalSearchModal({
 		return results;
 	}, [searchData, searchQuery, showMineOnly, showType]);
 
+	const closeSearch = useEffectEvent(() => onClose());
+	const selectResult = useEffectEvent((item: any) => handleItemSelect(item));
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: closeSearch/selectResult are useEffectEvent callbacks and must not be dependencies
 	useEffect(() => {
 		if (!isOpen) return;
 
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.key === "Escape") {
-				onClose();
+				closeSearch();
 				setSearchQuery("");
 				setSelectedSearchIndex(-1);
 			} else if (e.key === "ArrowDown") {
@@ -237,7 +241,7 @@ export default function GlobalSearchModal({
 			} else if (e.key === "Enter" && selectedSearchIndex >= 0) {
 				e.preventDefault();
 				if (filteredResults[selectedSearchIndex]) {
-					handleItemSelect(filteredResults[selectedSearchIndex]);
+					selectResult(filteredResults[selectedSearchIndex]);
 				}
 			}
 		};

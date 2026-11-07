@@ -125,7 +125,7 @@ export default function SharedProjectView({
 			playButtonBlurBase.set(3);
 		}, 500);
 		return () => clearTimeout(timer);
-	}, []);
+	}, [playButtonBlurBase]);
 
 	useLayoutEffect(() => {
 		if (!isAuthenticated) {

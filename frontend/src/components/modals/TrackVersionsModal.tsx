@@ -13,7 +13,14 @@ import {
 	X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+	useCallback,
+	useEffect,
+	useEffectEvent,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { useWebHaptics } from "web-haptics/react";
 import { getStreamUrl } from "@/api/media";
@@ -182,10 +189,13 @@ export default function TrackVersionsModal({
 
 	useBodyScrollLock(internalOpen);
 
+	const closeOnEscape = useEffectEvent(() => handleClose());
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: closeOnEscape is a useEffectEvent callback and must not be a dependency
 	useEffect(() => {
 		const handleEscape = (e: KeyboardEvent) => {
 			if (e.key === "Escape") {
-				handleClose();
+				closeOnEscape();
 			}
 		};
 

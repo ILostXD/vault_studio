@@ -13,7 +13,7 @@ import {
 	X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { getAuthHeaders, getCSRFToken } from "@/api/client";
 import { resolveApiUrl } from "@/api/server";
@@ -292,10 +292,13 @@ export default function ShareModal({
 
 	useBodyScrollLock(modalView !== "closed");
 
+	const closeOnEscape = useEffectEvent(() => handleClose());
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: closeOnEscape is a useEffectEvent callback and must not be a dependency
 	useEffect(() => {
 		const handleEscape = (e: KeyboardEvent) => {
 			if (e.key === "Escape") {
-				handleClose();
+				closeOnEscape();
 			}
 		};
 

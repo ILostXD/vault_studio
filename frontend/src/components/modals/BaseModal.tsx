@@ -38,6 +38,7 @@ export default function BaseModal({
 		if (e.key === "Escape" && !e.defaultPrevented && !disableClose) onClose();
 	});
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: onOpen/onEscape are useEffectEvent callbacks and must not be dependencies
 	useEffect(() => {
 		if (!isOpen) return;
 		onOpen();

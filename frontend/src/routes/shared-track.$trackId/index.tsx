@@ -209,8 +209,7 @@ function SharedTrackPage() {
 			playButtonBlurBase.set(3);
 		}, 500);
 		return () => clearTimeout(timer);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}, [playButtonBlurBase]);
 
 	const handleSaveTrackTitle = async () => {
 		if (!track || !canEdit || trackTitle === track.title) return;

@@ -269,7 +269,7 @@ function LoginPage() {
 				return false;
 			}
 		},
-		[serverUrlInput, showServerUrlField, verifyServer],
+		[isNative, serverUrlInput, showServerUrlField, verifyServer],
 	);
 
 	useEffect(() => {

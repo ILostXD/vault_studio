@@ -411,7 +411,7 @@ export function AudioPlayerProvider({
 				preloadedTrackIdRef.current = nextTrack.id;
 			}
 		})();
-	}, [getNextTrack]);
+	}, [getNextTrack, isAuthenticated, qualityPreference]);
 
 	useEffect(() => {
 		if (currentTrack && isPlaying) {
@@ -563,7 +563,7 @@ export function AudioPlayerProvider({
 			audioPlayerRef.current.audio.current.pause();
 			audioPlayerRef.current.audio.current.currentTime = 0;
 		}
-	}, []);
+	}, [setPreviewProgress]);
 
 	const openNowPlaying = useCallback(() => setIsNowPlayingOpen(true), []);
 	const closeNowPlaying = useCallback(() => setIsNowPlayingOpen(false), []);
@@ -1093,7 +1093,7 @@ export function AudioPlayerProvider({
 
 			setShareTokenVersion((version) => version + 1);
 		}
-	}, [isAuthenticated, clearQueue]);
+	}, [isAuthenticated, clearQueue, setPreviewProgress]);
 
 	const contextValue = useMemo(
 		() => ({
