@@ -302,7 +302,6 @@ function MiniPlayerScrubber({
 								left: `${progressForBars}%`,
 							}}
 						>
-							<div className="hidden sm:block absolute inset-0 w-1 -left-0.5 bg-accent-blue/40 blur-sm" />
 							<div className="absolute inset-0 w-0.5 bg-accent-blue rounded-full" />
 						</div>
 					</div>

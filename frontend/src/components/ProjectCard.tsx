@@ -45,6 +45,7 @@ import {
 	CROSSFADE_DURATION_MS,
 	CROSSFADE_EASING,
 } from "@/lib/constants";
+import { glassBackdrop } from "@/lib/glass";
 import { cn, plural } from "@/lib/utils";
 import { toast } from "@/routes/__root";
 import type { Project } from "@/types/api";
@@ -166,14 +167,10 @@ export default function ProjectCard({
 
 	const isAndroid =
 		Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android";
-	const [playButtonHovered, setPlayButtonHovered] = useState(false);
-	const [playButtonFocused, setPlayButtonFocused] = useState(false);
+	const [, setPlayButtonHovered] = useState(false);
+	const [, setPlayButtonFocused] = useState(false);
 	const [playButtonPressed, setPlayButtonPressed] = useState(false);
-	const showPlayFilter =
-		!isAndroid &&
-		!isDragging &&
-		!hoverAsFolder &&
-		(playButtonHovered || playButtonFocused || playButtonPressed);
+	const showPlayFilter = !isDragging && !hoverAsFolder;
 
 	const goToProject = () => {
 		navigate({
@@ -495,18 +492,16 @@ export default function ProjectCard({
 							: "Play"
 					}
 					className={cn(
-						"absolute -bottom-2 -right-2 sm:-bottom-3 sm:-right-3 z-10 border border-white/15 shadow-md transition-[opacity,transform] duration-150 active:scale-95 size-12 rounded-2xl flex items-center justify-center",
+						"glass-play absolute -bottom-2 -right-2 sm:-bottom-3 sm:-right-3 z-10 shadow-md transition-[opacity,transform] duration-150 active:scale-95 size-12 rounded-2xl flex items-center justify-center",
 						isDragging || hoverAsFolder
 							? "opacity-0 pointer-events-none"
 							: undefined,
 					)}
 					style={{
 						backdropFilter: showPlayFilter
-							? `url(#play-button-filter-${project.public_id})`
+							? glassBackdrop(`play-button-filter-${project.public_id}`)
 							: undefined,
-						backgroundColor: isAndroid
-							? "rgba(40, 39, 39, 0.9)"
-							: "rgba(40, 39, 39, 0.7)",
+						backgroundColor: "rgba(40, 39, 39, 0.7)",
 					}}
 					onClick={(e) => {
 						e.stopPropagation();

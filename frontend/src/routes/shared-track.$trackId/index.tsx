@@ -32,6 +32,7 @@ import { usePreferredKey } from "@/hooks/usePreferredKey";
 import { useProjects } from "@/hooks/useProjects";
 import { trackKeys, useTrack } from "@/hooks/useTracks";
 import { formatDurationLong, formatTrackDuration } from "@/lib/duration";
+import { glassBackdrop } from "@/lib/glass";
 import type { Project, Track } from "@/types/api";
 
 function formatDate(dateString: string | undefined | null) {
@@ -625,9 +626,11 @@ function SharedTrackPage() {
 								<motion.button
 									type="button"
 									aria-label={isTrackPlaying ? "Pause" : "Play"}
-									className="shadow-md size-12 rounded-2xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+									className="glass-play shadow-md size-12 rounded-2xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
 									style={{
-										backdropFilter: "url(#shared-track-play-button-filter)",
+										backdropFilter: glassBackdrop(
+											"shared-track-play-button-filter",
+										),
 										backgroundColor: playButtonBackgroundColor,
 										scale: playButtonScaleSpring,
 									}}

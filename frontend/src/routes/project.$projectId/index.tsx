@@ -36,6 +36,7 @@ import {
 import { useScrollToTrack } from "@/hooks/useScrollToTrack";
 import { trackKeys, useTracks } from "@/hooks/useTracks";
 import { formatDurationLong, formatTrackDuration } from "@/lib/duration";
+import { glassBackdrop } from "@/lib/glass";
 import {
 	isProjectPageArtworkMode,
 	PROJECT_PAGE_ARTWORK_MODE_KEY,
@@ -179,8 +180,8 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 	const playButton = usePlayButtonAnimation();
 	const normalizedTheme =
 		preferences?.theme === "oled" ? "black" : (preferences?.theme ?? "default");
-	const isDefaultTheme =
-		normalizedTheme !== "light" && normalizedTheme !== "black";
+	// Black theme keeps the same glass button as default; only light swaps to a white one.
+	const isDefaultTheme = normalizedTheme !== "light";
 
 	const editing = useProjectEditing({
 		project: project ?? undefined,
@@ -976,9 +977,11 @@ function ProjectPageContent({ projectId }: { projectId: string }) {
 												? "Pause"
 												: "Play"
 										}
-										className={`${isDefaultTheme ? "shadow-md" : ""} size-12 rounded-2xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed`}
+										className={`${isDefaultTheme ? "glass-play shadow-md" : ""} size-12 rounded-2xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed`}
 										style={{
-											backdropFilter: "url(#project-play-button-filter)",
+											backdropFilter: glassBackdrop(
+												"project-play-button-filter",
+											),
 											...(isDefaultTheme
 												? {
 														backgroundColor: playButton.backgroundColor,

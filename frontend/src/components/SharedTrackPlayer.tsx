@@ -708,7 +708,7 @@ export default function SharedTrackPlayer({
 									transform: "translateX(-50%)",
 								}}
 							>
-								<div className="h-full w-0.5 bg-accent-blue shadow-[0_0_10px_var(--accent-color)]" />
+								<div className="h-full w-0.5 bg-accent-blue" />
 							</div>
 							<WaveformComments
 								versionId={track.active_version_id}

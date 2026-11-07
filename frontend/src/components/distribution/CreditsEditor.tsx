@@ -128,7 +128,7 @@ export function CreditsEditor({
 					</motion.div>
 				))}
 			</AnimatePresence>
-			<div className="flex items-center pt-2">
+			<div className="flex items-center pt-1">
 				<Button
 					type="button"
 					size="sm"

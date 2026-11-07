@@ -24,6 +24,7 @@ import {
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDurationLong, formatTrackDuration } from "@/lib/duration";
+import { glassBackdrop } from "@/lib/glass";
 import { plural } from "@/lib/utils";
 import { toast } from "@/routes/__root";
 import type { Track } from "@/types/api";
@@ -429,9 +430,11 @@ export default function SharedProjectView({
 												? "Pause"
 												: "Play"
 										}
-										className="shadow-md size-12 rounded-2xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+										className="glass-play shadow-md size-12 rounded-2xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
 										style={{
-											backdropFilter: "url(#project-play-button-filter)",
+											backdropFilter: glassBackdrop(
+												"project-play-button-filter",
+											),
 											backgroundColor: playButtonBackgroundColor as any,
 											scale: playButtonScaleSpring,
 										}}

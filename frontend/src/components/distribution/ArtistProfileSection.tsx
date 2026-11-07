@@ -52,7 +52,7 @@ export function ArtistProfileSection() {
 	};
 	return (
 		<section aria-labelledby={titleId} className="min-w-0 text-(--text-0)">
-			<h2 id={titleId} className="mb-4 text-xl font-medium">
+			<h2 id={titleId} className="mb-5 text-xl font-medium">
 				Artist Profile
 			</h2>
 			{query.isPending ? (
@@ -69,11 +69,14 @@ export function ArtistProfileSection() {
 							event.preventDefault();
 							save.mutate(profile);
 						}}
-						className="space-y-4"
+						className="space-y-6"
 					>
-						<fieldset disabled={save.isPending} className="min-w-0 space-y-4">
-							<div className="grid gap-4 sm:grid-cols-2">
-								<label htmlFor={displayNameId} className="space-y-1 text-sm">
+						<fieldset disabled={save.isPending} className="min-w-0 space-y-6">
+							<div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
+								<label
+									htmlFor={displayNameId}
+									className="flex flex-col gap-1.5 text-sm"
+								>
 									<span>Artist / display name</span>
 									<Input
 										id={displayNameId}
@@ -83,7 +86,10 @@ export function ArtistProfileSection() {
 										}
 									/>
 								</label>
-								<label htmlFor={legalNameId} className="space-y-1 text-sm">
+								<label
+									htmlFor={legalNameId}
+									className="flex flex-col gap-1.5 text-sm"
+								>
 									<span>Legal name</span>
 									<Input
 										id={legalNameId}
@@ -93,7 +99,7 @@ export function ArtistProfileSection() {
 										}
 									/>
 								</label>
-								<label className="space-y-1 text-sm sm:col-span-2">
+								<label className="flex flex-col gap-1.5 text-sm sm:col-span-2">
 									<span>Usual genre</span>
 									<Input
 										value={profile.usual_genre ?? ""}
@@ -115,8 +121,10 @@ export function ArtistProfileSection() {
 									);
 								}}
 							>
-								<DisclosureSummary>Reusable credits</DisclosureSummary>
-								<p className="mt-3 mb-3 text-sm text-(--text-1)">
+								<DisclosureSummary className="-mx-2.5 sm:-mx-3">
+									Reusable credits
+								</DisclosureSummary>
+								<p className="mt-4 mb-4 text-sm text-(--text-1)">
 									These fill every track by default. Individual tracks can
 									override them during release preparation.
 								</p>
@@ -130,7 +138,7 @@ export function ArtistProfileSection() {
 									type="button"
 									size="sm"
 									variant="ghost"
-									className="mt-2"
+									className="mt-3"
 									disabled={!profile.legal_name.trim()}
 									onClick={addLegalNameDefaults}
 								>

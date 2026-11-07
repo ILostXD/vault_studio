@@ -905,3 +905,31 @@ input[type="date"]::-webkit-datetime-edit-year-field {
 .btn-danger:hover {
   background-color: var(--danger-bg-hover);
 }
+
+/* Firefox fallback: no SVG refraction, so fake the glass bevel with CSS. */
+html[data-no-svg-backdrop] .glass-play {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 0 8px rgba(255, 255, 255, 0.04),
+    0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+html[data-no-svg-backdrop] .glass-play:not(.absolute) {
+  position: relative;
+}
+/* Crisp 1.5px rim, brighter at the top and bottom edges like the SVG specular. */
+html[data-no-svg-backdrop] .glass-play::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  pointer-events: none;
+  background: linear-gradient(
+    170deg,
+    rgba(255, 255, 255, 0.28),
+    rgba(255, 255, 255, 0.06) 35%,
+    rgba(255, 255, 255, 0.04) 65%,
+    rgba(255, 255, 255, 0.2)
+  );
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}

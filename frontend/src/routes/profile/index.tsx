@@ -10,6 +10,7 @@ import {
 	updateInstanceName,
 } from "@/api/stats";
 import CDDiscBadge from "@/components/CDDiscBadge";
+import { setDynamicAccent, useDynamicAccent } from "@/components/DynamicAccent";
 import { ArtistProfileSection } from "@/components/distribution/ArtistProfileSection";
 import { TooLostSettingsSection } from "@/components/distribution/TooLostSettingsSection";
 import EditProfileModal from "@/components/modals/EditProfileModal";
@@ -65,6 +66,7 @@ function ProfilePage() {
 	const instanceNameInputRef = useRef<HTMLInputElement>(null);
 
 	const isLoading = isStatsLoading || isPrefsLoading;
+	const dynamicAccent = useDynamicAccent();
 
 	const pickerSize = 200;
 	const pickerPadding = 15;
@@ -573,7 +575,24 @@ function ProfilePage() {
 												}}
 											/>
 										</div>
-										<div className="bg-(--inner-card-bg) border border-(--card-border) rounded-[12px] p-4 flex justify-center relative overflow-hidden select-none">
+										<div className="flex items-center justify-between gap-4 bg-(--inner-card-bg) border border-(--card-border) rounded-[12px] px-4 py-3">
+											<div>
+												<p className="text-(--text-0) text-sm">Dynamic</p>
+												<p className="text-(--text-2) text-xs">
+													Match the accent to the playing album's cover
+												</p>
+											</div>
+											<Switch
+												checked={dynamicAccent}
+												onCheckedChange={setDynamicAccent}
+											/>
+										</div>
+										<div
+											className={cn(
+												"bg-(--inner-card-bg) border border-(--card-border) rounded-[12px] p-6 flex justify-center relative overflow-hidden select-none transition-opacity",
+												dynamicAccent && "opacity-40",
+											)}
+										>
 											<DotPattern
 												width={8}
 												height={8}
@@ -581,7 +600,12 @@ function ProfilePage() {
 													"mask-[radial-gradient(110px_circle_at_50%_100px,white,transparent)] z-0",
 												)}
 											/>
-											<div className="relative z-10 flex justify-center">
+											<div
+												className={cn(
+													"relative z-10 flex justify-center",
+													dynamicAccent && "pointer-events-none",
+												)}
+											>
 												<ColorPicker
 													size={pickerSize}
 													padding={pickerPadding}

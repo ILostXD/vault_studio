@@ -3,6 +3,7 @@ import { MotionConfig } from "motion/react";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import DynamicAccent from "./components/DynamicAccent";
 import { AudioPlayerProvider } from "./contexts/AudioPlayerContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ExportProvider } from "./contexts/ExportContext";
@@ -41,6 +42,7 @@ if (rootElement && !rootElement.innerHTML) {
 							<ExportProvider>
 								<MotionConfig reducedMotion="user">
 									<TooltipProvider>
+										<DynamicAccent />
 										<RouterProvider router={router} />
 									</TooltipProvider>
 								</MotionConfig>

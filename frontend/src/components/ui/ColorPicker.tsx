@@ -276,21 +276,23 @@ function ColorFormatToggle({
 
 function ColorPresetSwatches({
 	onSelect,
+	current,
 }: {
 	onSelect: (color: string) => void;
+	current?: string;
 }) {
 	return (
-		<div className="space-y-1.5 pt-2 border-t border-(--control-border-subtle)">
-			<span className="text-[10px] text-(--text-0)/40 font-mono font-medium">
+		<div className="space-y-3 pt-4 border-t border-(--control-border-subtle)">
+			<span className="block text-[10px] text-(--text-0)/40 font-mono font-medium tracking-wider">
 				DEFAULTS
 			</span>
-			<div className="flex flex-wrap gap-1.5">
+			<div className="flex flex-wrap justify-between gap-2">
 				{DEFAULT_COLORS.map((presetColor) => (
 					<button
 						key={presetColor}
 						type="button"
 						onClick={() => onSelect(presetColor)}
-						className="size-7 rounded-[10px] border border-(--button-border) shadow-sm hover:scale-105 hover:brightness-110 active:scale-95 transition-all cursor-pointer focus:outline-none focus:ring-[3px] focus:ring-[color-mix(in_oklab,var(--accent-blue)_35%,transparent)]"
+						className={`size-8 rounded-full border border-white/15 shadow-sm hover:scale-110 active:scale-95 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${current?.toLowerCase() === presetColor ? "ring-2 ring-white ring-offset-2 ring-offset-(--inner-card-bg)" : ""}`}
 						style={{ backgroundColor: presetColor }}
 						title={presetColor}
 					/>
@@ -734,26 +736,36 @@ const ColorWheelPicker = memo((props: ColorWheelPickerProps) => {
 	const color2 = hslToHex(hue2, 100, light2);
 
 	useEffect(() => {
-		const ctx = ref.current!.getContext("2d")!;
-		ctx.clearRect(0, 0, size, size);
-
-		ctx.beginPath();
-		ctx.arc(size / 2, size / 2, RADIUS, 0, Math.PI * 2);
-		ctx.clip();
-
-		for (let r = 0; r <= RADIUS; r++) {
-			for (let a = 0; a < 360; a += 1) {
-				const rad = (a * Math.PI) / 180;
-				const x = size / 2 + Math.cos(rad) * r;
-				const y = size / 2 + Math.sin(rad) * r;
-				const lightness = minLight + (maxLight - minLight) * (r / RADIUS);
-				ctx.beginPath();
-				ctx.strokeStyle = hslToHex(a, 100, lightness);
-				ctx.moveTo(x, y);
-				ctx.lineTo(x + 1, y + 1);
-				ctx.stroke();
+		// Per-pixel at device resolution: the old stroked-ray version left moire.
+		const canvas = ref.current!;
+		const ctx = canvas.getContext("2d")!;
+		const dpr = window.devicePixelRatio || 1;
+		const px = Math.round(size * dpr);
+		canvas.width = canvas.height = px;
+		const img = ctx.createImageData(px, px);
+		const c = px / 2;
+		const R = RADIUS * dpr;
+		for (let y = 0; y < px; y++) {
+			for (let x = 0; x < px; x++) {
+				const dx = x + 0.5 - c;
+				const dy = y + 0.5 - c;
+				const r = Math.sqrt(dx * dx + dy * dy);
+				if (r > R) continue;
+				let a = (Math.atan2(dy, dx) * 180) / Math.PI;
+				if (a < 0) a += 360;
+				const hex = hslToHex(
+					a,
+					100,
+					minLight + (maxLight - minLight) * (r / R),
+				);
+				const i = (y * px + x) * 4;
+				img.data[i] = parseInt(hex.slice(1, 3), 16);
+				img.data[i + 1] = parseInt(hex.slice(3, 5), 16);
+				img.data[i + 2] = parseInt(hex.slice(5, 7), 16);
+				img.data[i + 3] = Math.round(255 * Math.min(1, R - r + 0.5));
 			}
 		}
+		ctx.putImageData(img, 0, 0);
 	}, [size, RADIUS, minLight, maxLight]);
 
 	const onColorChangeRef = useRef(onColorChange);
@@ -906,9 +918,8 @@ const ColorWheelPicker = memo((props: ColorWheelPickerProps) => {
 			>
 				<canvas
 					ref={ref}
-					width={size}
-					height={size}
-					className={`rounded-full ${!showColorWheel && "opacity-0"}`}
+					style={{ width: size, height: size }}
+					className={!showColorWheel ? "opacity-0" : undefined}
 				/>
 
 				{numPoints >= 2 && (
@@ -925,7 +936,7 @@ const ColorWheelPicker = memo((props: ColorWheelPickerProps) => {
 				)}
 
 				<div
-					className="absolute rounded-full border-[3px] border-white shadow-lg cursor-grab touch-none z-30"
+					className="absolute rounded-full border-[3px] border-white shadow-[0_2px_10px_rgba(0,0,0,0.55)] cursor-grab touch-none z-30"
 					style={{
 						left: bx - bulletRadius * 0.7,
 						top: by - bulletRadius * 0.7,
@@ -1064,7 +1075,7 @@ const ColorWheelPicker = memo((props: ColorWheelPickerProps) => {
 						)}
 					</div>
 
-					<ColorPresetSwatches onSelect={applyColor} />
+					<ColorPresetSwatches onSelect={applyColor} current={color} />
 				</div>
 			)}
 		</div>
