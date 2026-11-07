@@ -28,6 +28,7 @@ type libraryManifest struct {
 	Revision    string            `json:"revision"`
 	PublishedAt string            `json:"published_at"`
 	Files       map[string]string `json:"files"`
+	Sizes       map[string]int64  `json:"sizes,omitempty"`
 	Tracks      []Track           `json:"tracks"`
 }
 
@@ -104,8 +105,38 @@ func (s *Service) libraryStatus(userID, projectID int64, revision string) Librar
 		return status
 	}
 	status.PublishedAt = manifest.PublishedAt
+	if libraryModified(root, status.Folder, manifest) {
+		status.Problem = "Files in the library folder were changed outside Vault. Move that folder aside before publishing again."
+		return status
+	}
 	status.Current = manifest.Revision == revision
 	return status
+}
+
+// libraryModified is a cheap check (names and sizes, no hashing) so every metadata read stays fast.
+// shortcut: a same-size edit is only caught by the hash check at publish time.
+func libraryModified(root *os.Root, folder string, manifest libraryManifest) bool {
+	dir, err := root.Open(folder)
+	if err != nil {
+		return true
+	}
+	entries, err := dir.ReadDir(-1)
+	dir.Close()
+	if err != nil || len(entries) != len(manifest.Files)+1 {
+		return true
+	}
+	for name, size := range manifest.Sizes {
+		info, err := root.Lstat(filepath.Join(folder, name))
+		if err != nil || info.Size() != size {
+			return true
+		}
+	}
+	for name := range manifest.Files {
+		if _, err := root.Lstat(filepath.Join(folder, name)); err != nil {
+			return true
+		}
+	}
+	return false
 }
 
 // Validate every file before replacing a previous publication. Added or edited
@@ -207,20 +238,21 @@ func (s *Service) Publish(ctx context.Context, userID, projectID int64, revision
 		return empty, err
 	}
 	defer root.RemoveAll(stage)
-	manifest := libraryManifest{UserID: userID, ProjectID: projectID, Revision: revision, PublishedAt: time.Now().UTC().Format(time.RFC3339), Files: map[string]string{}, Tracks: state.Tracks}
+	manifest := libraryManifest{UserID: userID, ProjectID: projectID, Revision: revision, PublishedAt: time.Now().UTC().Format(time.RFC3339), Files: map[string]string{}, Sizes: map[string]int64{}, Tracks: state.Tracks}
 	err = s.albumFiles(ctx, state, func(name string, source io.Reader) error {
 		file, err := root.OpenFile(filepath.Join(stage, name), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
 		if err != nil {
 			return err
 		}
 		hash := sha256.New()
-		_, copyErr := io.Copy(io.MultiWriter(file, hash), source)
+		written, copyErr := io.Copy(io.MultiWriter(file, hash), source)
 		syncErr := file.Sync()
 		closeErr := file.Close()
 		if err = errors.Join(copyErr, syncErr, closeErr); err != nil {
 			return err
 		}
 		manifest.Files[name] = hex.EncodeToString(hash.Sum(nil))
+		manifest.Sizes[name] = written
 		return nil
 	})
 	if err != nil {

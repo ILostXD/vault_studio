@@ -309,6 +309,9 @@ func TestFloatingPointWAVPreservesSamples(t *testing.T) {
 	}
 	defer result.Cleanup()
 
+	if info, statErr := os.Stat(result.Path); statErr != nil || info.Size() > int64(len(original))*12/10 {
+		t.Fatalf("32-bit float source should stay near its original size: %v %v", info, statErr)
+	}
 	if !strings.HasSuffix(result.Filename, ".wav") {
 		t.Fatalf("expected .wav filename, got %s", result.Filename)
 	}

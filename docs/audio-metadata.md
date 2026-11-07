@@ -12,7 +12,7 @@ This unified export view offers two distinct modes:
 Vault preserves your original master files at all times. For library-ready exports:
 
 - **Lossless sources (WAV, FLAC, AIFF, ALAC)**:
-  - **FLAC (Lossless)** [Default]: Integer 16/24-bit WAV, AIFF and ALAC sources are converted to FLAC with tags and artwork. Floating-point and higher-precision sources retain their sample precision through a floating-point WAV derivative instead; player support for WAV artwork varies. Check the per-track format notice.
+  - **FLAC (Lossless)** [Default]: Integer 16/24-bit WAV, AIFF and ALAC sources are converted to FLAC with tags and artwork. Floating-point and higher-precision sources retain their sample precision through a floating-point WAV derivative instead (32-bit float stays 32-bit float; wider sources use 64-bit float); player support for WAV artwork varies. Check the per-track format notice.
   - **MP3 (320 kbps)**: Re-encodes audio at 320 kbps for compatibility. Existing MP3 audio is retained without another lossy encoding pass, so its original bitrate is unchanged. File size depends on the source; re-encoding can reduce quality.
 - **Lossy sources (MP3, AAC/M4A, OGG, Opus)**:
   - Upconverting lossy audio to FLAC does not restore lost audio frequencies and only bloats file sizes. Therefore, lossy source projects only offer lossy export options (original lossy format or MP3).
@@ -32,7 +32,7 @@ For Docker, create a writable library folder on the host, then set this in `.env
 MUSIC_LIBRARY_HOST_DIR=/absolute/path/to/Music
 ```
 
-On Windows use a path such as `C:/Users/andyh/Music/Vault`. Mount it with:
+On Windows use a path such as `C:/Users/you/Music/Vault`. Mount it with:
 
 ```sh
 docker compose -f docker-compose.yml -f docker-compose.music-library.yml up -d --build
@@ -50,7 +50,7 @@ Choose **Add to music library**. Vault prepares the entire album before making i
 visible in a stable `Vault-<owner ID>-<project ID>` folder. Files have numbered song
 names and full album tags; the stable folder name prevents collisions and duplicate
 albums after renaming. A hidden manifest records versions, metadata, checksums and
-publication time. The UI shows whether the last published snapshot matches Vault.
+publication time. The UI shows whether the last published snapshot matches Vault, and flags a published folder whose files were added, removed or resized outside Vault.
 After changing tags, track order or primary versions, choose **Update music library**.
 Trigger a library scan in your music player if it does not watch for changes.
 

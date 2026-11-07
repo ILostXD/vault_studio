@@ -136,7 +136,12 @@ func (s *Service) buildResolvedTrack(ctx context.Context, track Track) (_ *Expor
 		case "mp3":
 			args = append(args, "-c:a", "libmp3lame", "-b:a", "320k")
 		case "wav":
-			args = append(args, "-c:a", "pcm_f64le")
+			// Keep 32-bit float at 32-bit; only wider sources need 64-bit float to stay lossless.
+			codec := "pcm_f64le"
+			if srcCodec, _, probeErr := s.probeAudio(ctx, selected.sourcePath); probeErr == nil && srcCodec == "pcm_f32le" {
+				codec = "pcm_f32le"
+			}
+			args = append(args, "-c:a", codec)
 		default:
 			args = append(args, "-c:a", "flac")
 		}

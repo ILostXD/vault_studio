@@ -130,6 +130,9 @@ func TestLibraryRefusesCollisionsSymlinksAndModifiedFiles(t *testing.T) {
 	if _, err = s.Publish(ctx, 1, 1, state.Revision); !errors.Is(err, ErrInvalid) {
 		t.Fatalf("modified file: %v", err)
 	}
+	if st := s.libraryStatus(1, 1, state.Revision); st.Current || st.Problem == "" {
+		t.Fatalf("status should flag the externally edited folder: %#v", st)
+	}
 }
 
 func TestAlbumMissingSourceAndDisabledLibrary(t *testing.T) {
