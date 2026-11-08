@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, LoaderCircle, Save } from "lucide-react";
+import { ExternalLink, LoaderCircle, Rocket, Save } from "lucide-react";
 import { useEffect, useId, useMemo, useState } from "react";
 import {
 	distributionKeys,
@@ -77,8 +77,11 @@ export function TooLostSettingsSection() {
 		>
 			<div className="flex items-start justify-between gap-4">
 				<div className="min-w-0">
-					<p className="text-base text-(--text-0)">Too Lost distribution</p>
-					<p className="mt-1 text-sm text-(--text-2)">
+					<p className="flex items-center gap-2.5 text-base text-(--text-0)">
+						<Rocket className="size-4.5 shrink-0 text-(--text-2)" />
+						Too Lost distribution
+					</p>
+					<p className="mt-1 pl-7 text-sm text-(--text-2)">
 						Register this {"{ vault.studio }"} instance in the Too Lost
 						Developer Portal, then enter its OAuth details here. Release Package
 						exports need no registration.

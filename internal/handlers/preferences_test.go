@@ -74,3 +74,45 @@ func TestKeyModePreferencePersistence(t *testing.T) {
 		t.Fatalf("partial update: %+v, %v", prefs, err)
 	}
 }
+
+func TestDynamicAccentPreferencePersistence(t *testing.T) {
+	database, err := db.New(db.Config{DataDir: t.TempDir(), DBFile: "vault.db", MigrationsPath: "../../migrations"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	ctx := context.Background()
+	user, err := database.CreateUser(ctx, sqlc.CreateUserParams{Username: "artist", PasswordHash: "unused"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := database.CreateUserPreferences(ctx, sqlc.CreateUserPreferencesParams{UserID: user.ID, DefaultQuality: "source"}); err != nil {
+		t.Fatal(err)
+	}
+	put := func(body string) PreferencesResponse {
+		r := httptest.NewRequest("PUT", "/api/preferences", strings.NewReader(body))
+		r = r.WithContext(context.WithValue(ctx, middleware.UserIDKey, int(user.ID)))
+		w := httptest.NewRecorder()
+		if err := NewPreferencesHandler(database).UpdatePreferences(w, r); err != nil {
+			t.Fatal(err)
+		}
+		var resp PreferencesResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatal(err)
+		}
+		return resp
+	}
+	if put(`{"theme":"light"}`).DynamicAccent {
+		t.Fatal("dynamic accent should default to off")
+	}
+	if !put(`{"dynamic_accent":true}`).DynamicAccent {
+		t.Fatal("dynamic accent did not turn on")
+	}
+	// Unrelated updates must not reset it.
+	if !put(`{"theme":"black"}`).DynamicAccent {
+		t.Fatal("dynamic accent was reset by an unrelated update")
+	}
+	if put(`{"dynamic_accent":false}`).DynamicAccent {
+		t.Fatal("dynamic accent did not turn off")
+	}
+}

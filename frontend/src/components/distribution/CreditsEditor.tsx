@@ -131,9 +131,7 @@ export function CreditsEditor({
 			<div className="flex items-center pt-2">
 				<Button
 					type="button"
-					size="sm"
-					variant="outline"
-					className="gap-1.5"
+					className="gap-1.5 bg-(--muted-2) rounded-[7px] px-4 py-1 text-(--text-0) text-sm font-medium h-auto hover:bg-(--muted-1)"
 					onClick={() => {
 						rowKeys.current.push(`${id}-credit-${nextKey.current++}`);
 						onChange([...value, { name: "", role: "" }]);

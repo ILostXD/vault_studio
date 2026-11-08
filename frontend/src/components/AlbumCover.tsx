@@ -204,9 +204,7 @@ export default function AlbumCover({
 						decoding="async"
 					/>
 				) : (
-					<div className="w-full h-full bg-(--bg-2) flex items-center justify-center text-(--text-0)/30 text-7xl font-bold">
-						{title.charAt(0).toUpperCase()}
-					</div>
+					<div className="w-full h-full bg-(--bg-2) flex items-center justify-center"></div>
 				)}
 
 				{motionUrl && (

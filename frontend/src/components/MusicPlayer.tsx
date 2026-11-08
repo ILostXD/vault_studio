@@ -389,7 +389,6 @@ export default function MusicPlayer({
 	const [popoverTarget, setPopoverTarget] = useState<HTMLDivElement | null>(
 		null,
 	);
-	const [arrowLeft, setArrowLeft] = useState<number | null>(null);
 	const commentsButtonRef = useRef<HTMLButtonElement | null>(null);
 	const queueButtonRef = useRef<HTMLButtonElement | null>(null);
 	const popoverContainerRef = useRef<HTMLDivElement | null>(null);
@@ -635,34 +634,6 @@ export default function MusicPlayer({
 	}, [isMobileScreen, isVolumePopupOpen]);
 
 	useEffect(() => {
-		if (!isQueueOpen && !isCommentsOpen) {
-			setArrowLeft(null);
-			return;
-		}
-
-		const updateArrow = () => {
-			const activeButton = isQueueOpen
-				? queueButtonRef.current
-				: commentsButtonRef.current;
-			const container = popoverContainerRef.current;
-			if (!activeButton || !container) return;
-
-			const bRect = activeButton.getBoundingClientRect();
-			const cRect = container.getBoundingClientRect();
-			const offset = bRect.left + bRect.width / 2 - cRect.left;
-			const clamped = Math.max(24, Math.min(cRect.width - 24, offset));
-			setArrowLeft(clamped);
-		};
-
-		const rId = requestAnimationFrame(updateArrow);
-		window.addEventListener("resize", updateArrow);
-		return () => {
-			cancelAnimationFrame(rId);
-			window.removeEventListener("resize", updateArrow);
-		};
-	}, [isQueueOpen, isCommentsOpen]);
-
-	useEffect(() => {
 		if (!isQueueOpen && !isCommentsOpen) return;
 
 		const handleKeyDown = (event: KeyboardEvent) => {
@@ -777,6 +748,8 @@ export default function MusicPlayer({
 						: 0;
 
 				const clampedTime = Math.min(actualTime, audioDuration);
+				// While visible and playing, the rAF loop owns progress; this coarse tick would make it jump back.
+				if (!audio.paused && !document.hidden) return;
 				if (pendingSeekPositionRef.current === null && !isDraggingRef.current) {
 					onProgressUpdate(clampedTime);
 				}
@@ -800,16 +773,13 @@ export default function MusicPlayer({
 
 	useEffect(() => {
 		if (!isPlaying) return;
-		let lastUpdate = -Infinity;
+		// audio.currentTime only advances in coarse steps, so extrapolate between
+		// steps with the frame clock and re-anchor whenever the audio clock moves.
+		let anchorAudioTime = -1;
+		let anchorStamp = 0;
 		const updateTime = (timestamp: number) => {
 			rafIdRef.current = requestAnimationFrame(updateTime);
-			if (
-				!audioRef.current ||
-				document.hidden ||
-				timestamp - lastUpdate < 1000 / 30
-			)
-				return;
-			lastUpdate = timestamp;
+			if (!audioRef.current || document.hidden) return;
 
 			const a = audioRef.current;
 			const audioDuration =
@@ -820,8 +790,14 @@ export default function MusicPlayer({
 				onProgressUpdate(preview);
 			} else if (!isDraggingRef.current) {
 				const actualTime = !Number.isNaN(a.currentTime) ? a.currentTime : 0;
-				const clampedTime = Math.min(actualTime, audioDuration);
-				onProgressUpdate(clampedTime);
+				if (actualTime !== anchorAudioTime) {
+					anchorAudioTime = actualTime;
+					anchorStamp = timestamp;
+				}
+				// shortcut: extrapolation capped at 250ms so a stalled buffer can't run ahead; raise if audio clock steps are coarser.
+				const elapsed = Math.min((timestamp - anchorStamp) / 1000, 0.25);
+				const estimate = actualTime + (a.paused ? 0 : elapsed * a.playbackRate);
+				onProgressUpdate(Math.min(estimate, audioDuration));
 			}
 		};
 
@@ -1587,16 +1563,6 @@ export default function MusicPlayer({
 										className="flex-1 min-h-0 overflow-hidden flex flex-col p-4 sm:p-5"
 									/>
 								</div>
-
-								{arrowLeft !== null && (
-									<div
-										className="pointer-events-none absolute -bottom-2 size-4 -translate-x-1/2 rotate-45 border-r border-b border-(--card-border) shadow-md"
-										style={{
-											left: `${arrowLeft}px`,
-											backgroundColor: "var(--surface-overlay-from)",
-										}}
-									/>
-								)}
 							</motion.div>
 						)}
 					</AnimatePresence>

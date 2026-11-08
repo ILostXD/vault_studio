@@ -250,7 +250,7 @@ function WaveformCommentsComponent({
 							data-testid="comments-scroll-container"
 							className={
 								embedded
-									? `${fillEmbedded ? "min-h-0 flex-1" : "max-h-[72dvh]"} w-full overflow-y-auto overscroll-contain touch-pan-y pr-2 ${placement === "fullscreen" ? "text-white" : "text-(--text-0)"}`
+									? `${fillEmbedded ? "min-h-0 flex-1" : "max-h-[72dvh]"} flex w-full flex-col overflow-y-auto overscroll-contain touch-pan-y ${placement === "fullscreen" ? "rounded-3xl border border-white/10 bg-black/30 p-5 text-white backdrop-blur-xl" : "pr-2 text-(--text-0)"}`
 									: "relative w-full max-w-lg max-h-[min(82dvh,680px)] overflow-y-auto overscroll-contain touch-pan-y rounded-2xl border border-(--card-border) bg-background p-5 text-(--text-0) shadow-2xl"
 							}
 							style={
@@ -268,7 +268,7 @@ function WaveformCommentsComponent({
 							}
 							onMouseDown={(event) => event.stopPropagation()}
 						>
-							<header className="mb-6 flex items-center justify-between gap-3">
+							<header className="mb-4 flex items-center justify-between gap-3">
 								<div>
 									<h2
 										id={titleId}
@@ -283,8 +283,11 @@ function WaveformCommentsComponent({
 									>
 										Comments
 									</h2>
-									<p className="text-sm text-muted-foreground">
-										New comment at {formatTime(Math.min(currentTime, duration))}
+									<p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+										New comment at
+										<span className="rounded-full bg-accent-blue/25 px-2 py-0.5 font-medium tabular-nums text-(--text-0)">
+											{formatTime(Math.min(currentTime, duration))}
+										</span>
 									</p>
 								</div>
 								<Button
@@ -305,11 +308,18 @@ function WaveformCommentsComponent({
 								</Button>
 							</header>
 
-							<div className="mb-5 space-y-3">
+							<div className="mb-4 flex flex-1 flex-col gap-3">
 								{comments.length === 0 ? (
-									<p className="py-6 text-center text-sm text-muted-foreground">
-										No feedback yet.
-									</p>
+									<div className="my-auto flex flex-col items-center gap-2 py-4 text-center">
+										<span className="grid size-11 place-items-center rounded-full bg-accent-blue/25 text-(--text-0)">
+											<MessageSquare className="size-5" />
+										</span>
+										<p className="text-sm font-medium">No feedback yet.</p>
+										<p className="max-w-[16rem] text-xs text-muted-foreground">
+											Comments pin to the moment you leave them, so you can jump
+											back to it.
+										</p>
+									</div>
 								) : (
 									comments.map((comment) => {
 										const isOwn = Boolean(user && comment.user_id === user.id);
@@ -330,14 +340,17 @@ function WaveformCommentsComponent({
 												<div className="flex items-center gap-2">
 													<button
 														type="button"
-														className="min-w-0 flex-1 text-left"
+														className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
 														onClick={() => onSeek(comment.timestamp_seconds)}
 													>
-														<span className="text-xs text-accent-blue">
-															{formatTime(comment.timestamp_seconds)}
+														<span className="grid size-7 shrink-0 place-items-center rounded-full bg-accent-blue/30 text-xs font-semibold uppercase text-(--text-0)">
+															{comment.author_name.charAt(0)}
 														</span>
-														<span className="ml-2 text-sm font-medium">
+														<span className="min-w-0 truncate text-sm font-medium">
 															{comment.author_name}
+														</span>
+														<span className="ml-auto shrink-0 rounded-full bg-accent-blue/25 px-2 py-0.5 text-xs tabular-nums text-(--text-0)">
+															{formatTime(comment.timestamp_seconds)}
 														</span>
 													</button>
 													{isOwn && !isEditing && !isDeleting && (
@@ -434,7 +447,7 @@ function WaveformCommentsComponent({
 												) : (
 													<button
 														type="button"
-														className="mt-1 w-full text-left"
+														className="mt-2 w-full text-left"
 														onClick={() => onSeek(comment.timestamp_seconds)}
 													>
 														<p className="text-sm text-(--text-1) whitespace-pre-wrap break-words">
@@ -472,7 +485,7 @@ function WaveformCommentsComponent({
 									value={text}
 									onChange={(event) => setText(event.target.value)}
 									maxLength={2000}
-									rows={3}
+									rows={embedded ? 2 : 3}
 									placeholder="Leave feedback..."
 									aria-label="Comment"
 									required
@@ -486,6 +499,13 @@ function WaveformCommentsComponent({
 								<Button
 									type="submit"
 									className="w-full"
+									style={{
+										background: "var(--accent-blue)",
+										// Black on light accents, white on dark ones.
+										color:
+											"oklch(from var(--accent-blue) clamp(0, (0.68 - l) * 1000, 1) 0 0)",
+										border: 0,
+									}}
 									disabled={
 										isSaving ||
 										!text.trim() ||

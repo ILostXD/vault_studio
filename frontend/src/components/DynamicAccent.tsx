@@ -1,37 +1,8 @@
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect } from "react";
 import { resolveApiMediaUrl } from "@/api/media";
+import { getCoverAccent } from "@/api/preferences";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 import { usePreferences } from "@/contexts/PreferencesContext";
-
-const KEY = "vault:dynamic-accent";
-const EVENT = "vault:dynamic-accent-change";
-
-// shortcut: per-device (localStorage), not synced to the server; add a preference column to sync.
-function read() {
-	try {
-		return window.localStorage.getItem(KEY) === "true";
-	} catch {
-		return false;
-	}
-}
-
-export function setDynamicAccent(on: boolean) {
-	try {
-		window.localStorage.setItem(KEY, String(on));
-	} catch {}
-	window.dispatchEvent(new Event(EVENT));
-}
-
-export function useDynamicAccent() {
-	return useSyncExternalStore(
-		(cb) => {
-			window.addEventListener(EVENT, cb);
-			return () => window.removeEventListener(EVENT, cb);
-		},
-		read,
-		() => false,
-	);
-}
 
 function toHex(r: number, g: number, b: number) {
 	return `#${[r, g, b].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("")}`;
@@ -94,9 +65,10 @@ async function dominantColor(url: string): Promise<string | null> {
 }
 
 export default function DynamicAccent() {
-	const enabled = useDynamicAccent();
-	const { accentColor } = usePreferences();
+	const { accentColor, preferences } = usePreferences();
+	const enabled = preferences?.dynamic_accent === true;
 	const { currentTrack } = useAudioPlayer();
+	const projectId = currentTrack?.projectId;
 	const cover = currentTrack?.projectCoverUrl ?? currentTrack?.coverUrl;
 
 	useEffect(() => {
@@ -107,13 +79,20 @@ export default function DynamicAccent() {
 			return;
 		}
 		let cancelled = false;
-		dominantColor(url).then((color) => {
-			if (!cancelled) root.setProperty("--accent-color", color ?? accentColor);
-		});
+		// Server colour first so every device matches; local extraction only as a fallback (e.g. shared projects).
+		const server = projectId
+			? getCoverAccent(projectId).catch(() => null)
+			: Promise.resolve(null);
+		server
+			.then((color) => color ?? dominantColor(url))
+			.then((color) => {
+				if (!cancelled)
+					root.setProperty("--accent-color", color ?? accentColor);
+			});
 		return () => {
 			cancelled = true;
 		};
-	}, [enabled, cover, accentColor]);
+	}, [enabled, cover, projectId, accentColor]);
 
 	return null;
 }

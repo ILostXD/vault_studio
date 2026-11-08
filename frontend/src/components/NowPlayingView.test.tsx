@@ -202,7 +202,7 @@ vi.mock("@/components/WaveformComments", () => ({
 
 describe("NowPlayingView Fullscreen QoL", () => {
 	it.each(["desktop", "mobile"] as const)(
-		"scopes black surfaces and the preferred accent to %s fullscreen",
+		"scopes black surfaces to %s fullscreen and inherits the accent",
 		(variant) => {
 			const root = document.documentElement;
 			const previous = root.className;
@@ -217,7 +217,8 @@ describe("NowPlayingView Fullscreen QoL", () => {
 			expect(root.className).toBe("dark");
 			const dialog = screen.getByRole("dialog");
 			expect(dialog.classList.contains("black")).toBe(true);
-			expect(dialog.style.getPropertyValue("--accent-color")).toBe("#a020f0");
+			// Accent is inherited from :root so dynamic accent applies in fullscreen too.
+			expect(dialog.style.getPropertyValue("--accent-color")).toBe("");
 			expect(dialog.style.colorScheme).toBe("dark");
 			expect(dialog.querySelector('[class*="shadow-[0_0_8px"]')).toBeNull();
 			view.unmount();
@@ -542,7 +543,7 @@ describe("NowPlayingView Fullscreen QoL", () => {
 				"fullscreen",
 			);
 			expect(waveformComments.getAttribute("data-version")).toBe("42");
-			expect(waveformComments.getAttribute("data-fill-embedded")).toBe("false");
+			expect(waveformComments.getAttribute("data-fill-embedded")).toBe("true");
 		});
 
 		it("9. closes the active panel before collapsing fullscreen", async () => {

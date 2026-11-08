@@ -66,7 +66,7 @@ export default function FluidArtworkBackground({
 		() => ({
 			animation: shouldReduceMotion
 				? "none"
-				: "vault-fluid-spin-ccw 14s linear infinite",
+				: "vault-fluid-spin-ccw 25s linear infinite",
 			animationPlayState: animPlayState,
 			willChange: "transform",
 		}),
@@ -77,7 +77,7 @@ export default function FluidArtworkBackground({
 		() => ({
 			animation: shouldReduceMotion
 				? "none"
-				: "vault-fluid-spin-cw 18s linear infinite",
+				: "vault-fluid-spin-cw 32s linear infinite",
 			animationPlayState: animPlayState,
 			willChange: "transform",
 		}),
@@ -88,7 +88,7 @@ export default function FluidArtworkBackground({
 		() => ({
 			animation: shouldReduceMotion
 				? "none"
-				: "vault-fluid-spin-cw 8s linear infinite",
+				: "vault-fluid-spin-cw 14s linear infinite",
 			animationPlayState: animPlayState,
 			willChange: "transform",
 		}),
@@ -99,7 +99,7 @@ export default function FluidArtworkBackground({
 		() => ({
 			animation: shouldReduceMotion
 				? "none"
-				: "vault-fluid-spin-cw 10s linear infinite",
+				: "vault-fluid-spin-cw 18s linear infinite",
 			animationPlayState: animPlayState,
 			willChange: "transform",
 		}),
@@ -110,7 +110,7 @@ export default function FluidArtworkBackground({
 		() => ({
 			animation: shouldReduceMotion
 				? "none"
-				: "vault-fluid-spin-ccw 11s linear infinite",
+				: "vault-fluid-spin-ccw 20s linear infinite",
 			animationPlayState: animPlayState,
 			willChange: "transform",
 		}),
@@ -121,7 +121,7 @@ export default function FluidArtworkBackground({
 		() => ({
 			animation: shouldReduceMotion
 				? "none"
-				: "vault-fluid-spin-cw 9s linear infinite",
+				: "vault-fluid-spin-cw 16s linear infinite",
 			animationPlayState: animPlayState,
 			willChange: "transform",
 		}),
@@ -132,7 +132,7 @@ export default function FluidArtworkBackground({
 		() => ({
 			animation: shouldReduceMotion
 				? "none"
-				: "vault-fluid-drift-1 11s ease-in-out infinite",
+				: "vault-fluid-drift-1 20s ease-in-out infinite",
 			animationPlayState: animPlayState,
 			willChange: "transform",
 		}),
@@ -143,7 +143,7 @@ export default function FluidArtworkBackground({
 		() => ({
 			animation: shouldReduceMotion
 				? "none"
-				: "vault-fluid-drift-2 13s ease-in-out infinite",
+				: "vault-fluid-drift-2 23s ease-in-out infinite",
 			animationPlayState: animPlayState,
 			willChange: "transform",
 		}),

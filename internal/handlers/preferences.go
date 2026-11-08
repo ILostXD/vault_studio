@@ -24,6 +24,7 @@ type PreferencesResponse struct {
 	SystemDarkTheme    string    `json:"system_dark_theme"`
 	CommentsEnabled    bool      `json:"comments_enabled"`
 	KeyModePreference  string    `json:"key_mode_preference"`
+	DynamicAccent      bool      `json:"dynamic_accent"`
 	CreatedAt          string    `json:"created_at"`
 	UpdatedAt          string    `json:"updated_at"`
 }
@@ -45,6 +46,7 @@ func toPreferencesResponse(prefs sqlc.UserPreference) PreferencesResponse {
 		SystemDarkTheme:   prefs.SystemDarkTheme,
 		CommentsEnabled:   prefs.CommentsEnabled,
 		KeyModePreference: prefs.KeyModePreference,
+		DynamicAccent:     prefs.DynamicAccent,
 		CreatedAt:         prefs.CreatedAt.Time.Format(time.RFC3339),
 		UpdatedAt:         prefs.UpdatedAt.Time.Format(time.RFC3339),
 	}
@@ -172,6 +174,10 @@ func (h *PreferencesHandler) UpdatePreferences(w http.ResponseWriter, r *http.Re
 
 	if req.SystemDarkTheme != nil {
 		params.SystemDarkTheme = sql.NullString{String: *req.SystemDarkTheme, Valid: true}
+	}
+
+	if req.DynamicAccent != nil {
+		params.DynamicAccent = sql.NullBool{Bool: *req.DynamicAccent, Valid: true}
 	}
 
 	if req.CommentsEnabled != nil {

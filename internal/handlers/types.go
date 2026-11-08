@@ -62,6 +62,7 @@ type UpdatePreferencesRequest struct {
 	SystemDarkTheme    *string         `json:"system_dark_theme,omitempty"`
 	CommentsEnabled    *bool           `json:"comments_enabled,omitempty"`
 	KeyModePreference  *string         `json:"key_mode_preference,omitempty"`
+	DynamicAccent      *bool           `json:"dynamic_accent,omitempty"`
 }
 
 type CreateProjectRequest struct {

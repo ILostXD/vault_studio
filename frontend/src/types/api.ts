@@ -30,6 +30,7 @@ export interface UserPreferences {
 	theme?: string;
 	system_dark_theme?: string;
 	comments_enabled?: boolean;
+	dynamic_accent?: boolean;
 	key_mode_preference?: KeyModePreference;
 	created_at: string;
 	updated_at: string;
@@ -158,6 +159,7 @@ export interface UpdatePreferencesRequest {
 	theme?: string;
 	system_dark_theme?: string;
 	comments_enabled?: boolean;
+	dynamic_accent?: boolean;
 	key_mode_preference?: KeyModePreference;
 }
 

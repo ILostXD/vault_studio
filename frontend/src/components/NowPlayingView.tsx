@@ -14,13 +14,11 @@ import {
 	Menu,
 	MessageSquare,
 	MoreHorizontal,
-	Pause,
-	Play,
+	Pause as PauseIcon,
+	Play as PlayIcon,
 	Repeat,
 	Repeat1,
 	Shuffle,
-	SkipBack,
-	SkipForward,
 	Trash2,
 	X,
 } from "lucide-react";
@@ -41,9 +39,15 @@ import {
 	useEffect,
 	useLayoutEffect,
 	useMemo,
+	useRef,
 	useState,
 } from "react";
 import { createPortal } from "react-dom";
+import {
+	type AnimatedIconHandle,
+	AnimatedSkipBackIcon,
+	AnimatedSkipForwardIcon,
+} from "@/components/AnimatedSkipIcons";
 import FluidArtworkBackground from "@/components/motion/FluidArtworkBackground";
 import MotionArtworkStage, {
 	MotionArtworkFlowBackground,
@@ -105,6 +109,56 @@ interface PlaybackWaveformProps {
 	duration: number;
 	progress: number;
 	onSeek: (time: number) => void;
+}
+
+// Same prev / play / next controls as the miniplayer, just larger.
+function PrimaryTransport({ large }: { large: boolean }) {
+	const { previousTrack, nextTrack, isPlaying, pause, resume } =
+		useAudioPlayer();
+	const backRef = useRef<AnimatedIconHandle>(null);
+	const forwardRef = useRef<AnimatedIconHandle>(null);
+	const button =
+		"player-icon-control flex size-14 items-center justify-center rounded-full text-white hover:text-white/70 cursor-pointer";
+	const skipIcon = large ? "size-9" : "size-8";
+	const playIcon = large ? "size-9" : "size-8";
+	return (
+		<>
+			<button
+				type="button"
+				className={button}
+				onClick={() => {
+					previousTrack();
+					backRef.current?.play();
+				}}
+				aria-label="Previous track"
+			>
+				<AnimatedSkipBackIcon ref={backRef} className={skipIcon} />
+			</button>
+			<button
+				type="button"
+				className={button}
+				onClick={isPlaying ? pause : resume}
+				aria-label={isPlaying ? "Pause" : "Play"}
+			>
+				{isPlaying ? (
+					<PauseIcon className={cn(playIcon, "fill-current")} />
+				) : (
+					<PlayIcon className={cn(playIcon, "fill-current")} />
+				)}
+			</button>
+			<button
+				type="button"
+				className={button}
+				onClick={() => {
+					nextTrack();
+					forwardRef.current?.play();
+				}}
+				aria-label="Next track"
+			>
+				<AnimatedSkipForwardIcon ref={forwardRef} className={skipIcon} />
+			</button>
+		</>
+	);
 }
 
 function PlaybackWaveform({
@@ -193,7 +247,7 @@ function PlaybackTimeline({
 	const progress = duration > 0 ? Math.min(previewProgress, duration) : 0;
 	return (
 		<div
-			className={cn("relative w-full", !mobile && "mt-6")}
+			className={cn("relative w-full", !mobile && "mt-4")}
 			data-testid={mobile ? "mobile-playback-waveform" : undefined}
 		>
 			{versionId && (
@@ -207,7 +261,7 @@ function PlaybackTimeline({
 					onOpenChange={onCommentsOpenChange}
 					showButton={false}
 					embedded
-					fillEmbedded={mobile}
+					fillEmbedded
 					panelTarget={panelTarget}
 				/>
 			)}
@@ -241,10 +295,6 @@ export default function NowPlayingView({
 		currentTrack,
 		isPlaying,
 		duration,
-		pause,
-		resume,
-		previousTrack,
-		nextTrack,
 		seekTo,
 		loopMode,
 		toggleLoop,
@@ -259,10 +309,9 @@ export default function NowPlayingView({
 		clearQueue,
 	} = useAudioPlayer();
 	const navigate = useNavigate();
-	const { preferences, accentColor } = usePreferences();
+	const { preferences } = usePreferences();
 	const fullscreenTheme = {
 		colorScheme: "dark",
-		"--accent-color": accentColor,
 	} as CSSProperties;
 	const isPresent = useIsPresent();
 	const [hasEntered, setHasEntered] = useState(false);
@@ -277,6 +326,17 @@ export default function NowPlayingView({
 	const [activePanel, setActivePanel] = useState<FullscreenPanel | null>(() =>
 		variant === "desktop" && getFullscreenDesktopQueueOpen() ? "queue" : null,
 	);
+	// The desktop side panels match the left column's height, like the queue.
+	const [leftCol, setLeftCol] = useState<HTMLDivElement | null>(null);
+	const [leftHeight, setLeftHeight] = useState<number | null>(null);
+	useEffect(() => {
+		if (!leftCol || typeof ResizeObserver === "undefined") return;
+		const observer = new ResizeObserver(() =>
+			setLeftHeight(leftCol.offsetHeight),
+		);
+		observer.observe(leftCol);
+		return () => observer.disconnect();
+	}, [leftCol]);
 	const [commentsPanelTarget, setCommentsPanelTarget] =
 		useState<HTMLDivElement | null>(null);
 	const [mobileQueueTarget, setMobileQueueTarget] =
@@ -452,12 +512,12 @@ export default function NowPlayingView({
 						type="button"
 						variant="ghost"
 						size="icon-lg"
-						className="size-12 rounded-full bg-black/35 text-white shadow-lg ring-1 ring-white/15 backdrop-blur-xl hover:bg-white hover:text-black"
+						className="size-10 rounded-full bg-black/20 text-white/75 backdrop-blur-md hover:bg-black/40 hover:text-white"
 						onClick={closeNowPlaying}
 						aria-label="Collapse Now Playing"
 						title="Collapse Now Playing"
 					>
-						<ChevronDown className="size-7" />
+						<ChevronDown className="size-5" />
 					</Button>
 				</div>
 
@@ -467,12 +527,13 @@ export default function NowPlayingView({
 							initial={false}
 							animate={{ x: activePanel ? "-22vw" : "0vw" }}
 							transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-							className="flex w-[min(36rem,44vw)] flex-col items-center will-change-transform"
+							ref={setLeftCol}
+							className="flex w-[min(58dvh,34vw,40rem)] flex-col items-stretch will-change-transform"
 						>
 							<div
 								data-testid="playback-artwork"
 								data-playing={isPlaying}
-								className="playback-artwork relative size-[min(54dvh,32vw,36rem)] max-w-full shrink-0 overflow-hidden rounded-lg shadow-2xl"
+								className="playback-artwork relative size-[min(58dvh,34vw,40rem)] max-w-full shrink-0 overflow-hidden rounded-lg shadow-2xl"
 							>
 								<MotionArtworkStage
 									active={artworkActive}
@@ -482,8 +543,8 @@ export default function NowPlayingView({
 								/>
 							</div>
 
-							<div className="relative mt-7 w-full px-28 text-center">
-								<div className="absolute left-0 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
+							<div className="mt-4 flex w-full items-center gap-3">
+								<div className="order-2 ml-auto flex items-center gap-1.5">
 									{isCommentsEnabled && activeVersionId && (
 										<Button
 											type="button"
@@ -521,14 +582,14 @@ export default function NowPlayingView({
 									</Button>
 								</div>
 
-								<h2 className="truncate text-xl font-semibold">
-									{currentTrack.title}
-								</h2>
-								<p className="mt-1 truncate text-base text-white/60">
-									{artist}
-								</p>
+								<div className="order-1 min-w-0 flex-1 text-left">
+									<h2 className="truncate text-lg font-semibold">
+										{currentTrack.title}
+									</h2>
+									<p className="truncate text-base text-white/60">{artist}</p>
+								</div>
 
-								<div className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
+								<div className="order-3 flex items-center gap-1.5">
 									<Button
 										type="button"
 										variant="ghost"
@@ -559,7 +620,7 @@ export default function NowPlayingView({
 								panelTarget={commentsPanelTarget}
 							/>
 
-							<div className="fullscreen-transport mt-5 flex w-full items-center justify-between">
+							<div className="fullscreen-transport mt-3 flex w-full items-center justify-between">
 								<Button
 									type="button"
 									variant="ghost"
@@ -574,41 +635,7 @@ export default function NowPlayingView({
 								>
 									<Shuffle className="size-5" />
 								</Button>
-								<Button
-									type="button"
-									variant="ghost"
-									size="icon-lg"
-									className="size-12 rounded-full text-white"
-									onClick={previousTrack}
-									aria-label="Previous track"
-								>
-									<SkipBack className="size-7 fill-current" />
-								</Button>
-								<Button
-									type="button"
-									variant="ghost"
-									size="icon-lg"
-									className="size-16 rounded-full border-0 text-black shadow-xl hover:brightness-90"
-									style={{ background: "#ffffff", border: 0 }}
-									onClick={isPlaying ? pause : resume}
-									aria-label={isPlaying ? "Pause" : "Play"}
-								>
-									{isPlaying ? (
-										<Pause className="size-7 fill-current" />
-									) : (
-										<Play className="ml-1 size-7 fill-current" />
-									)}
-								</Button>
-								<Button
-									type="button"
-									variant="ghost"
-									size="icon-lg"
-									className="size-12 rounded-full text-white"
-									onClick={nextTrack}
-									aria-label="Next track"
-								>
-									<SkipForward className="size-7 fill-current" />
-								</Button>
+								<PrimaryTransport large={false} />
 								<Button
 									type="button"
 									variant="ghost"
@@ -629,7 +656,10 @@ export default function NowPlayingView({
 							</div>
 						</motion.div>
 
-						<div className="pointer-events-none absolute inset-y-0 right-0 flex w-[min(38rem,40vw)] items-center">
+						<div
+							className="pointer-events-none absolute right-0 top-1/2 flex w-[min(38rem,40vw)] -translate-y-1/2 items-stretch"
+							style={{ height: leftHeight ?? "72dvh" }}
+						>
 							<AnimatePresence initial={false} mode="popLayout">
 								{isQueueOpen && (
 									<motion.aside
@@ -641,7 +671,7 @@ export default function NowPlayingView({
 											duration: 0.2,
 											ease: [0.22, 1, 0.36, 1],
 										}}
-										className="pointer-events-auto flex max-h-[72dvh] w-full flex-col overflow-hidden"
+										className="pointer-events-auto flex h-full w-full flex-col overflow-hidden"
 										data-testid="fullscreen-side-panel"
 									>
 										<div className="mb-6 flex items-end justify-between gap-4">
@@ -864,7 +894,7 @@ export default function NowPlayingView({
 										animate={{ opacity: 1, x: 0 }}
 										exit={{ opacity: 0, x: 24 }}
 										transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-										className="pointer-events-auto flex max-h-[72dvh] w-full flex-col overflow-hidden"
+										className="pointer-events-auto flex h-full w-full flex-col overflow-hidden"
 										data-testid="fullscreen-side-panel"
 									>
 										<Suspense
@@ -890,12 +920,12 @@ export default function NowPlayingView({
 										animate={{ opacity: 1, x: 0 }}
 										exit={{ opacity: 0, x: 24 }}
 										transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-										className="pointer-events-auto flex max-h-[72dvh] w-full overflow-hidden"
+										className="pointer-events-auto flex h-full w-full overflow-hidden"
 										data-testid="fullscreen-side-panel"
 									>
 										<div
 											ref={setCommentsPanelTarget}
-											className="w-full max-h-full"
+											className="h-full w-full"
 										/>
 									</motion.aside>
 								)}
@@ -954,8 +984,8 @@ export default function NowPlayingView({
 					/>
 				)}
 
-				<div className="mobile-fullscreen-layout absolute inset-0 z-10 grid grid-rows-[auto_minmax(0,1fr)_auto] px-6 pb-[calc(env(safe-area-inset-bottom)+2rem)] pt-[max(calc(env(safe-area-inset-top)+0.75rem),2.75rem)]">
-					<div className="flex items-center justify-between gap-3">
+				<div className="mobile-fullscreen-layout absolute inset-0 z-10 grid grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] px-6 pb-[calc(env(safe-area-inset-bottom)+2rem)] pt-[max(calc(env(safe-area-inset-top)+0.75rem),2.75rem)]">
+					<div className="flex h-14 items-center justify-between gap-3">
 						<Button
 							type="button"
 							variant="ghost"
@@ -1039,230 +1069,207 @@ export default function NowPlayingView({
 
 					<div
 						className={cn(
-							"relative flex min-h-0 w-full py-2",
-							activePanel
-								? "flex-col items-start overflow-hidden"
-								: "items-center justify-center",
+							"flex min-h-0 flex-col",
+							!activePanel && "justify-center",
 						)}
-						data-testid="mobile-artwork-region"
 					>
-						{!activePanel && !isTallArtwork && (
-							<motion.div
-								layoutId="mobile-now-playing-artwork"
-								data-testid="mobile-artwork-card"
-								className="mobile-cover-slot relative aspect-square max-w-full shrink-0"
-								transition={{
-									layout: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
-								}}
-							>
-								<div
-									data-testid="playback-artwork"
-									data-playing={isPlaying}
-									className="playback-artwork size-full overflow-hidden rounded-[7%] bg-black/20 shadow-2xl ring-1 ring-white/10"
+						<div
+							className={cn(
+								"relative flex min-h-0 w-full py-2",
+								activePanel
+									? "flex-1 flex-col items-start overflow-hidden"
+									: "items-center justify-center py-12",
+							)}
+							data-testid="mobile-artwork-region"
+						>
+							{!activePanel && !isTallArtwork && (
+								<motion.div
+									layoutId="mobile-now-playing-artwork"
+									data-testid="mobile-artwork-card"
+									className="mobile-cover-slot relative aspect-square max-w-full shrink-0"
+									transition={{
+										layout: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
+									}}
 								>
-									<MotionArtworkStage
-										active={artworkActive}
-										presentation="fill"
-										assetUrl={activeMobileAsset?.preview_url}
-										coverUrl={coverUrl ?? currentTrack.coverUrl}
-									/>
-								</div>
-							</motion.div>
-						)}
-						{activePanel && (
-							<motion.div
-								key={activePanel}
-								initial={{ y: 8 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-								className="mt-3 min-h-0 w-full flex-1 overflow-hidden"
-								data-testid="mobile-active-panel"
-							>
-								{isQueueOpen && (
-									<div ref={setMobileQueueTarget} className="h-full" />
-								)}
-								{isNotesOpen && (
-									<Suspense
-										fallback={
-											<p role="status" className="p-2 text-sm text-white/55">
-												Loading notes...
-											</p>
-										}
+									<div
+										data-testid="playback-artwork"
+										data-playing={isPlaying}
+										className="playback-artwork size-full overflow-hidden rounded-[7%] bg-black/20 shadow-2xl ring-1 ring-white/10"
 									>
-										<NotesPanel
-											mode="track"
-											selectedTrack={activeTrack}
-											onClose={closeActivePanel}
-											embedded
+										<MotionArtworkStage
+											active={artworkActive}
+											presentation="fill"
+											assetUrl={activeMobileAsset?.preview_url}
+											coverUrl={coverUrl ?? currentTrack.coverUrl}
 										/>
-									</Suspense>
-								)}
-								{isCommentsOpen && (
-									<div ref={setCommentsPanelTarget} className="h-full" />
-								)}
-							</motion.div>
-						)}
-					</div>
+									</div>
+								</motion.div>
+							)}
+							{activePanel && (
+								<motion.div
+									key={activePanel}
+									initial={{ y: 8 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+									className="mt-3 min-h-0 w-full flex-1 overflow-hidden"
+									data-testid="mobile-active-panel"
+								>
+									{isQueueOpen && (
+										<div ref={setMobileQueueTarget} className="h-full" />
+									)}
+									{isNotesOpen && (
+										<Suspense
+											fallback={
+												<p role="status" className="p-2 text-sm text-white/55">
+													Loading notes...
+												</p>
+											}
+										>
+											<NotesPanel
+												mode="track"
+												selectedTrack={activeTrack}
+												onClose={closeActivePanel}
+												embedded
+											/>
+										</Suspense>
+									)}
+									{isCommentsOpen && (
+										<div ref={setCommentsPanelTarget} className="h-full" />
+									)}
+								</motion.div>
+							)}
+						</div>
 
-					<div className="flex flex-col" data-testid="mobile-player-footer">
-						{!activePanel && (
-							<div
-								className="mb-4 flex items-end justify-between gap-4"
-								data-testid="mobile-track-details"
-							>
-								<div className="min-w-0">
-									<h2 className="truncate text-2xl font-semibold">
-										{currentTrack.title}
-									</h2>
-									<p className="mt-1 truncate text-base text-white/65">
-										{artist}
-									</p>
+						<motion.div
+							layout="position"
+							transition={{
+								layout: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
+							}}
+							className="mx-auto flex w-(--np-w) shrink-0 flex-col"
+							data-testid="mobile-player-footer"
+						>
+							<div className="mb-4 flex items-center gap-3">
+								{!activePanel && (
+									<div
+										className="min-w-0 flex-1"
+										data-testid="mobile-track-details"
+									>
+										<h2 className="truncate text-xl font-semibold">
+											{currentTrack.title}
+										</h2>
+										<p className="truncate text-base text-white/65">{artist}</p>
+									</div>
+								)}
+								<div
+									className="ml-auto flex items-center gap-1.5"
+									data-testid="mobile-panel-controls"
+								>
+									{isCommentsEnabled && activeVersionId && (
+										<Button
+											type="button"
+											variant="ghost"
+											size="icon-lg"
+											className={cn(
+												"size-10 rounded-full text-white/75 transition-colors",
+												"bg-black/20 hover:bg-black/40",
+												isCommentsOpen && "bg-white/15 text-white",
+											)}
+											onClick={() => togglePanel("comments")}
+											aria-label="Comments"
+											title="Comments"
+										>
+											<MessageSquare className="size-5" />
+										</Button>
+									)}
+									<Button
+										type="button"
+										variant="ghost"
+										size="icon-lg"
+										className={cn(
+											"size-10 rounded-full text-white/75 transition-colors",
+											"bg-black/20 hover:bg-black/40",
+											isNotesOpen && "bg-white/15 text-white",
+										)}
+										onClick={() => togglePanel("notes")}
+										onPointerEnter={preloadNotesPanel}
+										onPointerDown={preloadNotesPanel}
+										onFocus={preloadNotesPanel}
+										aria-label="Notes"
+										title="Notes"
+									>
+										<FileText className="size-5" />
+									</Button>
+									<Button
+										type="button"
+										variant="ghost"
+										size="icon-lg"
+										className={cn(
+											"size-10 rounded-full text-white/75 transition-colors",
+											"bg-black/20 hover:bg-black/40",
+											isQueueOpen && "bg-white/15 text-white",
+										)}
+										onClick={toggleQueue}
+										aria-label={isQueueOpen ? "Close queue" : "Open queue"}
+										title="Queue"
+									>
+										<ListMusic className="size-5" />
+									</Button>
 								</div>
 							</div>
-						)}
 
-						<div className="mb-[clamp(1rem,3dvh,1.75rem)]">
-							<PlaybackTimeline
-								bars={waveformBars}
-								duration={duration}
-								onSeek={seekTo}
-								versionId={isCommentsEnabled ? activeVersionId : null}
-								commentsOpen={isCommentsOpen}
-								onCommentsOpenChange={(open) =>
-									setActivePanel(open ? "comments" : null)
-								}
-								panelTarget={commentsPanelTarget}
-								mobile
-							/>
-						</div>
+							<div className="mb-[clamp(1rem,3dvh,1.75rem)]">
+								<PlaybackTimeline
+									bars={waveformBars}
+									duration={duration}
+									onSeek={seekTo}
+									versionId={isCommentsEnabled ? activeVersionId : null}
+									commentsOpen={isCommentsOpen}
+									onCommentsOpenChange={(open) =>
+										setActivePanel(open ? "comments" : null)
+									}
+									panelTarget={commentsPanelTarget}
+									mobile
+								/>
+							</div>
 
-						<div
-							className="fullscreen-transport mb-[clamp(1.25rem,5dvh,3rem)] flex items-center justify-between gap-2"
-							data-testid="mobile-transport-controls"
-						>
-							<Button
-								type="button"
-								variant="ghost"
-								size="icon-lg"
-								className={cn(
-									"size-12 rounded-full text-white",
-									isShuffled && "text-[var(--accent-color)]",
-								)}
-								onClick={toggleShuffle}
-								aria-label="Toggle shuffle"
-								aria-pressed={isShuffled}
+							<div
+								className="fullscreen-transport mb-[clamp(1.25rem,5dvh,3rem)] flex items-center justify-between gap-2"
+								data-testid="mobile-transport-controls"
 							>
-								<Shuffle className="size-6" />
-							</Button>
-							<Button
-								type="button"
-								variant="ghost"
-								size="icon-lg"
-								className="size-12 rounded-full text-white"
-								onClick={previousTrack}
-								aria-label="Previous track"
-							>
-								<SkipBack className="size-8 fill-current" />
-							</Button>
-							<Button
-								type="button"
-								variant="ghost"
-								size="icon-lg"
-								className="size-18 rounded-full border-0 shadow-[0_10px_35px_rgba(0,0,0,0.35)] hover:brightness-90"
-								style={{ background: "#ffffff", border: 0, color: "#000000" }}
-								onClick={isPlaying ? pause : resume}
-								aria-label={isPlaying ? "Pause" : "Play"}
-							>
-								{isPlaying ? (
-									<Pause className="size-8 fill-current" />
-								) : (
-									<Play className="ml-1 size-8 fill-current" />
-								)}
-							</Button>
-							<Button
-								type="button"
-								variant="ghost"
-								size="icon-lg"
-								className="size-12 rounded-full text-white"
-								onClick={nextTrack}
-								aria-label="Next track"
-							>
-								<SkipForward className="size-8 fill-current" />
-							</Button>
-							<Button
-								type="button"
-								variant="ghost"
-								size="icon-lg"
-								className={cn(
-									"size-12 rounded-full text-white",
-									loopMode !== "off" && "text-[var(--accent-color)]",
-								)}
-								onClick={toggleLoop}
-								aria-label="Change repeat mode"
-							>
-								{loopMode === "track" ? (
-									<Repeat1 className="size-6" />
-								) : (
-									<Repeat className="size-6" />
-								)}
-							</Button>
-						</div>
-
-						<div
-							className="flex items-center justify-end gap-3 pt-1"
-							data-testid="mobile-panel-controls"
-						>
-							{isCommentsEnabled && activeVersionId && (
 								<Button
 									type="button"
 									variant="ghost"
 									size="icon-lg"
 									className={cn(
-										"size-12 rounded-full text-white transition-colors",
-										"bg-black/25 hover:bg-black/45",
-										isCommentsOpen && "bg-white/15 text-white",
+										"size-12 rounded-full text-white",
+										isShuffled && "text-[var(--accent-color)]",
 									)}
-									onClick={() => togglePanel("comments")}
-									aria-label="Comments"
-									title="Comments"
+									onClick={toggleShuffle}
+									aria-label="Toggle shuffle"
+									aria-pressed={isShuffled}
 								>
-									<MessageSquare className="size-6" />
+									<Shuffle className="size-6" />
 								</Button>
-							)}
-							<Button
-								type="button"
-								variant="ghost"
-								size="icon-lg"
-								className={cn(
-									"size-12 rounded-full text-white transition-colors",
-									"bg-black/25 hover:bg-black/45",
-									isNotesOpen && "bg-white/15 text-white",
-								)}
-								onClick={() => togglePanel("notes")}
-								onPointerEnter={preloadNotesPanel}
-								onPointerDown={preloadNotesPanel}
-								onFocus={preloadNotesPanel}
-								aria-label="Notes"
-								title="Notes"
-							>
-								<FileText className="size-6" />
-							</Button>
-							<Button
-								type="button"
-								variant="ghost"
-								size="icon-lg"
-								className={cn(
-									"size-12 rounded-full text-white transition-colors",
-									"bg-black/25 hover:bg-black/45",
-									isQueueOpen && "bg-white/15 text-white",
-								)}
-								onClick={toggleQueue}
-								aria-label={isQueueOpen ? "Close queue" : "Open queue"}
-								title="Queue"
-							>
-								<ListMusic className="size-6" />
-							</Button>
-						</div>
+								<PrimaryTransport large={true} />
+								<Button
+									type="button"
+									variant="ghost"
+									size="icon-lg"
+									className={cn(
+										"size-12 rounded-full text-white",
+										loopMode !== "off" && "text-[var(--accent-color)]",
+									)}
+									onClick={toggleLoop}
+									aria-label="Change repeat mode"
+								>
+									{loopMode === "track" ? (
+										<Repeat1 className="size-6" />
+									) : (
+										<Repeat className="size-6" />
+									)}
+								</Button>
+							</div>
+						</motion.div>
 					</div>
 				</div>
 			</motion.section>

@@ -383,6 +383,7 @@ func main() {
 	mux.Handle("DELETE /api/projects/{id}", authMW(httputil.Wrap(projectsHandler.DeleteProject)))
 	mux.Handle("PUT /api/projects/{id}/cover", authMW(httputil.Wrap(projectsHandler.UploadProjectCover)))
 	mux.Handle("DELETE /api/projects/{id}/cover", authMW(httputil.Wrap(projectsHandler.DeleteProjectCover)))
+	mux.Handle("GET /api/projects/{id}/cover-accent", authMW(httputil.Wrap(projectsHandler.GetProjectCoverAccent)))
 	mux.Handle("GET /api/projects/{id}/cover", optionalAuthMW(signedURLMW(httputil.Wrap(projectsHandler.GetProjectCover))))
 	mux.Handle("GET /api/projects/{id}/motion-art", authMW(httputil.Wrap(projectsHandler.ListProjectMotionAssets)))
 	mux.Handle("PUT /api/projects/{id}/motion-art/{kind}", authMW(httputil.Wrap(projectsHandler.UploadProjectMotionAsset)))

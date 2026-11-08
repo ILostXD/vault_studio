@@ -59,7 +59,7 @@ WHERE id = ?;
 
 -- name: DeleteEmptyFolder :execrows
 DELETE FROM folders
-WHERE id = ? AND user_id = ?
+WHERE folders.id = ? AND folders.user_id = ?
   AND NOT EXISTS (SELECT 1 FROM projects WHERE folder_id = folders.id)
   AND NOT EXISTS (SELECT 1 FROM folders AS children WHERE children.parent_id = folders.id)
   AND NOT EXISTS (SELECT 1 FROM user_shared_project_organization WHERE folder_id = folders.id)

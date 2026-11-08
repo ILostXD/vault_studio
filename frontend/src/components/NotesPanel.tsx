@@ -13,6 +13,7 @@ import {
 	useUpsertProjectNote,
 	useUpsertTrackNote,
 } from "@/hooks/useNotes";
+import { cn } from "@/lib/utils";
 import { toast } from "@/routes/__root";
 import type { Note, NoteContentFormat, Project, Track } from "@/types/api";
 
@@ -198,7 +199,10 @@ export default function NotesPanel(props: NotesPanelProps) {
 
 			<div
 				data-testid="notes-scroll-container"
-				className="min-h-0 flex-1 overflow-y-auto overscroll-contain touch-pan-y space-y-6"
+				className={cn(
+					"min-h-0 flex-1 overflow-y-auto overscroll-contain touch-pan-y",
+					embedded ? "flex flex-col gap-6" : "space-y-6",
+				)}
 			>
 				{!isLoading && user?.username && currentId && (
 					<RichTrackNoteEditor
@@ -207,6 +211,7 @@ export default function NotesPanel(props: NotesPanelProps) {
 						contentFormat={myNote?.content_format ?? "plain"}
 						authorName={user.username}
 						onSave={saveNote}
+						fill={embedded}
 					/>
 				)}
 

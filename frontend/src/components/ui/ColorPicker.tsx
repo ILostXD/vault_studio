@@ -14,7 +14,6 @@ const DEFAULT_COLORS = [
 	"#8a2be2", // Purple
 	"#00e676", // Green
 	"#ff3d00", // Red
-	"#ff9100", // Orange
 	"#e0e0e0", // Silver
 ];
 

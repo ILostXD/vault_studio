@@ -1,6 +1,28 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Pencil, Users } from "lucide-react";
+import {
+	AudioLines,
+	CalendarDays,
+	Disc3,
+	Download,
+	Droplets,
+	HardDrive,
+	Info,
+	KeyRound,
+	type LucideIcon,
+	MessageSquare,
+	Palette,
+	Pencil,
+	Radio,
+	RotateCcw,
+	Server,
+	SlidersHorizontal,
+	Sparkles,
+	Tag,
+	TriangleAlert,
+	Upload,
+	Users,
+} from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -10,7 +32,6 @@ import {
 	updateInstanceName,
 } from "@/api/stats";
 import CDDiscBadge from "@/components/CDDiscBadge";
-import { setDynamicAccent, useDynamicAccent } from "@/components/DynamicAccent";
 import { ArtistProfileSection } from "@/components/distribution/ArtistProfileSection";
 import { TooLostSettingsSection } from "@/components/distribution/TooLostSettingsSection";
 import EditProfileModal from "@/components/modals/EditProfileModal";
@@ -35,6 +56,28 @@ import type {
 	Quality,
 	StorageStats,
 } from "@/types/api";
+
+function RowTitle({
+	icon: Icon,
+	className,
+	children,
+}: {
+	icon: LucideIcon;
+	className?: string;
+	children: React.ReactNode;
+}) {
+	return (
+		<p
+			className={cn(
+				"flex items-center gap-2.5 text-(--text-0) text-base",
+				className,
+			)}
+		>
+			<Icon className="size-4.5 shrink-0 text-(--text-2)" />
+			{children}
+		</p>
+	);
+}
 
 export const Route = createFileRoute("/profile/")({
 	component: ProfilePage,
@@ -66,7 +109,7 @@ function ProfilePage() {
 	const instanceNameInputRef = useRef<HTMLInputElement>(null);
 
 	const isLoading = isStatsLoading || isPrefsLoading;
-	const dynamicAccent = useDynamicAccent();
+	const dynamicAccent = preferences?.dynamic_accent === true;
 
 	const pickerSize = 200;
 	const pickerPadding = 15;
@@ -160,9 +203,9 @@ function ProfilePage() {
 	const getQualityDisplay = (quality: Quality): string => {
 		switch (quality) {
 			case "source":
-				return "Original files";
+				return "Source (WAV)";
 			case "lossy":
-				return "Streaming copies (MP3)";
+				return "Lossy (MP3)";
 			case "lossless":
 				return "Lossless"; // Not used but keep for type compatibility
 			default:
@@ -255,7 +298,8 @@ function ProfilePage() {
 
 							<div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-3xl p-6">
 								<div className="flex items-center justify-between mb-6">
-									<h2 className="text-2xl font-medium text-(--text-0)">
+									<h2 className="flex items-center gap-3 text-2xl font-medium text-(--text-0)">
+										<HardDrive className="size-6 shrink-0 text-(--text-2)" />
 										Storage Overview
 									</h2>
 								</div>
@@ -353,9 +397,9 @@ function ProfilePage() {
 									</p>
 									<div className="space-y-3">
 										<div className="flex items-center justify-between border-t border-(--card-border) pt-3">
-											<p className="text-(--text-1) text-base">
-												Original files
-											</p>
+											<RowTitle icon={Disc3} className="text-(--text-1)">
+												Source (WAV)
+											</RowTitle>
 											<p className="text-(--text-0) text-base font-medium">
 												{formatBytes(
 													user?.is_admin && globalStorageStats
@@ -365,9 +409,9 @@ function ProfilePage() {
 											</p>
 										</div>
 										<div className="flex items-center justify-between border-t border-(--card-border) pt-3">
-											<p className="text-(--text-1) text-base">
-												Streaming copies (MP3)
-											</p>
+											<RowTitle icon={Radio} className="text-(--text-1)">
+												Lossy (MP3)
+											</RowTitle>
 											<p className="text-(--text-0) text-base font-medium">
 												{formatBytes(
 													user?.is_admin && globalStorageStats
@@ -384,7 +428,8 @@ function ProfilePage() {
 								<div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-3xl p-6">
 									<div className="flex items-center justify-between">
 										<div>
-											<h2 className="text-2xl font-medium text-(--text-0)">
+											<h2 className="flex items-center gap-3 text-2xl font-medium text-(--text-0)">
+												<Users className="size-6 shrink-0 text-(--text-2)" />
 												Instance Users
 											</h2>
 											<p className="text-(--text-2) text-sm mt-1">
@@ -403,15 +448,16 @@ function ProfilePage() {
 							)}
 
 							<div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-3xl p-6">
-								<h2 className="text-2xl font-medium text-(--text-0) mb-6">
+								<h2 className="flex items-center gap-3 text-2xl font-medium text-(--text-0) mb-6">
+									<SlidersHorizontal className="size-6 shrink-0 text-(--text-2)" />
 									Settings
 								</h2>
 
 								<div className="space-y-4">
 									<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-(--card-border) pb-4">
 										<div className="min-w-0">
-											<p className="text-(--text-0) text-base">Quality</p>
-											<p className="text-(--text-2) text-sm">
+											<RowTitle icon={AudioLines}>Quality</RowTitle>
+											<p className="text-(--text-2) text-sm pl-7">
 												Default audio quality for streaming
 											</p>
 										</div>
@@ -426,18 +472,27 @@ function ProfilePage() {
 												handleQualityChange(nextQuality);
 											}}
 										>
-											{preferences
-												? getQualityDisplay(preferences.default_quality)
-												: "Loading..."}
+											{preferences ? (
+												<>
+													{preferences.default_quality === "lossy" ? (
+														<Radio className="size-4" />
+													) : (
+														<Disc3 className="size-4" />
+													)}
+													{getQualityDisplay(preferences.default_quality)}
+												</>
+											) : (
+												"Loading..."
+											)}
 										</Button>
 									</div>
 
 									<div className="flex min-w-0 flex-col gap-3 border-b border-(--card-border) pb-4">
 										<div className="min-w-0">
-											<p className="text-(--text-0) text-base">
+											<RowTitle icon={KeyRound}>
 												Automatic key detection
-											</p>
-											<p className="text-(--text-2) text-sm">
+											</RowTitle>
+											<p className="text-(--text-2) text-sm pl-7">
 												Preferred relative key
 											</p>
 										</div>
@@ -472,8 +527,8 @@ function ProfilePage() {
 
 									<div className="flex min-w-0 flex-col gap-3 border-b border-(--card-border) pb-4">
 										<div className="min-w-0">
-											<p className="text-(--text-0) text-base">Theme</p>
-											<p className="text-(--text-2) text-sm">
+											<RowTitle icon={Palette}>Theme</RowTitle>
+											<p className="text-(--text-2) text-sm pl-7">
 												App appearance and contrast
 											</p>
 										</div>
@@ -532,8 +587,8 @@ function ProfilePage() {
 
 									<div className="flex items-center justify-between gap-4 border-b border-(--card-border) pb-4">
 										<div className="min-w-0">
-											<p className="text-(--text-0) text-base">Comments</p>
-											<p className="text-(--text-2) text-sm">
+											<RowTitle icon={MessageSquare}>Comments</RowTitle>
+											<p className="text-(--text-2) text-sm pl-7">
 												Show feedback markers and the comment button
 											</p>
 										</div>
@@ -560,10 +615,8 @@ function ProfilePage() {
 									<div className="flex flex-col gap-4">
 										<div className="flex items-center justify-between">
 											<div>
-												<p className="text-(--text-0) text-base">
-													Accent Color
-												</p>
-												<p className="text-(--text-2) text-sm">
+												<RowTitle icon={Droplets}>Accent Color</RowTitle>
+												<p className="text-(--text-2) text-sm pl-7">
 													Choose your preferred app accent color
 												</p>
 											</div>
@@ -577,14 +630,27 @@ function ProfilePage() {
 										</div>
 										<div className="flex items-center justify-between gap-4 bg-(--inner-card-bg) border border-(--card-border) rounded-[12px] px-4 py-3">
 											<div>
-												<p className="text-(--text-0) text-sm">Dynamic</p>
-												<p className="text-(--text-2) text-xs">
+												<RowTitle icon={Sparkles} className="text-sm">
+													Dynamic
+												</RowTitle>
+												<p className="text-(--text-2) text-xs pl-7">
 													Match the accent to the playing album's cover
 												</p>
 											</div>
 											<Switch
 												checked={dynamicAccent}
-												onCheckedChange={setDynamicAccent}
+												onCheckedChange={async (checked) => {
+													try {
+														await updatePreferences({
+															dynamic_accent: checked,
+														});
+													} catch (error) {
+														console.error(
+															"Failed to update dynamic accent:",
+															error,
+														);
+													}
+												}}
 											/>
 										</div>
 										<div
@@ -647,7 +713,7 @@ function ProfilePage() {
 												<p className="text-(--text-0) text-base">
 													Stem Separation
 												</p>
-												<p className="text-(--text-2) text-sm">
+												<p className="text-(--text-2) text-sm pl-7">
 													Enable local AI stem separation
 												</p>
 											</div>
@@ -658,7 +724,7 @@ function ProfilePage() {
 												<p className="text-(--text-0) text-base">
 													Public Sharing
 												</p>
-												<p className="text-(--text-2) text-sm">
+												<p className="text-(--text-2) text-sm pl-7">
 													Allow tracks to be shared publicly
 												</p>
 											</div>
@@ -667,7 +733,7 @@ function ProfilePage() {
 										<div className="flex items-center justify-between border-b border-(--card-border) pb-4">
 											<div>
 												<p className="text-(--text-0) text-base">Backup</p>
-												<p className="text-(--text-2) text-sm">
+												<p className="text-(--text-2) text-sm pl-7">
 													Automatically backup data 24 hours
 												</p>
 											</div>
@@ -677,13 +743,16 @@ function ProfilePage() {
 							</div>
 
 							<div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-3xl p-6">
-								<h2 className="text-2xl font-medium text-(--text-0) mb-6">
+								<h2 className="flex items-center gap-3 text-2xl font-medium text-(--text-0) mb-6">
+									<Info className="size-6 shrink-0 text-(--text-2)" />
 									Instance Information
 								</h2>
 
 								<div className="space-y-4">
 									<div className="flex items-center justify-between border-b border-(--card-border) pb-4">
-										<p className="text-(--text-1) text-base">Instance Name</p>
+										<RowTitle icon={Server} className="text-(--text-1)">
+											Instance Name
+										</RowTitle>
 										{user?.is_admin ? (
 											<div className="flex items-center gap-2 group">
 												<input
@@ -715,7 +784,9 @@ function ProfilePage() {
 									</div>
 
 									<div className="flex items-center justify-between border-b border-(--card-border) pb-4">
-										<p className="text-(--text-1) text-base">Version</p>
+										<RowTitle icon={Tag} className="text-(--text-1)">
+											Version
+										</RowTitle>
 										<p className="text-(--text-0) text-base font-medium">
 											{instanceInfo?.version || ""}
 											{instanceInfo?.commit_sha && (
@@ -730,7 +801,9 @@ function ProfilePage() {
 
 									{instanceInfo?.created_at && (
 										<div className="flex items-center justify-between">
-											<p className="text-(--text-1) text-base">Created</p>
+											<RowTitle icon={CalendarDays} className="text-(--text-1)">
+												Created
+											</RowTitle>
 											<p className="text-(--text-0) text-base font-medium">
 												{new Date(instanceInfo.created_at).toLocaleDateString(
 													"en-US",
@@ -748,15 +821,16 @@ function ProfilePage() {
 
 							{user?.is_admin && (
 								<div className="bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to) border border-(--card-border) rounded-3xl p-6">
-									<h2 className="text-2xl font-medium text-(--text-0) mb-6">
+									<h2 className="flex items-center gap-3 text-2xl font-medium text-(--text-0) mb-6">
+										<TriangleAlert className="size-6 shrink-0 text-(--text-2)" />
 										Danger Zone
 									</h2>
 
 									<div className="space-y-4">
 										<div className="flex items-center justify-between border-b border-(--card-border) pb-4">
 											<div>
-												<p className="text-(--text-0) text-base">Export Data</p>
-												<p className="text-(--text-2) text-sm">
+												<RowTitle icon={Download}>Export Data</RowTitle>
+												<p className="text-(--text-2) text-sm pl-7">
 													Download a complete backup of your instance data
 												</p>
 											</div>
@@ -770,8 +844,8 @@ function ProfilePage() {
 
 										<div className="flex items-center justify-between border-b border-(--card-border) pb-4">
 											<div>
-												<p className="text-(--text-0) text-base">Import Data</p>
-												<p className="text-(--text-2) text-sm">
+												<RowTitle icon={Upload}>Import Data</RowTitle>
+												<p className="text-(--text-2) text-sm pl-7">
 													Restore from a backup file (replaces current data)
 												</p>
 											</div>
@@ -785,10 +859,8 @@ function ProfilePage() {
 
 										<div className="flex items-center justify-between">
 											<div>
-												<p className="text-(--text-0) text-base">
-													Reset Instance
-												</p>
-												<p className="text-(--text-2) text-sm">
+												<RowTitle icon={RotateCcw}>Reset Instance</RowTitle>
+												<p className="text-(--text-2) text-sm pl-7">
 													Clear all data and restore to default settings
 												</p>
 											</div>

@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"bungleware/vault/internal/apperr"
@@ -14,6 +15,8 @@ import (
 	"bungleware/vault/internal/httputil"
 	"bungleware/vault/internal/middleware"
 	"bungleware/vault/internal/service"
+
+	"github.com/chai2010/webp"
 )
 
 func (h *ProjectsHandler) UploadProjectCover(w http.ResponseWriter, r *http.Request) error {
@@ -197,4 +200,37 @@ func checkCoverNotModified(w http.ResponseWriter, r *http.Request, updatedAt tim
 		}
 	}
 	return false
+}
+
+var accentCache sync.Map // "publicID|coverUpdatedAt" -> hex colour
+
+// GetProjectCoverAccent returns the cover's dominant colour, computed once on the
+// server so every device agrees. 404 means no cover or no usable colour.
+func (h *ProjectsHandler) GetProjectCoverAccent(w http.ResponseWriter, r *http.Request) error {
+	userID, err := httputil.RequireUserID(r)
+	if err != nil {
+		return apperr.NewUnauthorized("user not found in context")
+	}
+	publicID := r.PathValue("id")
+
+	stream, err := h.service.GetCoverStream(r.Context(), publicID, int64(userID), "small")
+	if err != nil {
+		return apperr.NewNotFound("cover not found")
+	}
+	defer stream.Reader.Close()
+
+	key := publicID + "|" + strconv.FormatInt(stream.UpdatedAt.UnixNano(), 10)
+	if cached, ok := accentCache.Load(key); ok {
+		return httputil.OKResult(w, map[string]string{"color": cached.(string)})
+	}
+	img, err := webp.Decode(stream.Reader)
+	if err != nil {
+		return apperr.NewInternal("failed to decode cover", err)
+	}
+	color, ok := service.DominantAccent(img)
+	if !ok {
+		return apperr.NewNotFound("cover has no accent colour")
+	}
+	accentCache.Store(key, color)
+	return httputil.OKResult(w, map[string]string{"color": color})
 }

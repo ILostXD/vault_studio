@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
 import { type FormEvent, useEffect, useRef, useState } from "react";
+import { useKeyboardOpen } from "@/hooks/useKeyboardOpen";
+import { cn } from "@/lib/utils";
 import { ApiError } from "../../api/client";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -18,6 +20,7 @@ function RegisterPage() {
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [error, setError] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
+	const keyboardOpen = useKeyboardOpen();
 	const errorWrapperRef = useRef<HTMLDivElement>(null);
 	const [errorHeight, setErrorHeight] = useState(0);
 
@@ -110,7 +113,12 @@ function RegisterPage() {
 	};
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-(--bg-0) p-4">
+		<div
+			className={cn(
+				"min-h-dvh flex justify-center bg-(--bg-0) p-4 transition-[padding] duration-300",
+				keyboardOpen ? "items-start pb-[28dvh]" : "items-center",
+			)}
+		>
 			<div className="w-full max-w-[500px]">
 				<motion.div
 					layout

@@ -24,8 +24,11 @@ export function SoftwareUpdateSection() {
 		<div className="border-b border-(--card-border) pb-4">
 			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<div className="min-w-0">
-					<p className="text-base text-(--text-1)">Software updates</p>
-					<p className="mt-1 text-sm text-(--text-2)">
+					<p className="flex items-center gap-2.5 text-base text-(--text-1)">
+						<RefreshCw className="size-4.5 shrink-0 text-(--text-2)" />
+						Software updates
+					</p>
+					<p className="mt-1 pl-7 text-sm text-(--text-2)">
 						{status.isPending
 							? "Checking GitHub Releases..."
 							: status.isError

@@ -131,7 +131,6 @@ code,
   --muted-2: #383838;
   --border-0: #353333;
 
-  --accent-color: #ffba00;
   --accent-blue: var(--accent-color);
   --accent-green: #00ff6a;
   --success-0: #23bd63;
@@ -197,7 +196,6 @@ code,
   --muted-2: #222222;
   --border-0: #1f1f1f;
 
-  --accent-color: #ffba00;
   --accent-blue: var(--accent-color);
   --accent-green: #00ff6a;
   --success-0: #23bd63;
@@ -273,7 +271,6 @@ code,
   --muted-2: #e4e4e7;
   --border-0: #e4e4e7;
 
-  --accent-color: #ffba00;
   --accent-blue: var(--accent-color);
   --accent-green: #22c55e;
   --success-0: #22c55e;
@@ -366,8 +363,13 @@ code,
   transform: scale(0.92);
 }
 
+.mobile-fullscreen-layout {
+  /* One width for the cover and the footer so their edges line up. */
+  --np-w: min(calc(100vw - 4rem), 42dvh, max(0px, calc(100dvh - 26rem - env(safe-area-inset-top) - env(safe-area-inset-bottom))));
+}
+
 .mobile-cover-slot {
-  width: min(78vw, 38dvh, max(0px, calc(100dvh - 25rem - env(safe-area-inset-top) - env(safe-area-inset-bottom))));
+  width: var(--np-w);
 }
 
 /* A blurred background needs fewer pixels than the sharp controls above it. */
@@ -387,11 +389,6 @@ code,
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .player-icon-control:hover,
-  .fullscreen-transport button:hover {
-    transform: scale(1.06);
-  }
-
   .fullscreen-transport button:hover {
     background-color: rgba(255, 255, 255, 0.14);
   }
@@ -604,6 +601,12 @@ code,
 [data-slot="dropdown-menu-sub-trigger"][data-state="open"] {
   background: var(--bg-3) !important;
   color: var(--text-0) !important;
+}
+
+/* Unlayered item colours above beat Tailwind utilities, so destructive needs its own rule. */
+[data-slot="dropdown-menu-item"][data-variant="destructive"],
+[data-slot="dropdown-menu-item"][data-variant="destructive"][data-highlighted] {
+  color: rgb(235, 94, 94) !important;
 }
 
 @media (max-width: 767px) {

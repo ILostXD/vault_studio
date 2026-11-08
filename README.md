@@ -46,60 +46,19 @@ The project is also inspired by [untitled](https://untitled.stream/), while rema
 - Export & Library: tagged FLAC or MP3 albums with embedded cover art, untouched raw masters, and one-click publishing to a server music library for Navidrome, Jellyfin, or Plex
 - Per-project audio tags (album, artist, album artist, genre, year, per-track overrides) with a reusable "usual genre" in your artist profile
 - Redesigned fullscreen player with an animated artwork backdrop and a single rail for queue, notes, and comments
-- Light, Default, Black, and System themes with a configurable accent color
+- Light, Default, Black, and System themes with a configurable accent color, or a dynamic accent taken from the playing album's cover
 - Mobile-focused layouts, edge-to-edge Android presentation, and gesture-aware navigation
 
-### Motion Artwork Preview
+## Guides
 
-Upload animated artwork once and inspect it in responsive, platform-inspired previews before delivery. `{ vault.studio }` retains the original source, creates a silent browser-compatible preview with FFmpeg, and checks dimensions, duration, codec, frame rate, bitrate, and audio presence against the selected format. Apple Music portrait previews also simulate the live blurred color continuation behind the player controls as the artwork changes.
+Longer explanations live in their own docs:
 
-> [!NOTE]
-> Animated artwork previews are an informed estimation, not a pixel-perfect reproduction of Apple Music or Spotify. Final rendering can vary by platform, device, operating system, and app version.
-
-## Release Preparation And Distribution
-
-{ vault.studio } can turn an existing project into a validated release without asking the artist to rebuild information that { vault } already knows. Open a project, choose **Prepare Release** from its menu, and work through four focused views:
-
-1. **Release** reviews the title, artist, release type, dates, language, genres, label, C-line, P-line, UPC, and reusable credits.
-2. **Tracks** reviews titles, artists, languages, explicit status, optional ISRCs and lyrics, with per-track credit overrides where needed.
-3. **Deliver** shows blocking issues, exports a provider-neutral Release Package, or creates and updates a connected Too Lost draft.
-4. **History** records exports and distributor drafts with the exact metadata and asset hashes used at that time.
-
-Set the artist/display name, legal name, and reusable credits in **Profile > Artist Profile** first. Reusable credits are inherited by every track, while individual tracks can still override them. { vault } only sends values it actually knows: missing distributor-specific settings remain visibly unfinished instead of being guessed.
-
-### Release Package
-
-Release Package export works without a distributor account and preserves the active original masters. The generated ZIP contains:
-
-```text
-Release/
-|-- Audio/                 Original active masters
-|-- Artwork/               Square cover and available motion artwork
-|-- Metadata/release.json  Machine-readable release snapshot
-|-- Metadata/tracks.csv
-|-- Credits/credits.csv
-|-- checksums.sha256
-`-- README.txt
-```
-
-Apple Motion `1:1`, Apple Motion `3:4`, and Spotify Canvas files are included when they exist. { vault.studio } never replaces or destructively converts the stored master for this export.
-
-### Too Lost Workflow
-
-When Too Lost is connected, { vault.studio } uses Too Lost's genre and language catalogs, uploads temporary FLAC delivery copies, sends known release metadata and the square cover, and creates or updates a **draft**. { vault.studio } never calls a final-submission endpoint. The artist finishes stores, territories, licensing, motion artwork, review, and submission in Too Lost.
-
-The current integration supports audio releases of type Single, EP, Album, and Compilation. Apple motion artwork remains in the Release Package because Too Lost's published API does not yet define a stable contract for { vault.studio }'s MP4 assets. Existing ISRC and UPC values are optional; leave them blank when Too Lost should assign them.
-
-## Export And Music Library
-
-Open a project's menu and choose **Export & Library**.
-
-- **Library Ready (Tagged)** exports the album as FLAC or MP3 with full tags, track numbers, and the project cover embedded in every file, plus `cover.png`. Download it as a ZIP, or publish it to a server folder that your music player scans.
-- **Raw Masters** downloads the original uploaded files, byte for byte, as one ZIP or per track.
-
-Your stored masters are never modified. Lossless sources (WAV, AIFF, ALAC, FLAC) become FLAC by default; 32-bit float WAV stays float WAV so no precision is lost. Lossy sources never offer FLAC (that would only bloat the file). Existing MP3 audio is not re-encoded, and AAC is repackaged as M4A without re-encoding. Choose MP3 for a 320 kbps copy of everything else. Every conversion is disclosed in the modal before you download or publish.
-
-Publishing writes to `Vault-<owner ID>-<project ID>` inside the folder you configure, replaces it atomically, and refuses to overwrite folders or files it does not own or that were edited outside { vault.studio }. Publishing is off until an administrator mounts a library folder; see [docs/audio-metadata.md](docs/audio-metadata.md) for setup and details.
+- [Release preparation and distribution](docs/release-distribution.md): release packages, Too Lost drafts, and setup
+- [Export and music library](docs/export-and-library.md): tagged FLAC/MP3 exports and publishing to Navidrome, Jellyfin, or Plex
+- [Audio metadata](docs/audio-metadata.md): tag resolution and library setup details
+- [Motion artwork preview](docs/motion-artwork.md): Apple Music and Spotify Canvas previews
+- [Self-hosting guide](docs/self-hosting.md): updating, in-app updates, and every configuration variable
+- [Development](docs/DEVELOPMENT.md)
 
 ## Core { vault } Features
 
@@ -121,7 +80,7 @@ On first launch, enter the full URL of your self-hosted instance, including `htt
 
 ### Self-hosted Server
 
-Requires Git, Docker, and Docker Compose. The default command builds locally from source. Tagged releases also publish the server and audio-analysis images to GitHub Container Registry for in-app updates.
+Requires Git, Docker, and Docker Compose.
 
 ```bash
 git clone https://github.com/ILostXD/vault_studio.git
@@ -129,91 +88,13 @@ cd vault_studio
 cp .env.example .env
 ```
 
-Set `JWT_SECRET`, `SIGNED_URL_SECRET`, and `TOKEN_PEPPER` in `.env` to different random values. Generate each value with:
-
-```bash
-openssl rand -base64 32
-```
-
-Then build and start the application:
+Set `JWT_SECRET`, `SIGNED_URL_SECRET`, and `TOKEN_PEPPER` in `.env` to different random values (`openssl rand -base64 32` generates one), then start it:
 
 ```bash
 docker compose up -d --build
 ```
 
-The app is available at `http://localhost:8080` by default. Runtime data is stored in `./data`.
-
-To update an existing checkout:
-
-```bash
-git pull --ff-only
-docker compose up -d --build
-```
-
-### In-app Updates
-
-Admins can check GitHub Releases from **Settings > Instance Information**. { vault.studio }'s GitHub Actions workflow builds the server and audio-analysis Docker images and publishes them to this repository's GitHub Container Registry (GHCR) packages whenever a version tag such as `v1.1.0` is pushed. Docker Hub is not required.
-
-The updater does not run `git pull`, build the newest `main` commit, or publish images itself. It only pulls the `latest` images produced by a tagged GitHub release. Before enabling it, make both GHCR packages public:
-
-- `ghcr.io/ilostxd/vault_studio`
-- `ghcr.io/ilostxd/vault_studio-audio-analysis`
-
-Then start { vault.studio } once with the isolated updater override to enable the **Update** button:
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.updates.yml up -d --build
-```
-
-After that one-time setup, each future tagged release can be installed from Settings without running Git or Compose commands again. The updater pulls the published GHCR images, preserves the existing `./data` mount, and restarts the { vault.studio } services. It is not exposed on a host port, uses the instance JWT secret for its internal request, and only its dedicated Watchtower container receives the Docker socket. Keep `JWT_SECRET` private. Android APK updates remain handled by Obtainium or the GitHub release page.
-
-## Configuration
-
-| Variable | Description | Default |
-| --- | --- | --- |
-| `JWT_SECRET` | Secret used to sign access tokens | Required |
-| `SIGNED_URL_SECRET` | Secret used to sign media URLs | Required |
-| `TOKEN_PEPPER` | Pepper used when hashing tokens | Required |
-| `HOST_PORT` | Port exposed on the host | `8080` |
-| `ACCESS_TOKEN_TTL` | Access-token lifetime | `15m` |
-| `REFRESH_TOKEN_TTL` | Refresh-token lifetime | `720h` |
-| `SIGNED_URL_TTL` | Signed media URL lifetime | `5m` |
-| `CORS_ALLOWED_ORIGINS` | Comma-separated additional frontend origins | Local defaults |
-| `LOG_LEVEL` | Log verbosity (`debug`, `info`, `warn`, `error`) | `warn` |
-| `TOOLOST_CLIENT_ID` | Too Lost OAuth application client ID | Optional |
-| `TOOLOST_CLIENT_SECRET` | Too Lost OAuth application client secret | Optional |
-| `TOOLOST_ENVIRONMENT` | Too Lost API environment (`sandbox` or `production`) | `sandbox` |
-| `PUBLIC_BASE_URL` | Public HTTPS instance URL used for OAuth callbacks | Required for Too Lost |
-| `PROVIDER_TOKEN_ENCRYPTION_KEY` | Advanced override: base64-encoded 32-byte key for provider credentials | Derived from `JWT_SECRET` |
-| `MUSIC_LIBRARY_DIR` | Writable folder for publishing tagged albums to a music library (Docker: set `MUSIC_LIBRARY_HOST_DIR` and use `docker-compose.music-library.yml`) | Disabled |
-
-### Too Lost Drafts
-
-1. Give { vault.studio } a stable public HTTPS address using a reverse proxy or HTTPS tunnel.
-2. Open **Settings > Too Lost distribution** as an administrator and enter that public URL to preview the exact callback URL.
-3. Register an OAuth application in the [Too Lost Developer Portal](https://developer.toolost.com/) using that callback URL.
-4. Enter the issued client ID and secret in { vault.studio }, save the settings, then connect Too Lost from the Prepare Release delivery view. No rebuild is required.
-
-{ vault.studio } encrypts the OAuth client secret and connected-account tokens in its database using a key derived from the existing private `JWT_SECRET`. The secret is never returned to the browser after it is saved. Existing installations may keep configuring Too Lost through environment variables; these act as startup defaults until an administrator saves settings in the app:
-
-```dotenv
-TOOLOST_CLIENT_ID=your-client-id
-TOOLOST_CLIENT_SECRET=your-client-secret
-TOOLOST_ENVIRONMENT=sandbox
-PUBLIC_BASE_URL=https://vault.example.com
-# Optional advanced override. Do not change it after connecting accounts.
-PROVIDER_TOKEN_ENCRYPTION_KEY=your-separate-32-byte-base64-key
-```
-
-The Settings page shows whether Too Lost is configured and displays the exact OAuth callback URL to register. Release Package export remains the no-registration fallback. The static square cover is included in both the package and Too Lost drafts when it is available; Apple motion artwork remains package-only until Too Lost publishes a stable MP4 upload contract.
-
-`PUBLIC_BASE_URL` must be a stable public HTTPS address that reaches { vault.studio }'s HTTP server so Too Lost can return the OAuth callback and fetch the short-lived signed cover URL. A reverse proxy or HTTPS tunnel is sufficient; the database, Docker socket, and audio-analysis service must remain private. Use `production` only after Too Lost grants production access and the registered application uses the production callback.
-
-Disconnecting Too Lost removes the stored provider credential but leaves { vault.studio } release preparations and distribution history intact. Provider credentials and in-app integration settings are encrypted at rest.
-
-## Development
-
-See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+The app is available at `http://localhost:8080` by default and stores its data in `./data`. See the [self-hosting guide](docs/self-hosting.md) for updates, in-app updates, and all configuration options.
 
 ## Credits And License
 

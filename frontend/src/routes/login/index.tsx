@@ -44,39 +44,33 @@ function LoginPage() {
 	);
 
 	// Handle focus inside text inputs on the card (server url, username, password)
-	const handleFocusCapture = useCallback(
-		(e: React.FocusEvent) => {
-			const target = e.target;
-			if (
-				!(
-					target instanceof HTMLInputElement ||
-					target instanceof HTMLTextAreaElement
-				)
-			) {
-				return;
-			}
-			if (
-				target.type === "button" ||
-				target.type === "submit" ||
-				target.type === "checkbox" ||
-				target.type === "radio"
-			) {
-				return;
-			}
+	const handleFocusCapture = useCallback((e: React.FocusEvent) => {
+		const target = e.target;
+		if (
+			!(
+				target instanceof HTMLInputElement ||
+				target instanceof HTMLTextAreaElement
+			)
+		) {
+			return;
+		}
+		if (
+			target.type === "button" ||
+			target.type === "submit" ||
+			target.type === "checkbox" ||
+			target.type === "radio"
+		) {
+			return;
+		}
 
-			if (blurTimeoutRef.current) {
-				clearTimeout(blurTimeoutRef.current);
-				blurTimeoutRef.current = null;
-			}
+		if (blurTimeoutRef.current) {
+			clearTimeout(blurTimeoutRef.current);
+			blurTimeoutRef.current = null;
+		}
 
-			// On native, Keyboard plugin (keyboardWillShow) handles elevation when software keyboard opens.
-			// On web (fallback), focus activates elevation.
-			if (!isNative) {
-				setIsInputActive(true);
-			}
-		},
-		[isNative],
-	);
+		// Elevation follows the software keyboard, never plain focus (that also fired on desktop):
+		// native uses the Keyboard plugin, mobile web uses the visual viewport shrinking.
+	}, []);
 
 	// Smoothly glide down only after keyboard/inputs exit completely (debounce to prevent bouncing between fields)
 	const handleBlurCapture = useCallback(
@@ -160,7 +154,15 @@ function LoginPage() {
 		};
 
 		const handleVvResize = () => {
-			if (vv) checkKeyboardDismiss(vv.height, window.innerHeight);
+			if (!vv) return;
+			// A touch device whose visual viewport lost >150px has its keyboard open.
+			if (
+				window.matchMedia("(pointer: coarse)").matches &&
+				window.innerHeight - vv.height > 150
+			) {
+				setIsInputActive(true);
+			}
+			checkKeyboardDismiss(vv.height, window.innerHeight);
 		};
 
 		const handleWindowResize = () => {

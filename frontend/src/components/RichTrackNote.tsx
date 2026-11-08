@@ -21,6 +21,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { compactUrlForDisplay, parseNoteDocument } from "@/lib/richText";
+import { cn } from "@/lib/utils";
 import type { NoteContentFormat } from "@/types/api";
 
 const extensions = [
@@ -45,6 +46,8 @@ interface EditorProps {
 	contentFormat: NoteContentFormat;
 	authorName: string;
 	onSave: (content: string, format: NoteContentFormat) => void;
+	/** Stretch to fill the parent's height (side panels). */
+	fill?: boolean;
 }
 
 export function RichTrackNoteEditor({
@@ -52,6 +55,7 @@ export function RichTrackNoteEditor({
 	contentFormat,
 	authorName,
 	onSave,
+	fill = false,
 }: EditorProps) {
 	const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const changedRef = useRef(false);
@@ -97,7 +101,12 @@ export function RichTrackNoteEditor({
 	if (!editor) return null;
 
 	return (
-		<div className="overflow-hidden rounded-2xl border border-(--card-border) bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to)">
+		<div
+			className={cn(
+				"overflow-hidden rounded-2xl border border-(--card-border) bg-linear-to-b from-(--card-gradient-from) to-(--card-gradient-to)",
+				fill && "flex min-h-72 flex-1 flex-col",
+			)}
+		>
 			<div className="flex items-center justify-between gap-2.5 border-b border-(--control-border-subtle) px-4 py-3">
 				<div className="flex items-center gap-2.5">
 					<div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-(--action-bg) text-xs font-semibold text-(--text-0)/70">
@@ -110,7 +119,14 @@ export function RichTrackNoteEditor({
 				</span>
 			</div>
 			<RichTextToolbar editor={editor} />
-			<EditorContent editor={editor} />
+			<EditorContent
+				editor={editor}
+				className={
+					fill
+						? "min-h-0 flex-1 overflow-y-auto [&_.rich-note-content]:max-h-none [&_.rich-note-content]:min-h-full"
+						: undefined
+				}
+			/>
 		</div>
 	);
 }

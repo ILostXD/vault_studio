@@ -446,9 +446,7 @@ export default function ProjectCard({
 							decoding="async"
 						/>
 					) : (
-						<div className="size-full bg-(--bg-2) flex items-center justify-center text-(--text-0)/30 text-5xl font-bold">
-							{String(project.name).charAt(0).toUpperCase()}
-						</div>
+						<div className="size-full bg-(--bg-2) flex items-center justify-center"></div>
 					)}
 				</motion.div>
 

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Save } from "lucide-react";
+import { Save, UserRound } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import {
 	type ArtistProfile,
 	distributionKeys,
@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { DisclosureSummary } from "@/components/ui/disclosure-summary";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
 import { CreditsEditor } from "./CreditsEditor";
 
 const creditsDisclosureKey = "vault:artist-profile:credits-open";
@@ -38,6 +39,14 @@ export function ArtistProfileSection() {
 		},
 	});
 	const profile = draft ?? query.data;
+	const { user } = useAuth();
+	// Default the display name to the account name (shown under the disc); stays editable.
+	useEffect(() => {
+		const saved = query.data;
+		if (saved && !draft && !saved.display_name.trim() && user?.username) {
+			setDraft({ ...saved, display_name: user.username });
+		}
+	}, [query.data, draft, user?.username]);
 	const addLegalNameDefaults = () => {
 		if (!profile?.legal_name.trim()) return;
 		setDraft({
@@ -52,7 +61,11 @@ export function ArtistProfileSection() {
 	};
 	return (
 		<section aria-labelledby={titleId} className="min-w-0 text-(--text-0)">
-			<h2 id={titleId} className="mb-6 text-xl font-medium">
+			<h2
+				id={titleId}
+				className="mb-6 flex items-center gap-2.5 text-xl font-medium"
+			>
+				<UserRound className="size-5 shrink-0 text-(--text-2)" />
 				Artist Profile
 			</h2>
 			{query.isPending ? (
@@ -111,7 +124,7 @@ export function ArtistProfileSection() {
 								</label>
 							</div>
 							<details
-								className="rounded-xl border border-(--card-border) bg-(--inner-card-bg)"
+								className="rounded-xl border border-(--card-border) bg-(--inner-card-bg) p-1.5"
 								open={creditsOpen}
 								onToggle={(event) => {
 									const open = event.currentTarget.open;

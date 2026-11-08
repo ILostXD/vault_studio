@@ -9,7 +9,7 @@ import {
 	waitFor,
 } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { saveArtistProfile } from "@/api/distribution";
+import { getArtistProfile, saveArtistProfile } from "@/api/distribution";
 import { ArtistProfileSection } from "./ArtistProfileSection";
 
 vi.mock("@/api/distribution", async (importOriginal) => ({
@@ -20,6 +20,10 @@ vi.mock("@/api/distribution", async (importOriginal) => ({
 		default_credits: [],
 	}),
 	saveArtistProfile: vi.fn(),
+}));
+
+vi.mock("@/contexts/AuthContext", () => ({
+	useAuth: () => ({ user: { username: "DiRO" } }),
 }));
 
 beforeEach(() => {
@@ -35,6 +39,19 @@ beforeEach(() => {
 	});
 });
 afterEach(cleanup);
+
+it("defaults an empty display name to the account name and keeps it editable", async () => {
+	vi.mocked(getArtistProfile).mockResolvedValueOnce({
+		display_name: "",
+		legal_name: "",
+		default_credits: [],
+	});
+	renderProfile();
+	const input = await screen.findByLabelText("Artist / display name");
+	await waitFor(() => expect((input as HTMLInputElement).value).toBe("DiRO"));
+	fireEvent.change(input, { target: { value: "Stage Name" } });
+	expect((input as HTMLInputElement).value).toBe("Stage Name");
+});
 
 it("saves the usual genre with the artist profile", async () => {
 	vi.mocked(saveArtistProfile).mockImplementation(async (profile) => profile);
