@@ -18,28 +18,28 @@ jobs:
       matrix:
         include:
           - component: server
-            image: ${{ github.repository }}
+            image: ilostxd/vault_studio
             context: .
             dockerfile: ./Dockerfile
             platform: linux/arm64
             runner: ubuntu-24.04-arm
             suffix: arm64
           - component: server
-            image: ${{ github.repository }}
+            image: ilostxd/vault_studio
             context: .
             dockerfile: ./Dockerfile
             platform: linux/amd64
             runner: ubuntu-latest
             suffix: amd64
           - component: audio
-            image: ${{ github.repository }}-audio-analysis
+            image: ilostxd/vault_studio-audio-analysis
             context: ./audio-analysis
             dockerfile: ./audio-analysis/Dockerfile
             platform: linux/arm64
             runner: ubuntu-24.04-arm
             suffix: arm64
           - component: audio
-            image: ${{ github.repository }}-audio-analysis
+            image: ilostxd/vault_studio-audio-analysis
             context: ./audio-analysis
             dockerfile: ./audio-analysis/Dockerfile
             platform: linux/amd64
@@ -117,9 +117,9 @@ jobs:
       matrix:
         include:
           - component: server
-            image: ${{ github.repository }}
+            image: ilostxd/vault_studio
           - component: audio
-            image: ${{ github.repository }}-audio-analysis
+            image: ilostxd/vault_studio-audio-analysis
     permissions:
       contents: read
       packages: write
