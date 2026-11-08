@@ -1070,7 +1070,7 @@ export default function NowPlayingView({
 					<div
 						className={cn(
 							"flex min-h-0 flex-col",
-							!activePanel && "justify-center",
+							!activePanel && !isTallArtwork && "justify-center",
 						)}
 					>
 						<div
@@ -1078,7 +1078,9 @@ export default function NowPlayingView({
 								"relative flex min-h-0 w-full py-2",
 								activePanel
 									? "flex-1 flex-col items-start overflow-hidden"
-									: "items-center justify-center py-12",
+									: isTallArtwork
+										? "flex-1"
+										: "items-center justify-center py-12",
 							)}
 							data-testid="mobile-artwork-region"
 						>
