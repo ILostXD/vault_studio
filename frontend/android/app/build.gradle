@@ -7,8 +7,8 @@ android {
         applicationId "com.vaultstudio.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 15
-        versionName "1.1.1"
+        versionCode 16
+        versionName "1.1.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders = [appIcon: "@mipmap/ic_launcher", appRoundIcon: "@mipmap/ic_launcher_round"]
         aaptOptions {
