@@ -1070,7 +1070,7 @@ export default function NowPlayingView({
 					<div
 						className={cn(
 							"flex min-h-0 flex-col",
-							!activePanel && !isTallArtwork && "justify-center",
+							!activePanel && "justify-center",
 						)}
 					>
 						<div
@@ -1078,12 +1078,17 @@ export default function NowPlayingView({
 								"relative flex min-h-0 w-full py-2",
 								activePanel
 									? "flex-1 flex-col items-start overflow-hidden"
-									: isTallArtwork
-										? "flex-1"
-										: "items-center justify-center py-12",
+									: "items-center justify-center py-12",
 							)}
 							data-testid="mobile-artwork-region"
 						>
+							{/* Tall artwork fills the screen, so reserve the cover's space to keep the controls where they are with a 1:1 cover. */}
+							{!activePanel && isTallArtwork && (
+								<div
+									className="mobile-cover-slot aspect-square shrink-0"
+									aria-hidden
+								/>
+							)}
 							{!activePanel && !isTallArtwork && (
 								<motion.div
 									layoutId="mobile-now-playing-artwork"
